@@ -81,7 +81,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
-  /* Vanta Net Background Container */
+  /* Vanta Net Background Canvas */
   #vanta-bg {
     position: fixed;
     top: 0; left: 0;
@@ -114,14 +114,10 @@
   .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
   .sidebar-brand { display: flex; align-items: center; gap: 10px; }
   .sidebar-brand .logo {
-    width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.2);
+    width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(10px); border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 6px; flex-shrink: 0;
-  }
-  .sidebar-brand .logo img {
-    max-width: 100%; max-height: 100%; width: auto; height: auto;
-    object-fit: contain; display: block;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: var(--text); flex-shrink: 0;
   }
   .sidebar-brand h2 { font-family: 'Baloo 2'; font-size: 16px; margin: 0; color: var(--text); line-height: 1.2; }
   .sidebar-brand .sub { font-size: 11px; color: var(--text-dim); font-weight: 600; }
@@ -278,7 +274,7 @@
 
   .add-staff-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
   .link-btn {
-    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
     background: var(--link-bg); border: 1px solid var(--link-border); color: var(--sky); border-radius: 12px;
     padding: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none;
   }
@@ -368,9 +364,11 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-brand">
-        <!-- Logo Apple dari Tautan -->
-        <div class="logo">
-          <img src="https://share.google/90MknrXOOTLj46Hbv" alt="Apple Logo">
+        <!-- Vektor Presisi SVG Apple Logo -->
+        <div class="logo" title="Apple">
+          <svg viewBox="0 0 170 170" width="22" height="22" fill="currentColor">
+            <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.03-7.72-7.88-12.06-14.56-8.52-13.08-14.93-27.81-19.24-44.18-4.31-16.37-6.47-31.11-6.47-44.23 0-16.12 3.82-29.42 11.46-39.9 7.64-10.48 17.51-15.82 29.61-16.02 5.09 0 10.45 1.25 16.08 3.75 5.63 2.5 9.4 3.75 11.31 3.75 1.62 0 5.48-1.25 11.58-3.75 6.1-2.5 11.19-3.65 15.28-3.45 13.06.72 23.63 5.4 31.72 14.04-11.5 6.93-17.13 16.79-16.89 29.58.24 9.94 4.09 18.23 11.55 24.87 7.46 6.64 16.14 10.28 26.04 10.92-2.61 7.9-6.02 15.61-10.23 23.13zM119.22 31.84c0-7.3 2.62-14.28 7.86-20.94 5.24-6.66 11.85-10.6 19.83-11.82.24 1.1.36 2.02.36 2.76 0 7.48-2.68 14.59-8.04 21.33-5.36 6.74-12.02 10.74-19.98 12.01-.24-.84-.36-1.95-.36-3.34z"/>
+          </svg>
         </div>
         <div>
           <h2>Digimap TP3</h2>
@@ -390,11 +388,9 @@
       <button class="nav-item" id="navLob" onclick="switchTab('lob')">
         🏆 LOB Champion Report
       </button>
-      <!-- Activity Baru: OPS & EMS -->
       <button class="nav-item" id="navOpsEms" onclick="switchTab('opsems')">
         ⚙️ OPS & EMS Report
       </button>
-      <!-- Activity Baru: Trainer -->
       <button class="nav-item" id="navTrainer" onclick="switchTab('trainer')">
         🎓 Trainer Report
       </button>
@@ -497,7 +493,6 @@
 
           <div class="form-group">
             <label>Tujuan Aktivitas</label>
-            <!-- Open Studio, Training, & Roleplay telah dipindahkan -->
             <select id="tujuan" required>
               <option value="" disabled selected>Pilih Tujuan...</option>
               <option value="Try On Aksara">📁 Try On Aksara</option>
@@ -573,7 +568,7 @@
       </div>
     </section>
 
-    <!-- VIEW 4: OPS & EMS REPORT -->
+    <!-- VIEW 4: OPS & EMS REPORT (ISOLATED EXCLUSIVELY HERE) -->
     <section id="viewOpsems" class="view-panel">
       <div class="glass-card">
         <div class="photo-header">
@@ -582,9 +577,13 @@
 
         <div class="date-display" style="text-align:left; margin-bottom:18px;" id="opsEmsDateDisplay">--</div>
 
-        <div style="margin-bottom: 20px;">
-          <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn">
-            🔗 Buka Form Submit OPS & EMS
+        <!-- Dua Link Terpisah untuk Form Submit OPS & EMS -->
+        <div style="margin-bottom: 20px; display:flex; flex-direction:column; gap:10px;">
+          <a href="https://forms.gle/cjE3NPNqQhPwHyQZ9" target="_blank" class="link-btn">
+            🔗 Buka Form Submit OPS
+          </a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSe8K1gHsP0auF1YougpKE5NK5_9qiEFSuV3Fn7ITF8cs1ojxA/viewform" target="_blank" class="link-btn">
+            🔗 Buka Form Submit EMS
           </a>
         </div>
 
