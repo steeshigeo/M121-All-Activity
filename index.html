@@ -7,9 +7,14 @@
 <title>Digimap TP3 - Activity Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Library Vanta.js Net Effect & Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+
 <style>
   :root {
-    --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    --bg-gradient: linear-gradient(135deg, rgba(224, 195, 252, 0.4) 0%, rgba(142, 197, 252, 0.4) 100%);
     --surface: rgba(255, 255, 255, 0.45);
     --surface-solid: rgba(255, 255, 255, 0.7);
     --surface-soft: rgba(255, 255, 255, 0.35);
@@ -39,7 +44,7 @@
   }
 
   [data-theme="dark"] {
-    --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    --bg-gradient: linear-gradient(135deg, rgba(15, 32, 39, 0.6) 0%, rgba(32, 58, 67, 0.6) 50%, rgba(44, 83, 100, 0.6) 100%);
     --surface: rgba(255, 255, 255, 0.08);
     --surface-solid: rgba(30, 35, 40, 0.8);
     --surface-soft: rgba(255, 255, 255, 0.05);
@@ -72,9 +77,17 @@
   body {
     min-height: 100vh;
     background: var(--bg-gradient);
-    background-attachment: fixed;
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Vanta Net Background Container */
+  #vanta-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: -1;
+    pointer-events: none;
   }
 
   /* Layout Sidebar Liquid Glass */
@@ -101,14 +114,19 @@
   .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
   .sidebar-brand { display: flex; align-items: center; gap: 10px; }
   .sidebar-brand .logo {
-    width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--mint), #0a8f63);
-    display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 18px;
-    box-shadow: 0 4px 12px rgba(15,184,127,0.3);
+    width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 6px; flex-shrink: 0;
+  }
+  .sidebar-brand .logo img {
+    max-width: 100%; max-height: 100%; width: auto; height: auto;
+    object-fit: contain; display: block;
   }
   .sidebar-brand h2 { font-family: 'Baloo 2'; font-size: 16px; margin: 0; color: var(--text); line-height: 1.2; }
   .sidebar-brand .sub { font-size: 11px; color: var(--text-dim); font-weight: 600; }
 
-  .sidebar-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
   .nav-item {
     display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px;
     background: transparent; color: var(--text-dim); border: 1px solid transparent;
@@ -161,7 +179,7 @@
   }
   .theme-toggle-btn:active { transform: scale(0.92); }
 
-  /* View Headers & Forms */
+  /* Forms & Headers */
   .photo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .photo-header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; font-family: 'Baloo 2'; line-height: 1.3; }
 
@@ -200,7 +218,7 @@
   .brand { display: flex; align-items: center; gap: 10px; }
   .brand .logo {
     width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg,var(--mint),#0a8f63);
-    display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,184,127,0.3); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,184,127,0.3); flex-shrink: 0; color: #fff; font-weight: 800;
   }
   .brand h1 { font-family: 'Baloo 2'; font-size: 19px; font-weight: 700; margin: 0; color: var(--text); }
   .brand .sub { font-size: 11.5px; color: var(--text-dim); font-weight: 600; }
@@ -339,6 +357,9 @@
 </head>
 <body>
 
+<!-- Vanta Net Background Canvas -->
+<div id="vanta-bg"></div>
+
 <div class="layout-container">
   <!-- Overlay Mobile -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -347,7 +368,10 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-brand">
-        <div class="logo">M</div>
+        <!-- Logo Apple dari Tautan -->
+        <div class="logo">
+          <img src="https://share.google/90MknrXOOTLj46Hbv" alt="Apple Logo">
+        </div>
         <div>
           <h2>Digimap TP3</h2>
           <div class="sub">Activity Hub</div>
@@ -363,9 +387,16 @@
       <button class="nav-item" id="navPhoto" onclick="switchTab('photo')">
         📸 Activity Photo Evidence
       </button>
-      <!-- Activity Baru: LOB Champion Report -->
       <button class="nav-item" id="navLob" onclick="switchTab('lob')">
         🏆 LOB Champion Report
+      </button>
+      <!-- Activity Baru: OPS & EMS -->
+      <button class="nav-item" id="navOpsEms" onclick="switchTab('opsems')">
+        ⚙️ OPS & EMS Report
+      </button>
+      <!-- Activity Baru: Trainer -->
+      <button class="nav-item" id="navTrainer" onclick="switchTab('trainer')">
+        🎓 Trainer Report
       </button>
     </nav>
 
@@ -466,11 +497,9 @@
 
           <div class="form-group">
             <label>Tujuan Aktivitas</label>
+            <!-- Open Studio, Training, & Roleplay telah dipindahkan -->
             <select id="tujuan" required>
               <option value="" disabled selected>Pilih Tujuan...</option>
-              <option value="Open Studio">📁 Open Studio</option>
-              <option value="Roleplay">📁 Roleplay</option>
-              <option value="Training">📁 Training</option>
               <option value="Try On Aksara">📁 Try On Aksara</option>
               <option value="Try On Cakrawala">📁 Try On Cakrawala</option>
               <option value="Try On Samudra">📁 Try On Samudra</option>
@@ -506,7 +535,6 @@
 
         <div class="date-display" style="text-align:left; margin-bottom:18px;" id="lobDateDisplay">--</div>
 
-        <!-- Button Buka Link Submit Form LOB -->
         <div style="margin-bottom: 20px;">
           <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn">
             🔗 Buka Form Submit LOB Champion
@@ -540,6 +568,128 @@
           <div class="btn-action-group">
             <button class="btn-action btn-copy" onclick="copyLobReportOnly()">📋 Copy Teks Saja</button>
             <button class="btn-action btn-wa" onclick="copyLobAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: OPS & EMS REPORT -->
+    <section id="viewOpsems" class="view-panel">
+      <div class="glass-card">
+        <div class="photo-header">
+          <h2>OPS & EMS Report</h2>
+        </div>
+
+        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="opsEmsDateDisplay">--</div>
+
+        <div style="margin-bottom: 20px;">
+          <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn">
+            🔗 Buka Form Submit OPS & EMS
+          </a>
+        </div>
+
+        <form id="opsems-upload-form" onsubmit="handleOpsEmsSubmit(event)">
+          <div class="form-group">
+            <label>Nama Staff</label>
+            <select id="opsEmsNamaStaff" required>
+              <option value="" disabled selected>Pilih Staff...</option>
+              <option value="Sulton Setiawan">Sulton Setiawan</option>
+              <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
+              <option value="Hartono">Hartono</option>
+              <option value="Eggy Thania A.M">Eggy Thania A.M</option>
+              <option value="Frandy Putra">Frandy Putra</option>
+              <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
+              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
+              <option value="Dewi Andansari">Dewi Andansari</option>
+              <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
+              <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
+              <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
+              <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tujuan Aktivitas</label>
+            <select id="opsEmsTujuan" required>
+              <option value="" disabled selected>Pilih Tujuan...</option>
+              <option value="Open Studio">📁 Open Studio</option>
+              <option value="EMS">📁 EMS</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Foto Evidence ke Google Drive</label>
+            <input type="file" id="opsEmsFoto" accept="image/*" required>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-opsems-submit">Upload ke Google Drive</button>
+        </form>
+
+        <div id="opsEmsStatus" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
+
+        <div class="report-box" id="opsEmsReportBox">
+          <div class="report-text" id="opsEmsReportText"></div>
+          <div class="btn-action-group">
+            <button class="btn-action btn-copy" onclick="copyOpsEmsReportOnly()">📋 Copy Teks Saja</button>
+            <button class="btn-action btn-wa" onclick="copyOpsEmsAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: TRAINER REPORT -->
+    <section id="viewTrainer" class="view-panel">
+      <div class="glass-card">
+        <div class="photo-header">
+          <h2>Trainer Report</h2>
+        </div>
+
+        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="trainerDateDisplay">--</div>
+
+        <form id="trainer-upload-form" onsubmit="handleTrainerSubmit(event)">
+          <div class="form-group">
+            <label>Nama Staff</label>
+            <select id="trainerNamaStaff" required>
+              <option value="" disabled selected>Pilih Staff...</option>
+              <option value="Sulton Setiawan">Sulton Setiawan</option>
+              <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
+              <option value="Hartono">Hartono</option>
+              <option value="Eggy Thania A.M">Eggy Thania A.M</option>
+              <option value="Frandy Putra">Frandy Putra</option>
+              <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
+              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
+              <option value="Dewi Andansari">Dewi Andansari</option>
+              <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
+              <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
+              <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
+              <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tujuan Aktivitas</label>
+            <select id="trainerTujuan" required>
+              <option value="" disabled selected>Pilih Tujuan...</option>
+              <option value="Training">📁 Training</option>
+              <option value="Roleplay">📁 Roleplay</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Foto Evidence ke Google Drive</label>
+            <input type="file" id="trainerFoto" accept="image/*" required>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-trainer-submit">Upload ke Google Drive</button>
+        </form>
+
+        <div id="trainerStatus" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
+
+        <div class="report-box" id="trainerReportBox">
+          <div class="report-text" id="trainerReportText"></div>
+          <div class="btn-action-group">
+            <button class="btn-action btn-copy" onclick="copyTrainerReportOnly()">📋 Copy Teks Saja</button>
+            <button class="btn-action btn-wa" onclick="copyTrainerAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
           </div>
         </div>
       </div>
@@ -592,26 +742,45 @@
 <div class="toast" id="toast">Tersalin ✓</div>
 
 <script>
+// --- VANTA.JS NET ANIMATION INIT ---
+let vantaEffect = null;
+function initVanta() {
+  if (vantaEffect) vantaEffect.destroy();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  vantaEffect = VANTA.NET({
+    el: "#vanta-bg",
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200.00,
+    minWidth: 200.00,
+    scale: 1.00,
+    scaleMobile: 1.00,
+    color: isDark ? 0x34d399 : 0x0fb87f,
+    backgroundColor: isDark ? 0x0c100e : 0xeafbf3,
+    points: 9.00,
+    maxDistance: 18.00,
+    spacing: 16.00
+  });
+}
+window.addEventListener('DOMContentLoaded', initVanta);
+
+
 // --- NAVIGATION SIDEBAR LOGIC ---
 function switchTab(tab) {
-  document.getElementById('navChecklist').classList.remove('active');
-  document.getElementById('navPhoto').classList.remove('active');
-  document.getElementById('navLob').classList.remove('active');
+  const tabs = ['Checklist', 'Photo', 'Lob', 'OpsEms', 'Trainer'];
+  tabs.forEach(t => {
+    const navEl = document.getElementById('nav' + t);
+    const viewEl = document.getElementById('view' + t);
+    if (navEl) navEl.classList.remove('active');
+    if (viewEl) viewEl.classList.remove('active');
+  });
 
-  document.getElementById('viewChecklist').classList.remove('active');
-  document.getElementById('viewPhoto').classList.remove('active');
-  document.getElementById('viewLob').classList.remove('active');
+  const targetNav = document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  const targetView = document.getElementById('view' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (targetNav) targetNav.classList.add('active');
+  if (targetView) targetView.classList.add('active');
 
-  if (tab === 'photo') {
-    document.getElementById('navPhoto').classList.add('active');
-    document.getElementById('viewPhoto').classList.add('active');
-  } else if (tab === 'lob') {
-    document.getElementById('navLob').classList.add('active');
-    document.getElementById('viewLob').classList.add('active');
-  } else {
-    document.getElementById('navChecklist').classList.add('active');
-    document.getElementById('viewChecklist').classList.add('active');
-  }
   closeSidebar();
 }
 
@@ -631,6 +800,7 @@ function closeSidebar() {
   sidebarOverlay.classList.remove('open');
 }
 
+
 // --- GLOBAL THEME LOGIC ---
 const THEME_KEY = "digimap_theme_pref";
 function applyTheme(pref) {
@@ -639,6 +809,7 @@ function applyTheme(pref) {
   } else {
     document.documentElement.removeAttribute("data-theme");
   }
+  if (typeof VANTA !== 'undefined') initVanta();
 }
 let themePref = localStorage.getItem(THEME_KEY) || "auto";
 applyTheme(themePref);
@@ -663,8 +834,12 @@ const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i
 
 const photoNow = new Date();
 const photoDateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-document.getElementById('photoDateDisplay').innerText = photoNow.toLocaleDateString('id-ID', photoDateOptions);
-document.getElementById('lobDateDisplay').innerText = photoNow.toLocaleDateString('id-ID', photoDateOptions);
+const dateStrFormatted = photoNow.toLocaleDateString('id-ID', photoDateOptions);
+
+document.getElementById('photoDateDisplay').innerText = dateStrFormatted;
+document.getElementById('lobDateDisplay').innerText = dateStrFormatted;
+document.getElementById('opsEmsDateDisplay').innerText = dateStrFormatted;
+document.getElementById('trainerDateDisplay').innerText = dateStrFormatted;
 
 function getFormattedPhotoDateTime() {
   const d = new Date();
@@ -676,7 +851,7 @@ function getFormattedPhotoDateTime() {
 }
 
 
-// --- VIEW 2: PHOTO EVIDENCE LOGIC ---
+// --- VIEW: PHOTO EVIDENCE LOGIC ---
 let photoReportTemplate = "";
 
 function handlePhotoSubmit(e) {
@@ -738,20 +913,16 @@ function handlePhotoSubmit(e) {
 
 function copyPhotoReportOnly() {
   if (!photoReportTemplate) return;
-  navigator.clipboard.writeText(photoReportTemplate).then(() => {
-    showToast("✅ Teks laporan berhasil disalin!");
-  });
+  navigator.clipboard.writeText(photoReportTemplate).then(() => showToast("✅ Teks laporan berhasil disalin!"));
 }
 
 function copyPhotoAndOpenWA() {
   if (!photoReportTemplate) return;
-  navigator.clipboard.writeText(photoReportTemplate).then(() => {
-    window.open(WA_GROUP_LINK, '_blank');
-  });
+  navigator.clipboard.writeText(photoReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
 }
 
 
-// --- VIEW 3: LOB CHAMPION REPORT LOGIC ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
 function handleLobSubmit(e) {
@@ -767,7 +938,7 @@ function handleLobSubmit(e) {
   reportBox.style.display = "none";
 
   const namaStaff = document.getElementById('lobNamaStaff').value;
-  const tujuan = "LOB Champion"; // Folder Otomatis LOB Champion di Google Drive
+  const tujuan = "LOB Champion";
 
   const reader = new FileReader();
   reader.onload = function(evt) {
@@ -813,20 +984,158 @@ function handleLobSubmit(e) {
 
 function copyLobReportOnly() {
   if (!lobReportTemplate) return;
-  navigator.clipboard.writeText(lobReportTemplate).then(() => {
-    showToast("✅ Teks laporan disalin!");
-  });
+  navigator.clipboard.writeText(lobReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
 }
 
 function copyLobAndOpenWA() {
   if (!lobReportTemplate) return;
-  navigator.clipboard.writeText(lobReportTemplate).then(() => {
-    window.open(WA_GROUP_LINK, '_blank');
-  });
+  navigator.clipboard.writeText(lobReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
 }
 
 
-// --- VIEW 1: CHECKLIST HARIAN TOKO LOGIC ---
+// --- VIEW: OPS & EMS REPORT LOGIC ---
+let opsEmsReportTemplate = "";
+
+function handleOpsEmsSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-opsems-submit');
+  const status = document.getElementById('opsEmsStatus');
+  const reportBox = document.getElementById('opsEmsReportBox');
+  const file = document.getElementById('opsEmsFoto').files[0];
+
+  btn.disabled = true;
+  btn.innerText = "Uploading...";
+  status.innerText = "";
+  reportBox.style.display = "none";
+
+  const namaStaff = document.getElementById('opsEmsNamaStaff').value;
+  const tujuan = document.getElementById('opsEmsTujuan').value;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const payload = {
+      namaStaff: namaStaff,
+      tujuan: tujuan,
+      fileData: evt.target.result,
+      mimeType: file.type
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      btn.disabled = false;
+      btn.innerText = "Upload ke Google Drive";
+      if(res.success) {
+        status.style.color = "var(--mint)";
+        status.innerText = "✅ Foto OPS & EMS berhasil diunggah!";
+        
+        const waktuUpload = getFormattedPhotoDateTime();
+        opsEmsReportTemplate = `📌 LAPORAN OPS & EMS M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+        document.getElementById('opsEmsReportText').innerText = opsEmsReportTemplate;
+        reportBox.style.display = "block";
+        document.getElementById('opsems-upload-form').reset();
+      } else {
+        status.style.color = "var(--danger)";
+        status.innerText = "❌ Gagal: " + res.error;
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerText = "Upload ke Google Drive";
+      status.style.color = "var(--danger)";
+      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function copyOpsEmsReportOnly() {
+  if (!opsEmsReportTemplate) return;
+  navigator.clipboard.writeText(opsEmsReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
+}
+
+function copyOpsEmsAndOpenWA() {
+  if (!opsEmsReportTemplate) return;
+  navigator.clipboard.writeText(opsEmsReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
+}
+
+
+// --- VIEW: TRAINER REPORT LOGIC ---
+let trainerReportTemplate = "";
+
+function handleTrainerSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-trainer-submit');
+  const status = document.getElementById('trainerStatus');
+  const reportBox = document.getElementById('trainerReportBox');
+  const file = document.getElementById('trainerFoto').files[0];
+
+  btn.disabled = true;
+  btn.innerText = "Uploading...";
+  status.innerText = "";
+  reportBox.style.display = "none";
+
+  const namaStaff = document.getElementById('trainerNamaStaff').value;
+  const tujuan = document.getElementById('trainerTujuan').value;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const payload = {
+      namaStaff: namaStaff,
+      tujuan: tujuan,
+      fileData: evt.target.result,
+      mimeType: file.type
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      btn.disabled = false;
+      btn.innerText = "Upload ke Google Drive";
+      if(res.success) {
+        status.style.color = "var(--mint)";
+        status.innerText = "✅ Foto Trainer berhasil diunggah!";
+        
+        const waktuUpload = getFormattedPhotoDateTime();
+        trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+        document.getElementById('trainerReportText').innerText = trainerReportTemplate;
+        reportBox.style.display = "block";
+        document.getElementById('trainer-upload-form').reset();
+      } else {
+        status.style.color = "var(--danger)";
+        status.innerText = "❌ Gagal: " + res.error;
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerText = "Upload ke Google Drive";
+      status.style.color = "var(--danger)";
+      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function copyTrainerReportOnly() {
+  if (!trainerReportTemplate) return;
+  navigator.clipboard.writeText(trainerReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
+}
+
+function copyTrainerAndOpenWA() {
+  if (!trainerReportTemplate) return;
+  navigator.clipboard.writeText(trainerReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
+}
+
+
+// --- VIEW: CHECKLIST HARIAN TOKO LOGIC ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
@@ -1419,7 +1728,7 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
   }
 });
 
-// Inisialisasi
+// Inisialisasi Checklist
 initChecklist();
 </script>
 </body>
