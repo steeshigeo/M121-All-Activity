@@ -80,6 +80,9 @@
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
+  body.sidebar-open {
+    overflow: hidden;
+  }
 
   /* Vanta Net Background Canvas */
   #vanta-bg {
@@ -103,8 +106,8 @@
     backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column; padding: 20px 16px; position: fixed;
-    top: 0; bottom: 0; left: 0; z-index: 100; transition: transform 0.3s ease;
-    box-shadow: var(--shadow);
+    top: 0; bottom: 0; left: 0; height: 100vh; height: 100dvh; z-index: 100; transition: transform 0.3s ease;
+    box-shadow: var(--shadow); overscroll-behavior: contain;
   }
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); }
@@ -117,12 +120,17 @@
     width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(10px); border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 5px; flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 6px; flex-shrink: 0;
   }
   .sidebar-brand .logo img {
     width: 100%; height: 100%;
     object-fit: contain; display: block;
+    transition: filter 0.2s;
   }
+  [data-theme="dark"] .sidebar-brand .logo img {
+    filter: invert(1);
+  }
+
   .sidebar-brand h2 { font-family: 'Baloo 2'; font-size: 16px; margin: 0; color: var(--text); line-height: 1.2; }
   .sidebar-brand .sub { font-size: 11px; color: var(--text-dim); font-weight: 600; }
 
@@ -281,6 +289,7 @@
     display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
     background: var(--link-bg); border: 1px solid var(--link-border); color: var(--sky); border-radius: 12px;
     padding: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none;
+    margin-top: 12px;
   }
 
   .add-activity-btn {
@@ -370,7 +379,7 @@
       <div class="sidebar-brand">
         <!-- Logo Apple -->
         <div class="logo" title="Apple">
-          <img src="https://share.google/6hVSnUipb9BKHvhiW" alt="Apple Logo">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" alt="Apple Logo">
         </div>
         <div>
           <h2>Digimap TP3</h2>
@@ -418,7 +427,7 @@
         <div class="brand">
           <div class="logo">✓</div>
           <div>
-            <h1>Chekclist Harian Toko</h1>
+            <h1>Checklist Harian Toko</h1>
             <div class="sub">Digimap TP3 Surabaya</div>
           </div>
         </div>
@@ -791,6 +800,7 @@ const sidebarOverlay = document.getElementById('sidebarOverlay');
 toggleSidebarBtn.addEventListener('click', () => {
   sidebar.classList.add('open');
   sidebarOverlay.classList.add('open');
+  document.body.classList.add('sidebar-open');
 });
 
 sidebarOverlay.addEventListener('click', closeSidebar);
@@ -798,6 +808,7 @@ sidebarOverlay.addEventListener('click', closeSidebar);
 function closeSidebar() {
   sidebar.classList.remove('open');
   sidebarOverlay.classList.remove('open');
+  document.body.classList.remove('sidebar-open');
 }
 
 
