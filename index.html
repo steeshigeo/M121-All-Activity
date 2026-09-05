@@ -161,7 +161,7 @@
   }
   .theme-toggle-btn:active { transform: scale(0.92); }
 
-  /* View 1: Photo Evidence */
+  /* View Headers & Forms */
   .photo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .photo-header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; font-family: 'Baloo 2'; line-height: 1.3; }
 
@@ -195,7 +195,7 @@
   .btn-copy { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
   .btn-wa { background: #25d366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
 
-  /* View 2: Checklist */
+  /* View Checklist */
   .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .brand { display: flex; align-items: center; gap: 10px; }
   .brand .logo {
@@ -262,7 +262,7 @@
   .link-btn {
     display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 10px;
     background: var(--link-bg); border: 1px solid var(--link-border); color: var(--sky); border-radius: 12px;
-    padding: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+    padding: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none;
   }
 
   .add-activity-btn {
@@ -353,21 +353,22 @@
           <div class="sub">Activity Hub</div>
         </div>
       </div>
-      <!-- Single Appearance Toggle Button -->
       <button class="theme-toggle-btn" onclick="toggleGlobalTheme()" title="Ganti Tema">🌓</button>
     </div>
 
     <nav class="sidebar-nav">
-      <!-- MAIN PAGE DEFAULT: Checklist Harian Toko -->
       <button class="nav-item active" id="navChecklist" onclick="switchTab('checklist')">
         📋 Checklist Harian Toko
       </button>
       <button class="nav-item" id="navPhoto" onclick="switchTab('photo')">
         📸 Activity Photo Evidence
       </button>
+      <!-- Activity Baru: LOB Champion Report -->
+      <button class="nav-item" id="navLob" onclick="switchTab('lob')">
+        🏆 LOB Champion Report
+      </button>
     </nav>
 
-    <!-- Eksklusif Watermark di Sidebar -->
     <div class="sidebar-footer">
       made with <span>❤️</span> by frans
     </div>
@@ -394,7 +395,6 @@
         </div>
         <div class="topbar-right">
           <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span> Memuat...</div>
-          <!-- Settings Gear Button -->
           <button class="theme-toggle-btn" id="openSettings" title="Pengaturan">⚙️</button>
         </div>
       </div>
@@ -497,6 +497,54 @@
       </div>
     </section>
 
+    <!-- VIEW 3: LOB CHAMPION REPORT -->
+    <section id="viewLob" class="view-panel">
+      <div class="glass-card">
+        <div class="photo-header">
+          <h2>LOB Champion Report</h2>
+        </div>
+
+        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="lobDateDisplay">--</div>
+
+        <!-- Button Buka Link Submit Form LOB -->
+        <div style="margin-bottom: 20px;">
+          <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn">
+            🔗 Buka Form Submit LOB Champion
+          </a>
+        </div>
+
+        <form id="lob-upload-form" onsubmit="handleLobSubmit(event)">
+          <div class="form-group">
+            <label>Nama Staff (LOB Champion)</label>
+            <select id="lobNamaStaff" required>
+              <option value="" disabled selected>Pilih Staff LOB Champion...</option>
+              <option value="Moh Asfiyak Kamida (Apple Watch)">Moh Asfiyak Kamida (Apple Watch)</option>
+              <option value="Achmad Rafi Kurnia T. (Mac)">Achmad Rafi Kurnia T. (Mac)</option>
+              <option value="Linda Indi Kusumanigrum (iPhone)">Linda Indi Kusumanigrum (iPhone)</option>
+              <option value="Hyskia Indra Aphista (iPad)">Hyskia Indra Aphista (iPad)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Foto Evidence ke Google Drive</label>
+            <input type="file" id="lobFoto" accept="image/*" required>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-lob-submit">Upload ke Google Drive</button>
+        </form>
+
+        <div id="lobStatus" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
+
+        <div class="report-box" id="lobReportBox">
+          <div class="report-text" id="lobReportText"></div>
+          <div class="btn-action-group">
+            <button class="btn-action btn-copy" onclick="copyLobReportOnly()">📋 Copy Teks Saja</button>
+            <button class="btn-action btn-wa" onclick="copyLobAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -548,12 +596,18 @@
 function switchTab(tab) {
   document.getElementById('navChecklist').classList.remove('active');
   document.getElementById('navPhoto').classList.remove('active');
+  document.getElementById('navLob').classList.remove('active');
+
   document.getElementById('viewChecklist').classList.remove('active');
   document.getElementById('viewPhoto').classList.remove('active');
+  document.getElementById('viewLob').classList.remove('active');
 
   if (tab === 'photo') {
     document.getElementById('navPhoto').classList.add('active');
     document.getElementById('viewPhoto').classList.add('active');
+  } else if (tab === 'lob') {
+    document.getElementById('navLob').classList.add('active');
+    document.getElementById('viewLob').classList.add('active');
   } else {
     document.getElementById('navChecklist').classList.add('active');
     document.getElementById('viewChecklist').classList.add('active');
@@ -603,14 +657,14 @@ function showToast(msg) {
 }
 
 
-// --- VIEW 2: PHOTO EVIDENCE LOGIC ---
+// --- SHARED BACKEND URL & DATE LOGIC ---
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRPnMN_HYnvEttG9s160UEi0Qkco-M9NZe_SRJ1ph-qe8XydPCXdE_KO4H09ycY_P7/exec";
 const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i&mlu=4&ilr=4";
-let photoReportTemplate = "";
 
 const photoNow = new Date();
 const photoDateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 document.getElementById('photoDateDisplay').innerText = photoNow.toLocaleDateString('id-ID', photoDateOptions);
+document.getElementById('lobDateDisplay').innerText = photoNow.toLocaleDateString('id-ID', photoDateOptions);
 
 function getFormattedPhotoDateTime() {
   const d = new Date();
@@ -620,6 +674,10 @@ function getFormattedPhotoDateTime() {
   const minutes = String(d.getMinutes()).padStart(2, '0');
   return `${dateStr} ${hours}:${minutes}`;
 }
+
+
+// --- VIEW 2: PHOTO EVIDENCE LOGIC ---
+let photoReportTemplate = "";
 
 function handlePhotoSubmit(e) {
   e.preventDefault();
@@ -693,7 +751,82 @@ function copyPhotoAndOpenWA() {
 }
 
 
-// --- VIEW 1: CHECKLIST HARIAN TOKO LOGIC (LENGKAP) ---
+// --- VIEW 3: LOB CHAMPION REPORT LOGIC ---
+let lobReportTemplate = "";
+
+function handleLobSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-lob-submit');
+  const status = document.getElementById('lobStatus');
+  const reportBox = document.getElementById('lobReportBox');
+  const file = document.getElementById('lobFoto').files[0];
+
+  btn.disabled = true;
+  btn.innerText = "Uploading...";
+  status.innerText = "";
+  reportBox.style.display = "none";
+
+  const namaStaff = document.getElementById('lobNamaStaff').value;
+  const tujuan = "LOB Champion"; // Folder Otomatis LOB Champion di Google Drive
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const payload = {
+      namaStaff: namaStaff,
+      tujuan: tujuan,
+      fileData: evt.target.result,
+      mimeType: file.type
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      btn.disabled = false;
+      btn.innerText = "Upload ke Google Drive";
+      if(res.success) {
+        status.style.color = "var(--mint)";
+        status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
+        
+        const waktuUpload = getFormattedPhotoDateTime();
+        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+        document.getElementById('lobReportText').innerText = lobReportTemplate;
+        reportBox.style.display = "block";
+        document.getElementById('lob-upload-form').reset();
+      } else {
+        status.style.color = "var(--danger)";
+        status.innerText = "❌ Gagal: " + res.error;
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerText = "Upload ke Google Drive";
+      status.style.color = "var(--danger)";
+      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function copyLobReportOnly() {
+  if (!lobReportTemplate) return;
+  navigator.clipboard.writeText(lobReportTemplate).then(() => {
+    showToast("✅ Teks laporan disalin!");
+  });
+}
+
+function copyLobAndOpenWA() {
+  if (!lobReportTemplate) return;
+  navigator.clipboard.writeText(lobReportTemplate).then(() => {
+    window.open(WA_GROUP_LINK, '_blank');
+  });
+}
+
+
+// --- VIEW 1: CHECKLIST HARIAN TOKO LOGIC ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
@@ -1118,7 +1251,6 @@ function renderSubmitSummary(){
   }).join("");
 }
 
-// Fixed: Pemilih Submit Link
 let pendingSubmit = null;
 function openSubmitPicker(actId, url){
   pendingSubmit = {actId, url};
@@ -1235,7 +1367,6 @@ document.getElementById("autoBtn").addEventListener("click", async ()=>{
   window.open(WA_GROUP_LINK, "_blank");
 });
 
-// Fixed: Pengaturan Modal Gear Icon
 document.getElementById("openSettings").addEventListener("click",()=>{
   renderSettingsChips();
   document.getElementById("modalBg").classList.add("open");
