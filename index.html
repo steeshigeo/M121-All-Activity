@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Chekclist Harian Wajib Toko</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --page-bg: radial-gradient(circle at 10% -5%, rgba(15,184,127,0.10), transparent 45%),
+               radial-gradient(circle at 100% 0%, rgba(255,176,32,0.12), transparent 40%),
+               linear-gradient(180deg, #eafbf3 0%, #fff8ec 100%);
+    --surface:#ffffff;
+    --surface-soft:#f4f6f5;
+    --border:#e8ede8;
+    --text:#1f2937;
+    --text-dim:#6b7280;
+    --text-faint:#9aa3ab;
+    --mint:#0fb87f;
+    --mint-soft:#e3f9ee;
+    --mint-soft-active:#d3f3e5;
+    --chip-text:#0a7a54;
+    --coral:#ff6b4a;
+    --coral-soft:#ffe9e2;
+    --sky:#2f8fe6;
+    --link-bg:linear-gradient(135deg,#eaf5ff,#dff0ff);
+    --link-border:#cfe6ff;
+    --danger:#ef4444;
+    --danger-bg:#fef2f2;
+    --danger-border:#fecaca;
+    --modal-bg:#fffdf9;
+    --field-bg:#f8faf8;
+    --field-border:#e8ede8;
+    --dash-border:#cdd7cf;
+    --bubble-chat-bg:#efeae2;
+    --bubble-sent-bg:#d9fdd3;
+    --bubble-text:#111b21;
+    --shadow:0 4px 18px rgba(31,41,55,0.06), 0 1px 3px rgba(31,41,55,0.04);
+    --radius:20px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --page-bg: radial-gradient(circle at 10% -5%, rgba(15,184,127,0.14), transparent 45%),
+                 radial-gradient(circle at 100% 0%, rgba(255,176,32,0.08), transparent 40%),
+                 linear-gradient(180deg, #0c100e 0%, #10140f 100%);
+      --surface:#1a201c;
+      --surface-soft:#20261f;
+      --border:rgba(255,255,255,0.08);
+      --text:#f3f5f2;
+      --text-dim:#9aa39c;
+      --text-faint:#6c766f;
+      --mint:#34d399;
+      --mint-soft:rgba(52,211,153,0.14);
+      --mint-soft-active:rgba(52,211,153,0.22);
+      --chip-text:#5eead4;
+      --coral:#ff8a68;
+      --coral-soft:rgba(255,138,104,0.14);
+      --sky:#6db8ff;
+      --link-bg:linear-gradient(135deg,rgba(61,140,222,0.16),rgba(61,140,222,0.10));
+      --link-border:rgba(109,184,255,0.28);
+      --danger:#f87171;
+      --danger-bg:rgba(248,113,113,0.1);
+      --danger-border:rgba(248,113,113,0.28);
+      --modal-bg:#171c17;
+      --field-bg:#20261f;
+      --field-border:rgba(255,255,255,0.08);
+      --dash-border:rgba(255,255,255,0.14);
+      --bubble-chat-bg:#0b141a;
+      --bubble-sent-bg:#005c4b;
+      --bubble-text:#e9edef;
+      --shadow:0 4px 18px rgba(0,0,0,0.28), 0 1px 3px rgba(0,0,0,0.2);
+    }
+  }
+  html[data-theme="light"]{
+    --page-bg: radial-gradient(circle at 10% -5%, rgba(15,184,127,0.10), transparent 45%),
+               radial-gradient(circle at 100% 0%, rgba(255,176,32,0.12), transparent 40%),
+               linear-gradient(180deg, #eafbf3 0%, #fff8ec 100%);
+    --surface:#ffffff;
+    --surface-soft:#f4f6f5;
+    --border:#e8ede8;
+    --text:#1f2937;
+    --text-dim:#6b7280;
+    --text-faint:#9aa3ab;
+    --mint:#0fb87f;
+    --mint-soft:#e3f9ee;
+    --mint-soft-active:#d3f3e5;
+    --chip-text:#0a7a54;
+    --coral:#ff6b4a;
+    --coral-soft:#ffe9e2;
+    --sky:#2f8fe6;
+    --link-bg:linear-gradient(135deg,#eaf5ff,#dff0ff);
+    --link-border:#cfe6ff;
+    --danger:#ef4444;
+    --danger-bg:#fef2f2;
+    --danger-border:#fecaca;
+    --modal-bg:#fffdf9;
+    --field-bg:#f8faf8;
+    --field-border:#e8ede8;
+    --dash-border:#cdd7cf;
+    --bubble-chat-bg:#efeae2;
+    --bubble-sent-bg:#d9fdd3;
+    --bubble-text:#111b21;
+    --shadow:0 4px 18px rgba(31,41,55,0.06), 0 1px 3px rgba(31,41,55,0.04);
+  }
+  html[data-theme="dark"]{
+    --page-bg: radial-gradient(circle at 10% -5%, rgba(15,184,127,0.14), transparent 45%),
+               radial-gradient(circle at 100% 0%, rgba(255,176,32,0.08), transparent 40%),
+               linear-gradient(180deg, #0c100e 0%, #10140f 100%);
+    --surface:#1a201c;
+    --surface-soft:#20261f;
+    --border:rgba(255,255,255,0.08);
+    --text:#f3f5f2;
+    --text-dim:#9aa39c;
+    --text-faint:#6c766f;
+    --mint:#34d399;
+    --mint-soft:rgba(52,211,153,0.14);
+    --mint-soft-active:rgba(52,211,153,0.22);
+    --chip-text:#5eead4;
+    --coral:#ff8a68;
+    --coral-soft:rgba(255,138,104,0.14);
+    --sky:#6db8ff;
+    --link-bg:linear-gradient(135deg,rgba(61,140,222,0.16),rgba(61,140,222,0.10));
+    --link-border:rgba(109,184,255,0.28);
+    --danger:#f87171;
+    --danger-bg:rgba(248,113,113,0.1);
+    --danger-border:rgba(248,113,113,0.28);
+    --modal-bg:#171c17;
+    --field-bg:#20261f;
+    --field-border:rgba(255,255,255,0.08);
+    --dash-border:rgba(255,255,255,0.14);
+    --bubble-chat-bg:#0b141a;
+    --bubble-sent-bg:#005c4b;
+    --bubble-text:#e9edef;
+    --shadow:0 4px 18px rgba(0,0,0,0.28), 0 1px 3px rgba(0,0,0,0.2);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:var(--page-bg);
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    padding:18px 14px 104px;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .logo{
+    width:42px;height:42px;border-radius:14px; background:linear-gradient(135deg,var(--mint),#0a8f63);
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); flex-shrink:0;
+  }
+  .brand .logo svg{display:block;}
+  .brand h1{font-family:'Baloo 2'; font-size:19px; font-weight:700; margin:0; letter-spacing:-.01em; color:var(--text);}
+  .brand .sub{font-size:11.5px; color:var(--text-dim); font-weight:600;}
+  .gear-btn{
+    width:42px;height:42px;border-radius:14px;border:1px solid var(--border);
+    background:var(--surface); color:var(--text-dim); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:18px; box-shadow:var(--shadow);
+  }
+  .gear-btn:active{transform:scale(.93);}
+  .topbar-right{display:flex; flex-direction:column; align-items:flex-end; gap:7px;}
+  .topbar-right .btn-row{display:flex; align-items:center; gap:8px;}
+  .sync-pill{
+    font-size:10.5px; font-weight:700; padding:5px 10px; border-radius:20px; background:var(--surface-soft);
+    color:var(--text-dim); white-space:nowrap; border:1px solid var(--border);
+  }
+  .sync-pill.saved{color:var(--mint);}
+  .sync-pill.saving{color:var(--amber,#c99a1f);}
+  .sync-pill.offline{color:var(--coral);}
+
+  .datebar{
+    display:flex; align-items:center; gap:8px; background:var(--surface);
+    border:1px solid var(--border); border-radius:18px; padding:10px 10px; margin-bottom:8px;
+    box-shadow:var(--shadow);
+  }
+  .datebar button{
+    width:38px;height:38px;border-radius:12px;border:none;background:var(--mint-soft);
+    color:var(--mint); font-size:17px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .datebar button:active{background:var(--mint-soft-active); transform:scale(.94);}
+  .date-display{flex:1; text-align:center; display:flex; flex-direction:column; cursor:pointer;}
+  .date-display .big{font-family:'Baloo 2'; font-weight:700; font-size:15.5px; letter-spacing:.01em; color:var(--text);}
+  .date-display .small{font-size:10.5px; color:var(--text-faint); margin-top:1px; font-weight:600;}
+  #dateInput{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none;}
+  .today-pill{display:none; text-align:center; margin-bottom:16px;}
+  .today-pill.show{display:block;}
+  .today-pill button{
+    background:var(--coral-soft); color:var(--coral); border:none; border-radius:20px; padding:7px 16px;
+    font-size:12px; font-weight:700; cursor:pointer; font-family:'Inter';
+  }
+
+  .activity{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 16px 14px; margin-bottom:14px; box-shadow:var(--shadow);
+  }
+  .activity-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .activity-name{font-family:'Baloo 2'; font-weight:700; font-size:18.5px; letter-spacing:.005em; line-height:1.3; color:var(--text); display:flex; align-items:center; gap:8px;}
+  .activity-icon{font-size:20px; line-height:1; flex-shrink:0;}
+  .activity-meta{font-size:11px; color:var(--text-faint); margin-top:3px; font-weight:600;}
+  .activity-actions{display:flex; gap:6px; flex-shrink:0;}
+  .icon-btn-sm{
+    width:30px;height:30px;border-radius:10px;border:none; background:var(--surface-soft);
+    color:var(--text-dim); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn-sm:active{filter:brightness(.92);}
+
+  .empty-hint{font-size:12px; color:var(--text-faint); font-style:italic; padding:6px 2px 2px;}
+
+  .staff-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 2px; border-top:1px solid var(--border);
+  }
+  .staff-row:first-of-type{border-top:none;}
+  .staff-name{font-size:15.5px; font-weight:600; display:flex; align-items:center; gap:6px; min-width:0; flex:1; color:var(--text);}
+  .staff-name .checks{color:var(--mint); font-size:12px; letter-spacing:1px; flex-shrink:0;}
+  .staff-name span.n{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .stepper{display:flex; align-items:center; gap:4px; flex-shrink:0;}
+  .stepper button{
+    width:32px;height:32px; border-radius:10px; border:none;
+    background:var(--surface-soft); color:var(--text); font-size:16px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stepper button:active{filter:brightness(.92); transform:scale(.93);}
+  .stepper .count{width:24px; text-align:center; font-weight:700; font-size:13px; color:var(--text-faint);}
+  .stepper .count.active{color:var(--mint);}
+  .rm-staff{
+    width:30px;height:30px;border:none;background:var(--danger-bg);color:var(--danger);
+    font-size:14px; font-weight:700; cursor:pointer; border-radius:9px; flex-shrink:0;
+    margin-left:10px; display:flex; align-items:center; justify-content:center; line-height:1;
+  }
+  .rm-staff:active{filter:brightness(.92); transform:scale(.93);}
+
+  .add-staff-row{margin-top:8px; padding-top:8px; border-top:1px solid var(--border);}
+  .add-staff-row select{
+    width:100%; background:var(--field-bg); border:1.5px dashed var(--dash-border); border-radius:12px;
+    color:var(--text-dim); font-size:13px; padding:9px 10px; font-family:'Inter'; font-weight:600;
+  }
+
+  .link-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px; width:100%;
+    margin-top:10px; background:var(--link-bg); border:1px solid var(--link-border);
+    color:var(--sky); border-radius:12px; padding:10px; font-size:12.5px; font-weight:700; cursor:pointer;
+    text-decoration:none; font-family:'Inter';
+  }
+  .link-btn:active{filter:brightness(.97);}
+
+  .add-activity-btn{
+    width:100%; background:transparent; border:1.5px dashed var(--dash-border); border-radius:var(--radius);
+    color:var(--text-dim); font-size:13.5px; font-weight:700; padding:14px; cursor:pointer; margin-bottom:22px;
+    font-family:'Inter';
+  }
+  .add-activity-btn:active{background:var(--surface-soft);}
+
+  .summary-section{margin-top:22px;}
+  .summary-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:6px 16px; box-shadow:var(--shadow);
+  }
+  .summary-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 0; border-top:1px solid var(--border);
+  }
+  .summary-row:first-child{border-top:none;}
+  .summary-row-label{font-size:13.5px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; min-width:0;}
+  .summary-icon{font-size:16px; flex-shrink:0;}
+  .summary-row-val{font-size:12.5px; font-weight:700; color:var(--mint); white-space:nowrap; flex-shrink:0;}
+  .summary-total{
+    text-align:center; font-size:12.5px; color:var(--text-dim); font-weight:600;
+    padding:13px 0 11px; border-top:1px solid var(--border);
+  }
+  .summary-total b{color:var(--mint);}
+  .summary-row-block{padding:12px 0; border-top:1px solid var(--border);}
+  .summary-row-block:first-child{border-top:none;}
+  .submit-names{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .submit-chip{
+    background:var(--mint-soft); color:var(--chip-text); font-size:11.5px; font-weight:700;
+    padding:5px 10px; border-radius:20px;
+  }
+  .picker-chip{
+    cursor:pointer; padding:9px 16px; font-size:13.5px; border:none; font-family:'Inter';
+  }
+
+  .preview-label{font-size:11px; letter-spacing:.06em; color:var(--text-faint); text-transform:uppercase; margin:6px 0 8px 4px; font-weight:700;}
+  .bubble-wrap{
+    background:var(--bubble-chat-bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px;
+    box-shadow:var(--shadow);
+  }
+  .bubble{
+    background:var(--bubble-sent-bg); color:var(--bubble-text); border-radius:10px 10px 2px 10px;
+    padding:12px 14px 8px; font-size:13.5px; line-height:1.55; white-space:pre-wrap; word-break:break-word;
+    font-family:'Inter'; box-shadow:0 1px 1.5px rgba(0,0,0,.08); max-height:340px; overflow-y:auto;
+  }
+  .bubble-time{font-size:10.5px; color:var(--bubble-text); opacity:.5; text-align:right; margin-top:4px; font-weight:600;}
+
+  .topbar-credit{
+    font-size:10px; color:var(--text-faint); font-weight:600; letter-spacing:.01em;
+    padding-right:2px;
+  }
+  .topbar-credit span{color:var(--coral);}
+
+  .sync-pill{
+    display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700;
+    color:var(--text-faint); margin-bottom:10px; padding-left:2px;
+  }
+  .sync-dot{width:7px;height:7px;border-radius:50%; background:var(--text-faint); flex-shrink:0; transition:.2s;}
+  .sync-pill.saved .sync-dot{background:var(--mint);}
+  .sync-pill.saving .sync-dot{background:var(--amber,#ffb020); animation:pulse 1s infinite;}
+  .sync-pill.offline .sync-dot{background:var(--danger);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  .loading-overlay{
+    position:fixed; inset:0; background:var(--page-bg); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:12px; z-index:100;
+  }
+  .loading-overlay .spinner{
+    width:34px;height:34px;border-radius:50%; border:3px solid var(--border); border-top-color:var(--mint);
+    animation:spin .8s linear infinite;
+  }
+  .loading-overlay p{font-family:'Baloo 2'; font-size:14px; color:var(--text-dim); margin:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .actionbar{
+    position:fixed; left:0; right:0; bottom:0; padding:12px 14px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, transparent, var(--page-solid, rgba(255,248,236,0.95)) 35%);
+    display:flex; gap:10px; max-width:640px; margin:0 auto;
+  }
+  @media (prefers-color-scheme: dark){
+    .actionbar{ background:linear-gradient(180deg, transparent, rgba(12,16,14,0.95) 35%); }
+  }
+  html[data-theme="light"] .actionbar{ background:linear-gradient(180deg, transparent, rgba(255,248,236,0.95) 35%); }
+  html[data-theme="dark"] .actionbar{ background:linear-gradient(180deg, transparent, rgba(12,16,14,0.95) 35%); }
+  .btn{
+    flex:1; border:none; border-radius:16px; padding:14px 8px; font-family:'Baloo 2'; font-weight:700;
+    font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+    text-align:center; line-height:1.25;
+  }
+  .btn-send{
+    flex:1; background:linear-gradient(135deg,#25d366,#1fb959); color:#04150c;
+    box-shadow:0 4px 16px rgba(37,211,102,0.35);
+    border:none; border-radius:16px; padding:14px 8px; font-family:'Baloo 2'; font-weight:700;
+    font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+    text-align:center; line-height:1.25;
+  }
+  .btn-send:active{filter:brightness(.94);}
+  .btn-manual{
+    flex:1; background:var(--surface); color:var(--text); border:1px solid var(--border); box-shadow:var(--shadow);
+    border-radius:16px; padding:14px 8px; font-family:'Baloo 2'; font-weight:700;
+    font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+    text-align:center; line-height:1.25;
+  }
+  .btn-manual:active{filter:brightness(.96);}
+  .toast{
+    position:fixed; bottom:92px; left:50%; transform:translateX(-50%) translateY(8px); opacity:0;
+    background:#1f2937; border:none; color:#fff; padding:9px 18px; border-radius:20px;
+    font-size:12.5px; font-weight:600; transition:.25s; pointer-events:none; white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(20,25,20,0.5); backdrop-filter:blur(4px);
+    display:none; align-items:flex-end; z-index:50;
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:var(--modal-bg); border:1px solid var(--border); border-radius:24px 24px 0 0;
+    width:100%; max-width:640px; margin:0 auto; max-height:85vh; overflow-y:auto; padding:20px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+  .modal h2{font-family:'Baloo 2'; font-size:17px; margin:0 0 14px; color:var(--text);}
+  .modal h3{font-family:'Baloo 2'; font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin:20px 0 8px;}
+  .chip-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+  .chip{
+    display:flex; align-items:center; gap:6px; background:var(--mint-soft); border:none;
+    border-radius:20px; padding:7px 8px 7px 14px; font-size:13px; font-weight:600; color:var(--chip-text);
+  }
+  .chip button{background:none; border:none; color:var(--chip-text); font-size:15px; cursor:pointer; padding:2px; opacity:.7;}
+  .inline-add{display:flex; gap:8px; margin-top:4px;}
+  .inline-add input{
+    flex:1; background:var(--field-bg); border:1.5px solid var(--field-border); border-radius:12px; color:var(--text);
+    padding:10px 12px; font-size:13.5px; font-family:'Inter';
+  }
+  .inline-add button{
+    background:var(--mint); border:none; color:#04150c; font-weight:700; border-radius:12px; padding:0 18px; font-size:16px; cursor:pointer;
+  }
+  .modal-close{
+    width:100%; margin-top:24px; background:var(--mint); border:none; color:#04150c;
+    border-radius:16px; padding:14px; font-family:'Baloo 2'; font-weight:700; font-size:14.5px; cursor:pointer;
+  }
+  .danger-zone{margin-top:22px; padding-top:14px; border-top:1px solid var(--border);}
+  .danger-btn{
+    width:100%; background:var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger);
+    border-radius:14px; padding:12px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Inter';
+  }
+  .footer-text-field{
+    width:100%; background:var(--field-bg); border:1.5px solid var(--field-border); border-radius:12px; color:var(--text);
+    padding:10px 12px; font-size:13px; font-family:'Inter'; resize:none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12.5L10 17.5L19 7" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Chekclist Harian Wajib Toko</h1>
+        <div class="sub">Digimap TP3 Surabaya</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="btn-row">
+        <div class="sync-pill loading" id="syncPill">⏳ Memuat...</div>
+        <button class="gear-btn" id="themeBtn">🌓</button>
+        <button class="gear-btn" id="openSettings">⚙️</button>
+      </div>
+      <div class="topbar-credit">made with <span>❤️</span> by frans</div>
+    </div>
+  </div>
+
+  <div class="datebar">
+    <button id="prevDay">‹</button>
+    <div class="date-display" id="dateDisplay">
+      <div class="big" id="dateBig">27 AGUSTUS 2026</div>
+      <div class="small" id="dateSmall">Kamis</div>
+    </div>
+    <button id="nextDay">›</button>
+    <input type="date" id="dateInput">
+  </div>
+  <div class="today-pill" id="todayPill"><button id="jumpToday">↺ Kembali ke hari ini</button></div>
+
+  <div id="activityList"></div>
+  <button class="add-activity-btn" id="addActivityBtn">+ Tambah aktivitas</button>
+
+  <div class="preview-label">Preview pesan WhatsApp</div>
+  <div class="bubble-wrap">
+    <div class="bubble" id="previewText"></div>
+    <div class="bubble-time" id="previewTime"></div>
+  </div>
+
+  <div class="summary-section" id="summarySection">
+    <div class="preview-label">Ringkasan Aktivitas Hari Ini</div>
+    <div class="summary-card" id="summaryCard"></div>
+  </div>
+
+  <div class="summary-section" id="submitSummarySection">
+    <div class="preview-label">Status Submit Link</div>
+    <div class="summary-card" id="submitSummaryCard"></div>
+  </div>
+
+</div>
+
+<div class="modal-bg" id="submitPickerBg">
+  <div class="modal">
+    <h2>Siapa yang submit link ini?</h2>
+    <div class="chip-list" id="submitPickerChips"></div>
+    <button class="modal-close" id="closeSubmitPicker">Batal</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="confirmBg">
+  <div class="modal">
+    <h2 id="confirmTitle">Konfirmasi</h2>
+    <p id="confirmMsg" style="color:var(--text-dim); font-size:14px; line-height:1.55; margin:0 0 20px;"></p>
+    <div style="display:flex; gap:10px;">
+      <button class="modal-close" id="confirmCancelBtn" style="margin-top:0; background:var(--surface-soft); color:var(--text);">Batal</button>
+      <button class="modal-close" id="confirmOkBtn" style="margin-top:0; background:var(--danger); color:#fff;">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Tersalin ✓</div>
+
+<div class="actionbar">
+  <button class="btn-manual" id="manualBtn">📋 Copy &amp; Paste Manual buka WA</button>
+  <button class="btn-send" id="autoBtn">📋💬 Copy &amp; paste Auto buka WA</button>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Pengaturan</h2>
+
+    <h3>Staff Toko</h3>
+    <div class="chip-list" id="staffChips"></div>
+    <div class="inline-add">
+      <input type="text" id="newStaffName" placeholder="Nama staff baru">
+      <button id="addStaffBtn">+</button>
+    </div>
+
+    <h3>Teks pembuka</h3>
+    <textarea class="footer-text-field" id="openingText" rows="2"></textarea>
+
+    <h3>Teks penutup</h3>
+    <textarea class="footer-text-field" id="closingText" rows="2"></textarea>
+
+    <div class="danger-zone">
+      <button class="danger-btn" id="resetDayBtn">Reset centang hari ini</button>
+      <button class="danger-btn" id="resetConfigBtn" style="margin-top:10px;">Reset ke setelan awal (staff &amp; aktivitas)</button>
+    </div>
+
+    <button class="modal-close" id="closeSettings">Selesai</button>
+  </div>
+</div>
+
+<script>
+const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+
+const CONFIG_KEY = "digimap_checklist_config_v3";
+const DATA_PREFIX = "digimap_checklist_data_";
+
+function defaultConfig(){
+  const staff = [
+    "Sulton Setiawan","Muhamad Angga Jul F.","Hartono","Eggy Thania A.M","Frandy Putra",
+    "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
+    "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S."
+  ];
+  return {
+    staff,
+    activities: [
+      {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
+      {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
+      {id:"a3", name:"SAMUDERA (Submit Link)", icon:"🌊", link:"https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform"},
+      {id:"a4", name:"AKSARA (TimeMark) Minim 6 /Hari", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
+      {id:"a8", name:"CAKRAWALA (Try On)", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
+      {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
+      {id:"a6", name:"SUBMIT FEEDBACK", icon:"📝", link:"https://forms.cloud.microsoft/r/v0jzUN3ieX?origin=lprLink"},
+      {id:"a7", name:"ICLOUD+", icon:"☁️", link:"https://www.menti.com/blwrxg7sct7n"}
+    ],
+    opening: "Minimal 1 Staff / 1 Per Activity",
+    closing: "KIRIM DI GRUP INI GUYS 🔥🤝"
+  };
+}
+
+function loadConfigLocal(){
+  try{
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return defaultConfig();
+}
+function saveConfigLocal(c){ localStorage.setItem(CONFIG_KEY, JSON.stringify(c)); }
+
+function dateKey(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function loadDayDataLocal(key){
+  try{
+    const raw = localStorage.getItem(DATA_PREFIX+key);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {counts:{}, submissions:{}};
+}
+function saveDayDataLocal(key, data){
+  localStorage.setItem(DATA_PREFIX+key, JSON.stringify(data));
+}
+
+// --- Google Sheets backend ---
+const API_URL = "https://script.google.com/macros/s/AKfycbzCW6bmhILJNbDAGpIita9d0GpTwKRo1EGdDm9HJ-Bczj-2GRjovOIp0cNDUWB4N5qlgA/exec";
+const REMOTE_CONFIG_KEY = "config";
+function remoteDataKey(dateStr){ return "data_" + dateStr; }
+
+async function remoteGet(key){
+  const res = await fetch(API_URL + "?key=" + encodeURIComponent(key) + "&t=" + Date.now());
+  if(!res.ok) throw new Error("bad status");
+  const j = await res.json();
+  return j.value;
+}
+async function remoteSet(key, valueObj){
+  const res = await fetch(API_URL, { method:"POST", body: JSON.stringify({key, value: JSON.stringify(valueObj)}) });
+  if(!res.ok) throw new Error("bad status");
+  return res.json();
+}
+
+function setStatus(state){
+  const el = document.getElementById("syncPill");
+  if(!el) return;
+  el.className = "sync-pill " + state;
+  if(state==="loading") el.textContent = "⏳ Memuat...";
+  else if(state==="saving") el.textContent = "🟡 Menyimpan...";
+  else if(state==="saved") el.textContent = "🟢 Tersimpan";
+  else if(state==="offline") el.textContent = "🔴 Offline (lokal)";
+}
+
+let config = defaultConfig();
+let currentDate = new Date();
+let dayData = {counts:{}, submissions:{}};
+let followToday = true;
+let configDirty = false;
+let countsDebounceTimer = null;
+
+function getCount(activityId, staffName){
+  return (dayData.counts[activityId] && dayData.counts[activityId][staffName]) || 0;
+}
+function setCount(activityId, staffName, val){
+  if(val < 0) val = 0;
+  if(!dayData.counts[activityId]) dayData.counts[activityId] = {};
+  dayData.counts[activityId][staffName] = val;
+  saveDayDataLocal(dateKey(currentDate), dayData);
+  scheduleCountsPush();
+}
+
+function scheduleCountsPush(){
+  setStatus("saving");
+  if(countsDebounceTimer) clearTimeout(countsDebounceTimer);
+  countsDebounceTimer = setTimeout(flushCounts, 900);
+}
+async function flushCounts(){
+  countsDebounceTimer = null;
+  const key = dateKey(currentDate);
+  saveDayDataLocal(key, dayData);
+  try{
+    await remoteSet(remoteDataKey(key), dayData);
+    setStatus("saved");
+  }catch(e){
+    setStatus("offline");
+  }
+}
+
+async function pushConfig(){
+  saveConfigLocal(config);
+  configDirty = true;
+  setStatus("saving");
+  try{
+    await remoteSet(REMOTE_CONFIG_KEY, config);
+    configDirty = false;
+    setStatus("saved");
+  }catch(e){
+    setStatus("offline");
+  }
+}
+
+async function loadCurrentDayData(){
+  const key = dateKey(currentDate);
+  try{
+    const raw = await remoteGet(remoteDataKey(key));
+    dayData = raw ? JSON.parse(raw) : {counts:{}, submissions:{}};
+    if(!dayData.counts) dayData.counts = {};
+    if(!dayData.submissions) dayData.submissions = {};
+    saveDayDataLocal(key, dayData);
+    setStatus("saved");
+  }catch(e){
+    dayData = loadDayDataLocal(key);
+    if(!dayData.counts) dayData.counts = {};
+    if(!dayData.submissions) dayData.submissions = {};
+    setStatus("offline");
+  }
+}
+
+function normalizeConfig(c){
+  const defaults = defaultConfig();
+  const defaultById = {};
+  defaults.activities.forEach(a=>{ defaultById[a.id] = a; });
+  let changed = false;
+  c.activities.forEach(act=>{
+    const d = defaultById[act.id];
+    if(!d) return;
+    if(!act.icon || !act.icon.trim()){
+      act.icon = d.icon;
+      changed = true;
+    }
+    if(act.id === "a2" && (!act.link || !act.link.trim()) && d.link){
+      act.link = d.link;
+      changed = true;
+    }
+  });
+  return changed;
+}
+
+async function init(){
+  setStatus("loading");
+  let needsSync = false;
+  try{
+    const raw = await remoteGet(REMOTE_CONFIG_KEY);
+    if(raw){
+      config = JSON.parse(raw);
+      needsSync = normalizeConfig(config);
+      saveConfigLocal(config);
+    } else {
+      config = defaultConfig();
+      saveConfigLocal(config);
+      await remoteSet(REMOTE_CONFIG_KEY, config);
+    }
+  }catch(e){
+    config = loadConfigLocal();
+    needsSync = normalizeConfig(config);
+    setStatus("offline");
+  }
+  await loadCurrentDayData();
+  renderAll();
+  startPolling();
+  if(needsSync){
+    pushConfig();
+  }
+}
+
+function startPolling(){
+  setInterval(async ()=>{
+    if(!configDirty){
+      try{
+        const raw = await remoteGet(REMOTE_CONFIG_KEY);
+        if(raw){
+          const remoteConfig = JSON.parse(raw);
+          if(JSON.stringify(remoteConfig) !== JSON.stringify(config)){
+            config = remoteConfig;
+            saveConfigLocal(config);
+            renderAll();
+          }
+        }
+        setStatus("saved");
+      }catch(e){ setStatus("offline"); }
+    }
+    if(!countsDebounceTimer){
+      const key = dateKey(currentDate);
+      try{
+        const raw = await remoteGet(remoteDataKey(key));
+        const remoteData = raw ? JSON.parse(raw) : {counts:{}, submissions:{}};
+        if(JSON.stringify(remoteData) !== JSON.stringify(dayData)){
+          dayData = remoteData;
+          saveDayDataLocal(key, dayData);
+          renderAll();
+        }
+      }catch(e){ /* keep last known state */ }
+    }
+  }, 15000);
+}
+
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && countsDebounceTimer) flushCounts(); });
+window.addEventListener("pagehide", ()=>{
+  if(countsDebounceTimer){
+    clearTimeout(countsDebounceTimer);
+    const key = dateKey(currentDate);
+    saveDayDataLocal(key, dayData);
+    try{ navigator.sendBeacon(API_URL, JSON.stringify({key: remoteDataKey(key), value: JSON.stringify(dayData)})); }catch(e){}
+  }
+});
+
+function renderDateBar(){
+  document.getElementById("dateBig").textContent =
+    currentDate.getDate()+" "+MONTHS[currentDate.getMonth()]+" "+currentDate.getFullYear();
+  document.getElementById("dateSmall").textContent = DAYS[currentDate.getDay()];
+  document.getElementById("dateInput").value = dateKey(currentDate);
+  document.getElementById("todayPill").classList.toggle("show", !followToday);
+}
+
+function showConfirm(message, title){
+  return new Promise(resolve=>{
+    document.getElementById("confirmTitle").textContent = title || "Konfirmasi";
+    document.getElementById("confirmMsg").textContent = message;
+    document.getElementById("confirmBg").classList.add("open");
+    const okBtn = document.getElementById("confirmOkBtn");
+    const cancelBtn = document.getElementById("confirmCancelBtn");
+    function cleanup(result){
+      document.getElementById("confirmBg").classList.remove("open");
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      resolve(result);
+    }
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+  });
+}
+
+function activeStaffFor(actId){
+  const obj = dayData.counts[actId] || {};
+  return Object.keys(obj).filter(name => obj[name] > 0);
+}
+
+function renderActivities(){
+  const list = document.getElementById("activityList");
+  list.innerHTML = "";
+  config.activities.forEach(act => {
+    const card = document.createElement("div");
+    card.className = "activity";
+    const activeStaff = activeStaffFor(act.id);
+
+    const head = document.createElement("div");
+    head.className = "activity-head";
+    head.innerHTML = `
+      <div>
+        <div class="activity-name"><span class="activity-icon">${act.icon || "📌"}</span>${escapeHtml(act.name)}</div>
+        <div class="activity-meta">${activeStaff.length} staff melaksanakan</div>
+      </div>
+      <div class="activity-actions">
+        <button class="icon-btn-sm" data-edit="${act.id}">✎</button>
+        <button class="icon-btn-sm" data-delact="${act.id}">🗑</button>
+      </div>`;
+    card.appendChild(head);
+
+    if(activeStaff.length === 0){
+      const hint = document.createElement("div");
+      hint.className = "empty-hint";
+      hint.textContent = "Belum ada staff — tambahkan lewat dropdown di bawah saat mulai mengerjakan.";
+      card.appendChild(hint);
+    }
+
+    activeStaff.forEach(staffName => {
+      const count = getCount(act.id, staffName);
+      const row = document.createElement("div");
+      row.className = "staff-row";
+      row.innerHTML = `
+        <div class="staff-name"><span class="n">${escapeHtml(staffName)}</span>${count>0 ? `<span class="checks">${"✅".repeat(count)}</span>`:""}</div>
+        <div class="stepper">
+          <button data-dec="${act.id}|${staffName}">−</button>
+          <span class="count ${count>0?'active':''}">${count}</span>
+          <button data-inc="${act.id}|${staffName}">+</button>
+          <button class="rm-staff" data-unassign="${act.id}|${staffName}">✕</button>
+        </div>`;
+      card.appendChild(row);
+    });
+
+    const addRow = document.createElement("div");
+    addRow.className = "add-staff-row";
+    const available = config.staff.filter(s => !activeStaff.includes(s));
+    if(available.length){
+      const sel = document.createElement("select");
+      sel.innerHTML = `<option value="">+ Tambah staff ke aktivitas ini</option>` +
+        available.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+      sel.addEventListener("change", ()=>{
+        if(sel.value){
+          setCount(act.id, sel.value, 1);
+          renderAll();
+        }
+      });
+      addRow.appendChild(sel);
+    }
+    card.appendChild(addRow);
+
+    if(act.link && act.link.trim()){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "link-btn";
+      btn.innerHTML = "🔗 Buka Link Submit";
+      btn.addEventListener("click", ()=> openSubmitPicker(act.id, act.link.trim()));
+      card.appendChild(btn);
+    }
+
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll("[data-inc]").forEach(b=>b.addEventListener("click",()=>{
+    const [aid,name] = b.dataset.inc.split("|");
+    setCount(aid,name, getCount(aid,name)+1);
+    renderAll();
+  }));
+  list.querySelectorAll("[data-dec]").forEach(b=>b.addEventListener("click",()=>{
+    const [aid,name] = b.dataset.dec.split("|");
+    setCount(aid,name, getCount(aid,name)-1);
+    renderAll();
+  }));
+  list.querySelectorAll("[data-unassign]").forEach(b=>b.addEventListener("click", async ()=>{
+    const [aid,name] = b.dataset.unassign.split("|");
+    const act = config.activities.find(a=>a.id===aid);
+    const actName = act ? act.name : "aktivitas ini";
+    const ok = await showConfirm(`Hapus centang ${name} dari "${actName}"?`, "Hapus Centang");
+    if(ok){
+      setCount(aid,name, 0);
+      renderAll();
+    }
+  }));
+  list.querySelectorAll("[data-delact]").forEach(b=>b.addEventListener("click", async ()=>{
+    const ok = await showConfirm("Hapus aktivitas ini?", "Hapus Aktivitas");
+    if(ok){
+      config.activities = config.activities.filter(a=>a.id!==b.dataset.delact);
+      renderAll();
+      pushConfig();
+    }
+  }));
+  list.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>{
+    const act = config.activities.find(a=>a.id===b.dataset.edit);
+    const newName = prompt("Nama aktivitas:", act.name);
+    if(newName === null) return;
+    if(newName.trim()) act.name = newName.trim();
+    const newLink = prompt("Link submit (kosongkan jika tidak ada):", act.link || "");
+    if(newLink !== null) act.link = newLink.trim();
+    const newIcon = prompt("Icon/emoji (contoh: 📊):", act.icon || "📌");
+    if(newIcon !== null && newIcon.trim()) act.icon = newIcon.trim();
+    renderAll();
+    pushConfig();
+  }));
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function buildReportText(){
+  const lines = [];
+  lines.push(currentDate.getDate()+" "+MONTHS[currentDate.getMonth()]+" "+currentDate.getFullYear());
+  lines.push("");
+  if(config.opening.trim()){ lines.push(config.opening.trim()); lines.push(""); }
+
+  config.activities.forEach(act=>{
+    const doneStaff = activeStaffFor(act.id);
+    lines.push(`${act.icon || "📌"} ${act.name}`);
+    doneStaff.forEach((s,i)=>{
+      const c = getCount(act.id,s);
+      lines.push(`${i+1}. ${s} ${"✅".repeat(c)}`);
+    });
+    lines.push("");
+  });
+
+  const summaryRows = config.activities
+    .map(act=>{
+      const staffList = activeStaffFor(act.id);
+      const totalC = staffList.reduce((sum,s)=>sum+getCount(act.id,s),0);
+      return {act, staffList, totalC};
+    })
+    .filter(r => r.staffList.length > 0);
+
+  if(summaryRows.length){
+    lines.push("📊 RINGKASAN AKTIVITAS");
+    let totalChecks = 0;
+    summaryRows.forEach(r=>{
+      totalChecks += r.totalC;
+      lines.push(`${r.act.icon || "📌"} ${r.act.name}: ${r.staffList.length} staff, ${r.totalC}x`);
+    });
+    lines.push(`Total: ${totalChecks}x dari ${summaryRows.length} aktivitas`);
+    lines.push("");
+  }
+
+  const linked = config.activities.filter(a=>{
+    if(!a.link || !a.link.trim()) return false;
+    const subs = (dayData.submissions && dayData.submissions[a.id]) || {};
+    return Object.keys(subs).length > 0;
+  });
+  if(linked.length){
+    lines.push("🔗 STATUS SUBMIT LINK");
+    linked.forEach(act=>{
+      const subs = (dayData.submissions && dayData.submissions[act.id]) || {};
+      const names = Object.keys(subs);
+      lines.push(`${act.icon || "📌"} ${act.name}: ${names.join(", ")}`);
+    });
+    lines.push("");
+  }
+
+  if(config.closing.trim()) lines.push(config.closing.trim());
+  while(lines.length && lines[lines.length-1]==="") lines.pop();
+  return lines.join("\n");
+}
+
+function renderPreview(){
+  const text = buildReportText();
+  document.getElementById("previewText").textContent = text;
+  const now = new Date();
+  document.getElementById("previewTime").textContent =
+    String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+}
+
+function renderSettingsChips(){
+  const chips = document.getElementById("staffChips");
+  chips.innerHTML = "";
+  config.staff.forEach(name=>{
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.innerHTML = `<span>${escapeHtml(name)}</span><button data-rmstaff="${escapeHtml(name)}">✕</button>`;
+    chips.appendChild(chip);
+  });
+  chips.querySelectorAll("[data-rmstaff]").forEach(b=>b.addEventListener("click", async ()=>{
+    const name = b.dataset.rmstaff;
+    const ok = await showConfirm(`Hapus "${name}" dari daftar roster staff?`, "Hapus Staff");
+    if(ok){
+      config.staff = config.staff.filter(s=>s!==name);
+      renderAll();
+      renderSettingsChips();
+      pushConfig();
+    }
+  }));
+  document.getElementById("openingText").value = config.opening;
+  document.getElementById("closingText").value = config.closing;
+}
+
+function renderSummary(){
+  const section = document.getElementById("summarySection");
+  const card = document.getElementById("summaryCard");
+  let totalChecks = 0;
+  const filled = config.activities
+    .map(act=>{
+      const staffList = activeStaffFor(act.id);
+      const totalC = staffList.reduce((sum,s)=>sum+getCount(act.id,s),0);
+      return {act, staffList, totalC};
+    })
+    .filter(r => r.staffList.length > 0);
+
+  if(filled.length === 0){
+    section.style.display = "none";
+    return;
+  }
+  section.style.display = "";
+  const rows = filled.map(r=>{
+    totalChecks += r.totalC;
+    return `<div class="summary-row">
+      <div class="summary-row-label"><span class="summary-icon">${r.act.icon||"📌"}</span><span>${escapeHtml(r.act.name)}</span></div>
+      <div class="summary-row-val">${r.staffList.length} staff · ${r.totalC}x</div>
+    </div>`;
+  }).join("");
+  card.innerHTML = rows + `<div class="summary-total">Total tercatat hari ini: <b>${totalChecks}x</b> dari <b>${filled.length}</b> aktivitas</div>`;
+}
+
+function renderSubmitSummary(){
+  const section = document.getElementById("submitSummarySection");
+  const card = document.getElementById("submitSummaryCard");
+  const filled = config.activities.filter(a=>{
+    if(!a.link || !a.link.trim()) return false;
+    const subs = (dayData.submissions && dayData.submissions[a.id]) || {};
+    return Object.keys(subs).length > 0;
+  });
+  if(filled.length === 0){
+    section.style.display = "none";
+    return;
+  }
+  section.style.display = "";
+  card.innerHTML = filled.map(act=>{
+    const subs = (dayData.submissions && dayData.submissions[act.id]) || {};
+    const names = Object.keys(subs);
+    return `<div class="summary-row-block">
+      <div class="summary-row-label"><span class="summary-icon">${act.icon||"📌"}</span><span>${escapeHtml(act.name)}</span></div>
+      <div class="submit-names">${names.map(n=>`<span class="submit-chip">✅ ${escapeHtml(n)}</span>`).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+let pendingSubmit = null;
+function openSubmitPicker(actId, url){
+  pendingSubmit = {actId, url};
+  const chips = document.getElementById("submitPickerChips");
+  chips.innerHTML = config.staff.map(name=>
+    `<button type="button" class="chip picker-chip" data-pick="${escapeHtml(name)}">${escapeHtml(name)}</button>`
+  ).join("");
+  chips.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click",()=>{
+    const name = b.dataset.pick;
+    recordSubmission(pendingSubmit.actId, name);
+    document.getElementById("submitPickerBg").classList.remove("open");
+    window.open(pendingSubmit.url, "_blank");
+    renderAll();
+  }));
+  document.getElementById("submitPickerBg").classList.add("open");
+}
+document.getElementById("closeSubmitPicker").addEventListener("click",()=>{
+  document.getElementById("submitPickerBg").classList.remove("open");
+});
+
+function recordSubmission(actId, staffName){
+  if(!dayData.submissions) dayData.submissions = {};
+  if(!dayData.submissions[actId]) dayData.submissions[actId] = {};
+  dayData.submissions[actId][staffName] = new Date().toISOString();
+  saveDayDataLocal(dateKey(currentDate), dayData);
+  scheduleCountsPush();
+}
+
+function renderAll(){
+  renderDateBar();
+  renderActivities();
+  renderPreview();
+  renderSummary();
+  renderSubmitSummary();
+}
+
+document.getElementById("prevDay").addEventListener("click", async ()=>{
+  followToday = false;
+  currentDate.setDate(currentDate.getDate()-1);
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAll();
+});
+document.getElementById("nextDay").addEventListener("click", async ()=>{
+  followToday = false;
+  currentDate.setDate(currentDate.getDate()+1);
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAll();
+});
+document.getElementById("dateDisplay").addEventListener("click",()=>{
+  const el = document.getElementById("dateInput");
+  el.showPicker ? el.showPicker() : el.click();
+});
+document.getElementById("dateInput").addEventListener("change", async (e)=>{
+  const [y,m,d] = e.target.value.split("-").map(Number);
+  currentDate = new Date(y, m-1, d);
+  followToday = (dateKey(currentDate) === dateKey(new Date()));
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAll();
+});
+document.getElementById("jumpToday").addEventListener("click", async ()=>{
+  followToday = true;
+  currentDate = new Date();
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAll();
+});
+
+setInterval(async ()=>{
+  if(followToday){
+    const nowKey = dateKey(new Date());
+    if(nowKey !== dateKey(currentDate)){
+      currentDate = new Date();
+      await loadCurrentDayData();
+      renderAll();
+    }
+  }
+}, 30000);
+
+document.getElementById("addActivityBtn").addEventListener("click",()=>{
+  const name = prompt("Nama aktivitas baru:");
+  if(name === null || !name.trim()) return;
+  const link = prompt("Link submit (kosongkan jika tidak ada):", "") || "";
+  const icon = prompt("Icon/emoji (contoh: 📌):", "📌") || "📌";
+  config.activities.push({id:"a"+Date.now(), name:name.trim(), link:link.trim(), icon:icon.trim() || "📌"});
+  renderAll();
+  pushConfig();
+});
+
+const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i&mlu=4";
+
+async function copyReportText(){
+  const text = buildReportText();
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+  }
+}
+
+document.getElementById("autoBtn").addEventListener("click", async ()=>{
+  await copyReportText();
+  const t = document.getElementById("toast");
+  t.textContent = "Disalin — tinggal paste di grup WA ✓";
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1600);
+  window.open(WA_GROUP_LINK, "_blank");
+});
+
+document.getElementById("manualBtn").addEventListener("click", async ()=>{
+  await copyReportText();
+  const t = document.getElementById("toast");
+  t.textContent = "Disalin ✓ — buka WhatsApp sendiri lalu paste";
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1800);
+});
+
+document.getElementById("openSettings").addEventListener("click",()=>{
+  renderSettingsChips();
+  document.getElementById("modalBg").classList.add("open");
+});
+document.getElementById("closeSettings").addEventListener("click",()=>{
+  config.opening = document.getElementById("openingText").value;
+  config.closing = document.getElementById("closingText").value;
+  document.getElementById("modalBg").classList.remove("open");
+  renderAll();
+  pushConfig();
+});
+document.getElementById("addStaffBtn").addEventListener("click",()=>{
+  const input = document.getElementById("newStaffName");
+  const name = input.value.trim();
+  if(name && !config.staff.includes(name)){
+    config.staff.push(name);
+    input.value = "";
+    renderSettingsChips();
+    pushConfig();
+  }
+});
+document.getElementById("newStaffName").addEventListener("keydown",(e)=>{
+  if(e.key === "Enter") document.getElementById("addStaffBtn").click();
+});
+document.getElementById("resetDayBtn").addEventListener("click", async ()=>{
+  const ok = await showConfirm("Reset semua centang untuk tanggal ini?", "Reset Centang Hari Ini");
+  if(ok){
+    dayData = {counts:{}, submissions:{}};
+    const key = dateKey(currentDate);
+    saveDayDataLocal(key, dayData);
+    renderAll();
+    setStatus("saving");
+    try{ await remoteSet(remoteDataKey(key), dayData); setStatus("saved"); }
+    catch(e){ setStatus("offline"); }
+  }
+});
+
+document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
+  const ok = await showConfirm(
+    "Kembalikan daftar staff & aktivitas ke setelan awal? Centang hari-hari yang sudah tersimpan tidak akan hilang, tapi daftar staff/aktivitas custom akan hilang.",
+    "Reset ke Setelan Awal"
+  );
+  if(ok){
+    config = defaultConfig();
+    document.getElementById("modalBg").classList.remove("open");
+    renderAll();
+    renderSettingsChips();
+    setStatus("saving");
+    try{ await remoteSet(REMOTE_CONFIG_KEY, config); setStatus("saved"); }
+    catch(e){ setStatus("offline"); }
+  }
+});
+
+const THEME_KEY = "digimap_theme_pref";
+function applyTheme(pref){
+  if(pref === "light" || pref === "dark"){
+    document.documentElement.setAttribute("data-theme", pref);
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  const btn = document.getElementById("themeBtn");
+  if(btn) btn.textContent = pref==="light" ? "☀️" : pref==="dark" ? "🌙" : "🌓";
+}
+let themePref = localStorage.getItem(THEME_KEY) || "auto";
+applyTheme(themePref);
+document.getElementById("themeBtn").addEventListener("click", ()=>{
+  themePref = themePref==="auto" ? "light" : themePref==="light" ? "dark" : "auto";
+  localStorage.setItem(THEME_KEY, themePref);
+  applyTheme(themePref);
+});
+
+init();
+</script>
+</body>
+</html>
