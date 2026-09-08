@@ -487,33 +487,33 @@
   .pill.active .ct { background:rgba(128,128,128,0.35); color:inherit; }
   .pill.active .pillicon { color:inherit; }
 
-  /* SOH List Spacing Rapat & Ideal */
-  .list { display:flex; flex-direction:column; gap:5px; }
+  /* SOH List Spacing Super Rapat & Compact */
+  .list { display:flex; flex-direction:column; gap:2px; }
   .row {
-    display:flex; align-items:center; gap:12px;
-    border-radius:16px; padding:8px 14px; box-shadow:var(--shadow-sm); transition:.15s;
+    display:flex; align-items:center; gap:8px;
+    border-radius:10px; padding:4px 10px; box-shadow:var(--shadow-sm); transition:.15s;
     overflow:hidden;
   }
   .row:hover { box-shadow:var(--shadow); }
   .row .icon {
-    width:36px; height:36px; border-radius:12px; flex-shrink:0;
+    width:28px; height:28px; border-radius:8px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
     background:rgba(128,128,128,0.14);
     color:var(--accent,#888);
   }
-  .row .icon svg { width:18px; height:18px; stroke:currentColor; display:block; }
+  .row .icon svg { width:15px; height:15px; stroke:currentColor; display:block; }
   .row .info { flex:1; min-width:0; }
-  .row .name { font-size:14px; font-weight:600; line-height:1.25; overflow-wrap:anywhere; }
-  .row .meta { display:flex; align-items:center; gap:8px; margin-top:2px; flex-wrap:wrap; }
-  .row .cat { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent,#888); }
-  .row .code { font-size:11px; color:var(--text-faint); font-family:inherit; }
-  .row .qtycol { font-size:10.5px; color:var(--text-faint); font-style:italic; }
+  .row .name { font-size:13px; font-weight:600; line-height:1.2; overflow-wrap:anywhere; }
+  .row .meta { display:flex; align-items:center; gap:6px; margin-top:0; flex-wrap:wrap; }
+  .row .cat { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--accent,#888); }
+  .row .code { font-size:10.5px; color:var(--text-faint); font-family:inherit; }
+  .row .qtycol { font-size:10px; color:var(--text-faint); font-style:italic; }
   
   .stockbadge {
     display:flex; flex-direction:column; align-items:flex-end; line-height:1; flex-shrink:0;
   }
-  .stockbadge .n { font-size:18px; font-weight:800; }
-  .stockbadge .s { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 6px; border-radius:999px; margin-top:3px; white-space:nowrap; }
+  .stockbadge .n { font-size:15px; font-weight:800; }
+  .stockbadge .s { font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:1px 5px; border-radius:999px; margin-top:1px; white-space:nowrap; }
   .stockbadge.ok .n { color:var(--ok); } .stockbadge.ok .s { color:var(--ok); background:var(--ok-bg); }
   .stockbadge.warn .n { color:var(--warn); } .stockbadge.warn .s { color:var(--warn); background:var(--warn-bg); }
   .stockbadge.bad .n { color:var(--bad); } .stockbadge.bad .s { color:var(--bad); background:var(--bad-bg); }
@@ -527,8 +527,8 @@
     border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
   }
 
-  .skele { display:flex; flex-direction:column; gap:5px; }
-  .skrow { height:52px; border-radius:16px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
+  .skele { display:flex; flex-direction:column; gap:2px; }
+  .skrow { height:38px; border-radius:10px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
   @keyframes shimmer { 0%{background-position:100% 0;} 100%{background-position:0 0;} }
 
   /* SOH Settings Modal Overlay */
@@ -967,7 +967,7 @@
       </div>
     </section>
 
-    <!-- VIEW 6: SOH LOCAL (FULL INDEX-4 INTEGRATION) -->
+    <!-- VIEW 6: SOH LOCAL -->
     <section id="viewSoh" class="view-panel">
       <!-- Topbar Header SOH -->
       <div class="glass" style="border-radius:24px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -2167,7 +2167,7 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
 initChecklist();
 
 /* ==========================================================================
-   --- SOH LOCAL ENGINE & LOGIC (FROM INDEX-4.HTML) ---
+   --- SOH LOCAL ENGINE & LOGIC ---
    ========================================================================== */
 const SOH_LS_KEY = 'digimap_stock_settings_v4';
 const SOH_LS_CACHE = 'digimap_stock_cache_v4';
@@ -2198,7 +2198,7 @@ let sohSettings = sohSavedSettings || {
 let sohState = {
   data: [],
   activeCat: 'Semua',
-  stockFilter: 'all', // all | warn | bad
+  stockFilter: 'all',
   search: '',
   sort: 'name-asc',
   lastSync: null,
