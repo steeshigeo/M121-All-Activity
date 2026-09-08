@@ -1353,6 +1353,37 @@ function copyPhotoAndOpenWA() {
 // --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
+// [ADDED] Tracking Staff Yang Sudah Upload LOB Champion Hari Ini
+const LOB_STAFF_LIST = [
+  "Moh Asfiyak Kamida (Apple Watch)",
+  "Achmad Rafi Kurnia T. (Mac)",
+  "Linda Indi Kusumanigrum (iPhone)",
+  "Hyskia Indra Aphista (iPad)"
+];
+const LOB_UPLOAD_KEY_PREFIX = "digimap_lob_uploaded_";
+
+function lobDateKey(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function lobGetUploadedToday(){
+  try{
+    const raw = localStorage.getItem(LOB_UPLOAD_KEY_PREFIX + lobDateKey());
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function lobMarkUploaded(name){
+  const key = LOB_UPLOAD_KEY_PREFIX + lobDateKey();
+  const list = lobGetUploadedToday();
+  if(!list.includes(name)) list.push(name);
+  localStorage.setItem(key, JSON.stringify(list));
+}
+function lobGetBelumUpload(){
+  const uploaded = lobGetUploadedToday();
+  return LOB_STAFF_LIST.filter(s => !uploaded.includes(s));
+}
+// [/ADDED]
+
 function handleLobSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-lob-submit');
@@ -1388,9 +1419,15 @@ function handleLobSubmit(e) {
       if(res.success) {
         status.style.color = "var(--mint)";
         status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
-        
+
+        // [ADDED] catat staff ini sudah upload hari ini, lalu hitung yang belum upload
+        lobMarkUploaded(namaStaff);
+        const belumUpload = lobGetBelumUpload();
+        const belumUploadText = belumUpload.length ? belumUpload.join(", ") : "Semua staff sudah upload ✅";
+        // [/ADDED]
+
         const waktuUpload = getFormattedPhotoDateTime();
-        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Upload: ${belumUploadText}`;
 
         document.getElementById('lobReportText').innerText = lobReportTemplate;
         reportBox.style.display = "block";
