@@ -487,8 +487,8 @@
   .pill.active .ct { background:rgba(128,128,128,0.35); color:inherit; }
   .pill.active .pillicon { color:inherit; }
 
-  /* SOH List - Space Ultra Super Duper Tipis 0.01px */
-  .list { display:flex; flex-direction:column; gap:0.01px; }
+  /* SOH List - Space Ultra Super Duper Tipis 0.001px */
+  .list { display:flex; flex-direction:column; gap:0.001px; }
   .row {
     display:flex; align-items:center; gap:10px;
     border-radius:12px; padding:9px 16px; box-shadow:var(--shadow-sm); transition:.15s;
@@ -527,7 +527,7 @@
     border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
   }
 
-  .skele { display:flex; flex-direction:column; gap:0.01px; }
+  .skele { display:flex; flex-direction:column; gap:0.001px; }
   .skrow { height:54px; border-radius:12px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
   @keyframes shimmer { 0%{background-position:100% 0;} 100%{background-position:0 0;} }
 
@@ -1106,7 +1106,7 @@
           <ol>
             <li>Tim edit stok/harga langsung di file Excel <code>stockpositionreportdetail.xls</code> di OneDrive, lalu simpan.</li>
             <li>GitHub Actions mengecek OneDrive tiap ±2 menit, mengunduh versi terbaru.</li>
-            <li>Data diproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko (kategori DEVICES/ACCESSORIES + sub kategori PHONE/TABLETS/LAPTOPS/WATCH/EARPHONES/HEADPHONES).</li>
+            <li>Data dipproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko (kategori DEVICES/ACCESSORIES + sub kategori PHONE/TABLETS/LAPTOPS/WATCH/EARPHONES/HEADPHONES).</li>
             <li>Kalau ada perubahan, hasilnya di-commit ke repository dan Netlify otomatis publish ulang website ini.</li>
             <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala (lihat Preferensi) dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
           </ol>
