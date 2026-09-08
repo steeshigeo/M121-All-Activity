@@ -176,10 +176,14 @@
   .main-content { flex: 1; margin-left: 260px; padding: 24px 20px 110px; width: 100%; max-width: 100%; }
   @media (max-width: 768px) { .main-content { margin-left: 0; padding: 16px 14px 110px; } }
 
+  /* Header Mobile Freeze (Sticky) */
   .top-mobile-bar {
     display: none; align-items: center; justify-content: space-between; margin-bottom: 16px;
     background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border); border-radius: 18px; padding: 10px 14px; box-shadow: var(--shadow);
+    position: sticky;
+    top: 10px;
+    z-index: 85;
   }
   @media (max-width: 768px) { .top-mobile-bar { display: flex; } }
 
@@ -483,32 +487,33 @@
   .pill.active .ct { background:rgba(128,128,128,0.35); color:inherit; }
   .pill.active .pillicon { color:inherit; }
 
-  .list { display:flex; flex-direction:column; gap:8px; }
+  /* SOH List Spacing Rapat & Ideal */
+  .list { display:flex; flex-direction:column; gap:5px; }
   .row {
-    display:flex; align-items:center; gap:14px;
-    border-radius:20px; padding:12px 16px; box-shadow:var(--shadow-sm); transition:.15s;
+    display:flex; align-items:center; gap:12px;
+    border-radius:16px; padding:8px 14px; box-shadow:var(--shadow-sm); transition:.15s;
     overflow:hidden;
   }
   .row:hover { box-shadow:var(--shadow); }
   .row .icon {
-    width:40px; height:40px; border-radius:14px; flex-shrink:0;
+    width:36px; height:36px; border-radius:12px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
     background:rgba(128,128,128,0.14);
     color:var(--accent,#888);
   }
-  .row .icon svg { width:20px; height:20px; stroke:currentColor; display:block; }
+  .row .icon svg { width:18px; height:18px; stroke:currentColor; display:block; }
   .row .info { flex:1; min-width:0; }
-  .row .name { font-size:14.5px; font-weight:600; line-height:1.3; overflow-wrap:anywhere; }
-  .row .meta { display:flex; align-items:center; gap:8px; margin-top:3px; flex-wrap:wrap; }
-  .row .cat { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent,#888); }
-  .row .code { font-size:11.5px; color:var(--text-faint); font-family:inherit; }
-  .row .qtycol { font-size:11px; color:var(--text-faint); font-style:italic; }
+  .row .name { font-size:14px; font-weight:600; line-height:1.25; overflow-wrap:anywhere; }
+  .row .meta { display:flex; align-items:center; gap:8px; margin-top:2px; flex-wrap:wrap; }
+  .row .cat { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent,#888); }
+  .row .code { font-size:11px; color:var(--text-faint); font-family:inherit; }
+  .row .qtycol { font-size:10.5px; color:var(--text-faint); font-style:italic; }
   
   .stockbadge {
     display:flex; flex-direction:column; align-items:flex-end; line-height:1; flex-shrink:0;
   }
-  .stockbadge .n { font-size:20px; font-weight:800; }
-  .stockbadge .s { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 7px; border-radius:999px; margin-top:4px; white-space:nowrap; }
+  .stockbadge .n { font-size:18px; font-weight:800; }
+  .stockbadge .s { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 6px; border-radius:999px; margin-top:3px; white-space:nowrap; }
   .stockbadge.ok .n { color:var(--ok); } .stockbadge.ok .s { color:var(--ok); background:var(--ok-bg); }
   .stockbadge.warn .n { color:var(--warn); } .stockbadge.warn .s { color:var(--warn); background:var(--warn-bg); }
   .stockbadge.bad .n { color:var(--bad); } .stockbadge.bad .s { color:var(--bad); background:var(--bad-bg); }
@@ -522,8 +527,8 @@
     border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
   }
 
-  .skele { display:flex; flex-direction:column; gap:8px; }
-  .skrow { height:64px; border-radius:20px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
+  .skele { display:flex; flex-direction:column; gap:5px; }
+  .skrow { height:52px; border-radius:16px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
   @keyframes shimmer { 0%{background-position:100% 0;} 100%{background-position:0 0;} }
 
   /* SOH Settings Modal Overlay */
