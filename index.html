@@ -13,6 +13,8 @@
 <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
 <!-- Library Chart.js untuk Diagram & Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Library SheetJS untuk Export Murni .XLSX -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
   :root {
@@ -269,46 +271,62 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* MODERN COMPACT SINGLE-COLUMN FILTER CONTAINER */
-  .single-column-filter-card {
+  /* NEW FRESH LOOK: MOBILE-FRIENDLY FILTER CARD */
+  .fresh-filter-card {
     background: var(--surface);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     border-radius: 18px;
-    padding: 10px 14px;
+    padding: 12px 14px;
     margin-bottom: 20px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.03);
   }
 
-  .filter-column-label {
+  .filter-segmented-control {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--text-dim);
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    border-right: 1px solid var(--border);
-    padding-right: 10px;
-  }
-
-  .filter-inline-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .filter-compact-select, .filter-compact-input {
-    border: none;
     background: var(--surface-soft);
+    padding: 3px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    width: auto;
+  }
+
+  .segmented-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .segmented-btn.active {
+    background: var(--surface-solid);
+    color: var(--brand);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .filter-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 200px;
+    justify-content: flex-end;
+  }
+
+  .fresh-filter-input {
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
     color: var(--text);
     font-size: 12.5px;
     font-weight: 700;
@@ -316,11 +334,29 @@
     cursor: pointer;
     padding: 6px 12px;
     border-radius: 12px;
-    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 220px;
   }
-  .filter-compact-select option {
-    background: var(--surface-solid);
-    color: var(--text);
+
+  @media (max-width: 520px) {
+    .fresh-filter-card {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .filter-segmented-control {
+      width: 100%;
+    }
+    .segmented-btn {
+      flex: 1;
+      text-align: center;
+    }
+    .filter-picker-group {
+      width: 100%;
+      min-width: 0;
+    }
+    .fresh-filter-input {
+      max-width: 100%;
+    }
   }
 
   .stat-grid-modern {
@@ -1237,30 +1273,22 @@
             <button class="btn-export-compact btn-export-csv" onclick="exportSummaryToCSV()">
               📊 Export CSV
             </button>
-            <button class="btn-export-compact btn-export-excel" onclick="exportSummaryToExcel()">
-              📗 Export Excel (.xls)
+            <button class="btn-export-compact btn-export-excel" onclick="exportSummaryToXLSX()">
+              📗 Export XLSX
             </button>
           </div>
         </div>
 
-        <!-- REVISED UI: COMPACT SINGLE-COLUMN FILTER CARD -->
-        <div class="single-column-filter-card">
-          <div class="filter-column-label">
-            <span>🔍</span> FILTER DATA
+        <!-- NEW FRESH LOOK & RESPONSIVE FILTER CARD -->
+        <div class="fresh-filter-card">
+          <div class="filter-segmented-control">
+            <button id="btnFilterMonth" class="segmented-btn active" onclick="setSummaryFilterMode('month')">Per Bulan</button>
+            <button id="btnFilterDay" class="segmented-btn" onclick="setSummaryFilterMode('day')">Per Tanggal</button>
           </div>
-          <div class="filter-inline-controls">
-            <select id="summaryModeSelect" class="filter-compact-select" onchange="toggleSummaryDateInputs()">
-              <option value="month">Per Bulan</option>
-              <option value="day">Per Tanggal</option>
-            </select>
 
-            <div id="monthPickerWrap" style="display: inline-block;">
-              <input type="month" id="summaryMonthInput" class="filter-compact-input" onchange="renderAnalyticsSummary()">
-            </div>
-
-            <div id="dayPickerWrap" style="display: none;">
-              <input type="date" id="summaryDayInput" class="filter-compact-input" onchange="renderAnalyticsSummary()">
-            </div>
+          <div class="filter-picker-group">
+            <input type="month" id="summaryMonthInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
+            <input type="date" id="summaryDayInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
           </div>
         </div>
 
@@ -1317,8 +1345,8 @@
               <tr>
                 <th>Tanggal</th>
                 <th>Nama Staff</th>
-                <th>Aktivitas</th>
-                <th>Eksekusi</th>
+                <th>Jenis Aktivitas</th>
+                <th>Jumlah Eksekusi</th>
               </tr>
             </thead>
             <tbody id="summaryTableBody">
@@ -1479,7 +1507,6 @@ window.addEventListener('DOMContentLoaded', initVanta);
 
 
 // --- IMAGE COMPRESSION UTILITY FUNCTION ---
-// Mengompres foto sebelum diupload agar cepat dan tidak memberatkan koneksi mobile
 function compressImage(file, maxWidth = 1280, quality = 0.75) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) {
@@ -1626,7 +1653,7 @@ function getTodayString() {
 }
 
 
-// --- VIEW: TRY ON PHOTO EVIDENCE LOGIC (WITH AUTO-COMPRESSION) ---
+// --- VIEW: TRY ON PHOTO EVIDENCE LOGIC ---
 let photoReportTemplate = "";
 
 async function handlePhotoSubmit(e) {
@@ -1697,7 +1724,7 @@ function copyPhotoAndOpenWA() {
 }
 
 
-// --- VIEW: LOB CHAMPION REPORT LOGIC (WITH AUTO-COMPRESSION) ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
 async function fetchUploadedLobStaffs() {
@@ -1797,7 +1824,7 @@ function copyLobAndOpenWA() {
 }
 
 
-// --- VIEW: OPS & EMS REPORT LOGIC (WITH AUTO-COMPRESSION) ---
+// --- VIEW: OPS & EMS REPORT LOGIC ---
 let opsEmsReportTemplate = "";
 
 async function handleOpsEmsSubmit(e) {
@@ -1868,7 +1895,7 @@ function copyOpsEmsAndOpenWA() {
 }
 
 
-// --- VIEW: TRAINER REPORT LOGIC (WITH AUTO-COMPRESSION) ---
+// --- VIEW: TRAINER REPORT LOGIC ---
 let trainerReportTemplate = "";
 
 async function handleTrainerSubmit(e) {
@@ -2556,11 +2583,14 @@ initChecklist();
 let staffChartInstance = null;
 let actChartInstance = null;
 let currentSummaryDataset = [];
+let summaryFilterMode = 'month';
 
-function toggleSummaryDateInputs() {
-  const mode = document.getElementById('summaryModeSelect').value;
-  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'inline-block' : 'none';
-  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'inline-block' : 'none';
+function setSummaryFilterMode(mode) {
+  summaryFilterMode = mode;
+  document.getElementById('btnFilterMonth').classList.toggle('active', mode === 'month');
+  document.getElementById('btnFilterDay').classList.toggle('active', mode === 'day');
+  document.getElementById('summaryMonthInput').style.display = mode === 'month' ? 'block' : 'none';
+  document.getElementById('summaryDayInput').style.display = mode === 'day' ? 'block' : 'none';
   renderAnalyticsSummary();
 }
 
@@ -2576,16 +2606,15 @@ function getAllChecklistDataKeys() {
 }
 
 function renderAnalyticsSummary() {
-  const mode = document.getElementById('summaryModeSelect').value;
   const monthVal = document.getElementById('summaryMonthInput').value; // YYYY-MM
   const dayVal = document.getElementById('summaryDayInput').value;     // YYYY-MM-DD
 
   const availableDates = getAllChecklistDataKeys();
   let filteredDates = [];
 
-  if (mode === 'month' && monthVal) {
+  if (summaryFilterMode === 'month' && monthVal) {
     filteredDates = availableDates.filter(d => d.startsWith(monthVal));
-  } else if (mode === 'day' && dayVal) {
+  } else if (summaryFilterMode === 'day' && dayVal) {
     filteredDates = availableDates.filter(d => d === dayVal);
   }
 
@@ -2648,10 +2677,10 @@ function renderSummaryTable(dataset) {
 
   tbody.innerHTML = dataset.map(row => `
     <tr>
-      <td>${row.date}</td>
-      <td><b>${escapeHtml(row.staff)}</b></td>
+      <td><b>${row.date}</b></td>
+      <td>${escapeHtml(row.staff)}</td>
       <td>${escapeHtml(row.activity)}</td>
-      <td style="font-weight: 700; color: var(--mint);">${row.count}x Eksekusi</td>
+      <td style="font-weight: 700; text-align: right;">${row.count}</td>
     </tr>
   `).join('');
 }
@@ -2707,7 +2736,7 @@ function renderSummaryCharts(staffData, actData) {
   });
 }
 
-/* FIXED EXPORT TO CSV (MOBILE SUPPORT & CLEAN FORMATTING) */
+/* FIXED EXPORT TO CSV */
 function exportSummaryToCSV() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
@@ -2726,70 +2755,42 @@ function exportSummaryToCSV() {
   triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
 }
 
-/* EXPORT TO EXCEL (.XLS) WITH SAME TABULAR DATA CONTENT AS CSV */
-function exportSummaryToExcel() {
+/* EXPORT TO MURNI .XLSX (SESUAI DESAIN GAMBAR ATTACHMENT) */
+function exportSummaryToXLSX() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
     return;
   }
 
-  let htmlTable = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-      <meta charset="utf-8">
-      <!--[if gte mso 9]>
-      <xml>
-        <x:ExcelWorkbook>
-          <x:ExcelWorksheets>
-            <x:ExcelWorksheet>
-              <x:Name>Laporan Activity</x:Name>
-              <x:WorksheetOptions>
-                <x:DisplayGridlines/>
-              </x:WorksheetOptions>
-            </x:ExcelWorksheet>
-          </x:ExcelWorksheets>
-        </x:ExcelWorkbook>
-      </xml>
-      <![endif]-->
-      <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; }
-        th { background-color: #0071e3; color: #ffffff; font-weight: bold; height: 26px; text-align: left; border: 0.5pt solid #cccccc; }
-        td { border: 0.5pt solid #cccccc; height: 22px; vertical-align: middle; }
-      </style>
-    </head>
-    <body>
-      <table>
-        <thead>
-          <tr>
-            <th>Tanggal</th>
-            <th>Nama Staff</th>
-            <th>Jenis Aktivitas</th>
-            <th>Jumlah Eksekusi</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+  currentSummaryDataset.sort((a, b) => b.date.localeCompare(a.date));
+
+  // Menyiapkan data array of arrays sesuai kolom attachment
+  const excelData = [
+    ["Tanggal", "Nama Staff", "Jenis Aktivitas", "Jumlah Eksekusi"]
+  ];
 
   currentSummaryDataset.forEach(row => {
-    htmlTable += `
-      <tr>
-        <td>${row.date}</td>
-        <td>${escapeHtml(row.staff)}</td>
-        <td>${escapeHtml(row.activity)}</td>
-        <td style="text-align: right;">${row.count}</td>
-      </tr>
-    `;
+    excelData.push([row.date, row.staff, row.activity, Number(row.count)]);
   });
 
-  htmlTable += `
-        </tbody>
-      </table>
-    </body>
-    </html>
-  `;
+  const ws = XLSX.utils.aoa_to_sheet(excelData);
 
-  const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel;charset=utf-8;" });
-  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.xls`);
+  // Set lebar kolom agar persis & tidak terpotong
+  ws['!cols'] = [
+    { wch: 14 }, // Tanggal
+    { wch: 28 }, // Nama Staff
+    { wch: 22 }, // Jenis Aktivitas
+    { wch: 18 }  // Jumlah Eksekusi
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Laporan Aktivitas");
+
+  // Write file .xlsx murni
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.xlsx`);
 }
 
 /* UNIVERSAL BLOB DOWNLOAD TRIGGER FOR MOBILE BROWSERS */
