@@ -279,6 +279,29 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
+  /* Compact Modern Filter Bar */
+  .compact-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .compact-filter-bar select, .compact-filter-bar input[type="month"], .compact-filter-bar input[type="date"] {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
+    color: var(--text);
+  }
+
   .stat-grid-modern {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -637,8 +660,7 @@
   .empty .t { font-weight:700; color:var(--text); margin-bottom:4px; font-size:15px; }
   .empty .d { font-size:13.5px; }
   .empty button {
-    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:9px 16px;
-    border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:99px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
   }
 
   .skele { display: flex; flex-direction: column; gap: 1px; }
@@ -911,7 +933,6 @@
               <option value="Achmad Rafi Kurnia T. (Mac)">Achmad Rafi Kurnia T. (Mac)</option>
               <option value="Linda Indi Kusumanigrum (iPhone)">Linda Indi Kusumanigrum (iPhone)</option>
               <option value="Hyskia Indra Aphista (iPad)">Hyskia Indra Aphista (iPad)</option>
-              <option value="Reni Purwati">Reni Purwati</option>
             </select>
           </div>
 
@@ -1055,7 +1076,7 @@
               <option value="Eggy Thania A.M">Eggy Thania A.M</option>
               <option value="Frandy Putra">Frandy Putra</option>
               <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
-              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
+              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T me</option>
               <option value="Dewi Andansari">Dewi Andansari</option>
               <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
               <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
@@ -1169,10 +1190,10 @@
       </footer>
     </section>
 
-    <!-- VIEW 7: SUMMARY & ANALYTICS OVERVIEW (MODERN & FRESH DESIGN) -->
+    <!-- VIEW 7: SUMMARY & ANALYTICS OVERVIEW (COMPACT MODERN DESIGN) -->
     <section id="viewSummary" class="view-panel">
       <div class="summary-hero-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
           <div>
             <h2 style="margin: 0; font-family: 'Baloo 2'; font-size: 1.35rem; font-weight: 700; color: var(--text);">
               📊 Overview & Analytics
@@ -1193,21 +1214,18 @@
           </div>
         </div>
 
-        <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 22px;">
-          <div style="flex: 1; min-width: 160px;">
-            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-faint);">Filter Mode</label>
-            <select id="summaryModeSelect" onchange="toggleSummaryDateInputs()" style="padding: 10px 12px;">
-              <option value="month">Per Bulan & Tahun</option>
-              <option value="day">Per Tanggal Spesifik</option>
-            </select>
+        <!-- Filter Mode & Periode Compact Modern -->
+        <div class="compact-filter-bar">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Filter:</span>
+          <select id="summaryModeSelect" onchange="toggleSummaryDateInputs()">
+            <option value="month">Per Bulan</option>
+            <option value="day">Per Tanggal</option>
+          </select>
+          <div id="monthPickerWrap" style="display: inline-block;">
+            <input type="month" id="summaryMonthInput" onchange="renderAnalyticsSummary()">
           </div>
-          <div style="flex: 1; min-width: 160px;" id="monthPickerWrap">
-            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-faint);">Periode Bulan</label>
-            <input type="month" id="summaryMonthInput" onchange="renderAnalyticsSummary()" style="padding: 10px 12px;">
-          </div>
-          <div style="flex: 1; min-width: 160px; display: none;" id="dayPickerWrap">
-            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-faint);">Pilih Tanggal</label>
-            <input type="date" id="summaryDayInput" onchange="renderAnalyticsSummary()" style="padding: 10px 12px;">
+          <div id="dayPickerWrap" style="display: none;">
+            <input type="date" id="summaryDayInput" onchange="renderAnalyticsSummary()">
           </div>
         </div>
 
@@ -1847,13 +1865,21 @@ function copyTrainerAndOpenWA() {
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
-const CONFIG_KEY = "digimap_checklist_config_v3";
+const CONFIG_KEY = "digimap_checklist_config_v4";
 const DATA_PREFIX = "digimap_checklist_data_";
 
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   const blackList = ["ops & ems", "ops", "ems", "open studio", "training", "roleplay", "lob champion"];
   cfg.activities = cfg.activities.filter(a => !blackList.includes(a.name.toLowerCase().trim()));
+  
+  // Normalisasi Judul Aktivitas jika masih menggunakan format lama
+  cfg.activities.forEach(a => {
+    if (a.name.includes("SAMUDERA")) a.name = "SAMUDERA";
+    if (a.name.includes("AKSARA")) a.name = "AKSARA";
+    if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
+  });
+
   return cfg;
 }
 
@@ -2456,8 +2482,8 @@ let currentSummaryDataset = [];
 
 function toggleSummaryDateInputs() {
   const mode = document.getElementById('summaryModeSelect').value;
-  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'block' : 'none';
-  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'block' : 'none';
+  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'inline-block' : 'none';
+  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'inline-block' : 'none';
   renderAnalyticsSummary();
 }
 
@@ -2496,7 +2522,12 @@ function renderAnalyticsSummary() {
     if (data && data.counts) {
       Object.keys(data.counts).forEach(actId => {
         const actObj = config.activities.find(a => a.id === actId);
-        const actName = actObj ? actObj.name : actId;
+        let actName = actObj ? actObj.name : actId;
+
+        // Normalisasi Judul jika dari cache lama
+        if (actName.includes("SAMUDERA")) actName = "SAMUDERA";
+        if (actName.includes("AKSARA")) actName = "AKSARA";
+        if (actName.includes("CAKRAWALA")) actName = "CAKRAWALA";
 
         Object.keys(data.counts[actId]).forEach(staffName => {
           const count = data.counts[actId][staffName];
@@ -2533,12 +2564,13 @@ function renderSummaryTable(dataset) {
 
   dataset.sort((a, b) => b.date.localeCompare(a.date));
 
+  // Tampilan eksekusi bersih tanpa kapsul/rounded
   tbody.innerHTML = dataset.map(row => `
     <tr>
       <td>${row.date}</td>
       <td><b>${escapeHtml(row.staff)}</b></td>
       <td>${escapeHtml(row.activity)}</td>
-      <td><span class="submit-chip">${row.count}x Eksekusi</span></td>
+      <td style="font-weight: 700; color: var(--mint);">${row.count}x Eksekusi</td>
     </tr>
   `).join('');
 }
