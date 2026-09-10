@@ -487,22 +487,22 @@
   .pill.active .ct { background:rgba(128,128,128,0.35); color:inherit; }
   .pill.active .pillicon { color:inherit; }
 
-  /* SOH List - Jarak Antar Baris Sangat Rapat */
+  /* SOH List - Jarak Antar Baris Rapat */
   .list { 
     display: flex; 
     flex-direction: column; 
-    gap: 1px; /* Dibuat 1px agar ada jarak kosong sedikit antar kartu */
+    gap: 1px; 
   }
   .row {
     display: flex; 
     align-items: center; 
     gap: 10px; 
     border-radius: 18px; 
-    padding: 8px 16px; /* Padding dipadatkan sedikit agar lebih ramping */
+    padding: 8px 16px; 
     box-shadow: var(--shadow-sm); 
     transition: .15s;
     overflow: hidden;
-    margin-bottom: 2px; /* Margin opsional jika ingin ada garis sangat tipis */
+    margin-bottom: 2px; 
   }
   .row:hover { box-shadow:var(--shadow); }
   .row .icon {
@@ -1270,6 +1270,13 @@ function showToast(msg) {
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRPnMN_HYnvEttG9s160UEi0Qkco-M9NZe_SRJ1ph-qe8XydPCXdE_KO4H09ycY_P7/exec";
 const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i&mlu=4&ilr=4";
 
+const LOB_STAFF_LIST = [
+  "Moh Asfiyak Kamida (Apple Watch)",
+  "Achmad Rafi Kurnia T. (Mac)",
+  "Linda Indi Kusumanigrum (iPhone)",
+  "Hyskia Indra Aphista (iPad)"
+];
+
 const photoNow = new Date();
 const photoDateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 const dateStrFormatted = photoNow.toLocaleDateString('id-ID', photoDateOptions);
@@ -1286,6 +1293,14 @@ function getFormattedPhotoDateTime() {
   const hours = String(d.getHours()).padStart(2, '0');
   const minutes = String(d.getMinutes()).padStart(2, '0');
   return `${dateStr} ${hours}:${minutes}`;
+}
+
+function getTodayString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 
@@ -1363,7 +1378,19 @@ function copyPhotoAndOpenWA() {
 // --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
-function handleLobSubmit(e) {
+async function fetchUploadedLobStaffs() {
+  try {
+    const todayDate = getTodayString();
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getLobProgress&date=${todayDate}&t=${Date.now()}`);
+    const json = await res.json();
+    if (json.success && Array.isArray(json.uploadedStaffs)) return json.uploadedStaffs;
+  } catch (err) {
+    console.error("Gagal menarik progress upload LOB:", err);
+  }
+  return [];
+}
+
+async function handleLobSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-lob-submit');
   const status = document.getElementById('lobStatus');
@@ -1379,7 +1406,7 @@ function handleLobSubmit(e) {
   const tujuan = "LOB Champion";
 
   const reader = new FileReader();
-  reader.onload = function(evt) {
+  reader.onload = async function(evt) {
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
@@ -1387,20 +1414,42 @@ function handleLobSubmit(e) {
       mimeType: file.type
     };
 
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      }).then(r => r.json());
+
       btn.disabled = false;
       btn.innerText = "Upload ke Google Drive";
-      if(res.success) {
+
+      if (res.success) {
         status.style.color = "var(--mint)";
-        status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
-        
+        status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
+
         const waktuUpload = getFormattedPhotoDateTime();
-        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+        // Mengambil data real-time staff yang sudah upload hari ini
+        const uploadedStaffs = await fetchUploadedLobStaffs();
+        
+        if (!uploadedStaffs.includes(namaStaff)) {
+          uploadedStaffs.push(namaStaff);
+        }
+
+        // Cari staff yang BELUM upload hari ini
+        const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
+
+        // Format Teks "Staff Yang Belum Upload"
+        let missingStaffText = "";
+        if (pendingStaffs.length === 0) {
+          missingStaffText = "Sudah Upload Semua Bosku";
+        } else {
+          missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
+        }
+
+        status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
+
+        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Upload: ${missingStaffText}`;
 
         document.getElementById('lobReportText').innerText = lobReportTemplate;
         reportBox.style.display = "block";
@@ -1409,13 +1458,12 @@ function handleLobSubmit(e) {
         status.style.color = "var(--danger)";
         status.innerText = "❌ Gagal: " + res.error;
       }
-    })
-    .catch(err => {
+    } catch (err) {
       btn.disabled = false;
       btn.innerText = "Upload ke Google Drive";
       status.style.color = "var(--danger)";
       status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-    });
+    }
   };
   reader.readAsDataURL(file);
 }
