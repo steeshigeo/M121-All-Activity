@@ -11,6 +11,8 @@
 <!-- Library Vanta.js Net Effect & Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+<!-- Library Chart.js untuk Diagram & Analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
   :root {
@@ -205,12 +207,19 @@
     position: relative;
   }
 
+  /* Modern Theme Toggle Button & SVG Icons */
   .theme-toggle-btn {
     width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border);
     background: var(--surface-soft); color: var(--text); display: flex; align-items: center;
-    justify-content: center; cursor: pointer; font-size: 16px; transition: 0.2s;
+    justify-content: center; cursor: pointer; transition: all 0.25s ease;
   }
+  .theme-toggle-btn:hover { background: var(--surface-solid); transform: translateY(-1px); }
   .theme-toggle-btn:active { transform: scale(0.92); }
+  .theme-toggle-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .theme-icon-sun { display: none; }
+  .theme-icon-moon { display: block; }
+  [data-theme="dark"] .theme-icon-sun { display: block; }
+  [data-theme="dark"] .theme-icon-moon { display: none; }
 
   /* Forms & Headers */
   .photo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -227,7 +236,7 @@
 
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 500; opacity: 0.9; }
-  select, input[type="file"], input[type="text"], textarea {
+  select, input[type="file"], input[type="text"], input[type="date"], input[type="month"], textarea {
     width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
     background: var(--field-bg); color: var(--text); font-size: 0.95rem; box-sizing: border-box;
     outline: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -254,6 +263,116 @@
   }
   .btn-copy { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
   .btn-wa { background: #25d366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+
+  /* Summary Table & Modern Analytics UI */
+  .summary-hero-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    margin-bottom: 24px;
+  }
+  [data-theme="dark"] .summary-hero-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  }
+
+  .stat-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .stat-card-modern {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  }
+
+  .stat-icon-wrapper {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+
+  .btn-export-compact {
+    padding: 9px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .btn-export-csv {
+    background: var(--surface-solid);
+    color: var(--text);
+  }
+  .btn-export-csv:hover { background: var(--surface-soft); transform: translateY(-1px); }
+  
+  .btn-export-excel {
+    background: #107c41;
+    color: #ffffff;
+    border-color: #0e6b37;
+  }
+  .btn-export-excel:hover { background: #0e6e39; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 768px) {
+    .chart-grid { grid-template-columns: 1fr; }
+  }
+  .chart-card {
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+  }
+  .data-table-wrap {
+    overflow-x: auto;
+    margin-top: 14px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+  }
+  .data-table th, .data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table th {
+    background: var(--surface-soft);
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
 
   /* View Checklist */
   .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -397,7 +516,7 @@
   
   .picker-chip { cursor: pointer; padding: 9px 16px; font-size: 13.5px; border: none; }
 
-  /* ==================== SOH LOCAL CUSTOM STYLES ==================== */
+  /* SOH LOCAL STYLES */
   .sync-status {
     display:flex; align-items:center; gap:8px;
     font-size:12.5px; color:var(--text-dim);
@@ -487,29 +606,16 @@
   .pill.active .ct { background:rgba(128,128,128,0.35); color:inherit; }
   .pill.active .pillicon { color:inherit; }
 
-  /* SOH List - Jarak Antar Baris Rapat */
-  .list { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 1px; 
-  }
+  .list { display: flex; flex-direction: column; gap: 1px; }
   .row {
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    border-radius: 18px; 
-    padding: 8px 16px; 
-    box-shadow: var(--shadow-sm); 
-    transition: .15s;
-    overflow: hidden;
-    margin-bottom: 2px; 
+    display: flex; align-items: center; gap: 10px; border-radius: 18px; padding: 8px 16px;
+    box-shadow: var(--shadow-sm); transition: .15s; overflow: hidden; margin-bottom: 2px;
   }
   .row:hover { box-shadow:var(--shadow); }
   .row .icon {
     width:36px; height:36px; border-radius:10px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
-    background:rgba(128,128,128,0.14);
-    color:var(--accent,#888);
+    background:rgba(128,128,128,0.14); color:var(--accent,#888);
   }
   .row .icon svg { width:18px; height:18px; stroke:currentColor; display:block; }
   .row .info { flex:1; min-width:0; }
@@ -519,9 +625,7 @@
   .row .code { font-size:11.5px; color:var(--text-faint); font-family:inherit; }
   .row .qtycol { font-size:11px; color:var(--text-faint); font-style:italic; }
   
-  .stockbadge {
-    display:flex; flex-direction:column; align-items:flex-end; line-height:1; flex-shrink:0;
-  }
+  .stockbadge { display:flex; flex-direction:column; align-items:flex-end; line-height:1; flex-shrink:0; }
   .stockbadge .n { font-size:17px; font-weight:800; }
   .stockbadge .s { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:2px 6px; border-radius:999px; margin-top:2px; white-space:nowrap; }
   .stockbadge.ok .n { color:var(--ok); } .stockbadge.ok .s { color:var(--ok); background:var(--ok-bg); }
@@ -541,7 +645,6 @@
   .skrow { height:54px; border-radius:18px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
   @keyframes shimmer { 0%{background-position:100% 0;} 100%{background-position:0 0;} }
 
-  /* SOH Settings Modal Overlay */
   .soh-overlay {
     position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
     display:none; align-items:center; justify-content:center; z-index:150; padding:16px;
@@ -624,7 +727,11 @@
           <div class="sub">Activity Hub</div>
         </div>
       </div>
-      <button class="theme-toggle-btn" onclick="toggleGlobalTheme()" title="Ganti Tema">🌓</button>
+      <!-- Modern Theme Toggle -->
+      <button class="theme-toggle-btn" onclick="toggleGlobalTheme()" title="Ganti Tema">
+        <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -632,7 +739,7 @@
         📋 Checklist Harian Toko
       </button>
       <button class="nav-item" id="navPhoto" onclick="switchTab('Photo')">
-        📸 Activity Photo Evidence
+        📸 Try On Photo Evidence
       </button>
       <button class="nav-item" id="navLob" onclick="switchTab('Lob')">
         🏆 LOB Champion Report
@@ -645,6 +752,9 @@
       </button>
       <button class="nav-item" id="navSoh" onclick="switchTab('Soh')">
         📦 SOH Local
+      </button>
+      <button class="nav-item" id="navSummary" onclick="switchTab('Summary')">
+        📊 Summary & Analytics
       </button>
     </nav>
 
@@ -659,7 +769,10 @@
     <div class="top-mobile-bar">
       <button class="toggle-btn" id="toggleSidebar">☰</button>
       <div style="font-family:'Baloo 2'; font-weight:700; font-size:16px;">Digimap TP3 Hub</div>
-      <button class="theme-toggle-btn" onclick="toggleGlobalTheme()">🌓</button>
+      <button class="theme-toggle-btn" onclick="toggleGlobalTheme()">
+        <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
     </div>
 
     <!-- VIEW 1: CHECKLIST HARIAN TOKO -->
@@ -714,11 +827,11 @@
       </div>
     </section>
 
-    <!-- VIEW 2: PHOTO EVIDENCE -->
+    <!-- VIEW 2: TRY ON PHOTO EVIDENCE -->
     <section id="viewPhoto" class="view-panel">
       <div class="glass-card">
         <div class="photo-header">
-          <h2>M121 Activity Photo Evidence</h2>
+          <h2>Try On Photo Evidence</h2>
         </div>
 
         <div class="date-display" style="text-align:left; margin-bottom:18px;" id="photoDateDisplay">--</div>
@@ -740,6 +853,7 @@
               <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
               <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
               <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
+              <option value="Reni Purwati">Reni Purwati</option>
             </select>
           </div>
 
@@ -797,6 +911,7 @@
               <option value="Achmad Rafi Kurnia T. (Mac)">Achmad Rafi Kurnia T. (Mac)</option>
               <option value="Linda Indi Kusumanigrum (iPhone)">Linda Indi Kusumanigrum (iPhone)</option>
               <option value="Hyskia Indra Aphista (iPad)">Hyskia Indra Aphista (iPad)</option>
+              <option value="Reni Purwati">Reni Purwati</option>
             </select>
           </div>
 
@@ -855,6 +970,7 @@
               <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
               <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
               <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
+              <option value="Reni Purwati">Reni Purwati</option>
             </select>
           </div>
 
@@ -926,7 +1042,7 @@
         <hr style="border:none; border-top:1px solid var(--border); margin: 24px 0;">
 
         <!-- Sub-Judul Photo Evidence -->
-        <div class="section-label">Photo Evidence</div>
+        <div class="section-label">Try On Photo Evidence</div>
 
         <form id="trainer-upload-form" onsubmit="handleTrainerSubmit(event)">
           <div class="form-group">
@@ -945,6 +1061,7 @@
               <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
               <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
               <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
+              <option value="Reni Purwati">Reni Purwati</option>
             </select>
           </div>
 
@@ -1050,6 +1167,105 @@
       <footer style="text-align:center; padding:30px 20px 40px; font-size:12px; color:var(--text-faint);">
         SOH Local · Digimap Tunjungan Plaza 3 — data disinkronkan dari file stock toko
       </footer>
+    </section>
+
+    <!-- VIEW 7: SUMMARY & ANALYTICS OVERVIEW (MODERN & FRESH DESIGN) -->
+    <section id="viewSummary" class="view-panel">
+      <div class="summary-hero-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+          <div>
+            <h2 style="margin: 0; font-family: 'Baloo 2'; font-size: 1.35rem; font-weight: 700; color: var(--text);">
+              📊 Overview & Analytics
+            </h2>
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">
+              Ringkasan performa dan eksekusi aktivitas toko
+            </div>
+          </div>
+          
+          <!-- Tombol Export Ramping Dipisah -->
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-export-compact btn-export-csv" onclick="exportSummaryToCSV()">
+              📊 Export CSV
+            </button>
+            <button class="btn-export-compact btn-export-excel" onclick="exportSummaryToCSV()">
+              📗 Export Excel
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 22px;">
+          <div style="flex: 1; min-width: 160px;">
+            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-faint);">Filter Mode</label>
+            <select id="summaryModeSelect" onchange="toggleSummaryDateInputs()" style="padding: 10px 12px;">
+              <option value="month">Per Bulan & Tahun</option>
+              <option value="day">Per Tanggal Spesifik</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 160px;" id="monthPickerWrap">
+            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-faint);">Periode Bulan</label>
+            <input type="month" id="summaryMonthInput" onchange="renderAnalyticsSummary()" style="padding: 10px 12px;">
+          </div>
+          <div style="flex: 1; min-width: 160px; display: none;" id="dayPickerWrap">
+            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-faint);">Pilih Tanggal</label>
+            <input type="date" id="summaryDayInput" onchange="renderAnalyticsSummary()" style="padding: 10px 12px;">
+          </div>
+        </div>
+
+        <!-- Modern Metric Stat Cards -->
+        <div class="stat-grid-modern">
+          <div class="stat-card-modern">
+            <div class="stat-icon-wrapper" style="background: rgba(0, 113, 227, 0.12); color: #0071e3;">
+              ⚡
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">Total Eksekusi</div>
+              <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="totalActivityCount">0</div>
+            </div>
+          </div>
+          
+          <div class="stat-card-modern">
+            <div class="stat-icon-wrapper" style="background: var(--mint-soft); color: var(--mint);">
+              👥
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">Staff Kontributor</div>
+              <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="activeStaffCount">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="section-label" style="text-align: center; margin-bottom: 12px;">Total Aktivitas per Staff</div>
+            <canvas id="staffBarChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="section-label" style="text-align: center; margin-bottom: 12px;">Kontribusi Jenis Aktivitas</div>
+            <canvas id="activityDoughnutChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Detail Data Table -->
+        <div class="section-label" style="margin-top: 24px; margin-bottom: 8px;">Rincian Log Aktivitas</div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Nama Staff</th>
+                <th>Aktivitas</th>
+                <th>Eksekusi</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-faint);">Memuat data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -1204,7 +1420,7 @@ window.addEventListener('DOMContentLoaded', initVanta);
 
 // --- NAVIGATION SIDEBAR LOGIC ---
 function switchTab(tab) {
-  const tabs = ['Checklist', 'Photo', 'Lob', 'Opsems', 'Trainer', 'Soh'];
+  const tabs = ['Checklist', 'Photo', 'Lob', 'Opsems', 'Trainer', 'Soh', 'Summary'];
   tabs.forEach(t => {
     const navEl = document.getElementById('nav' + t);
     const viewEl = document.getElementById('view' + t);
@@ -1216,6 +1432,10 @@ function switchTab(tab) {
   const targetView = document.getElementById('view' + tab);
   if (targetNav) targetNav.classList.add('active');
   if (targetView) targetView.classList.add('active');
+
+  if(tab === 'Summary') {
+    renderAnalyticsSummary();
+  }
 
   closeSidebar();
 }
@@ -1286,6 +1506,11 @@ document.getElementById('lobDateDisplay').innerText = dateStrFormatted;
 document.getElementById('opsEmsDateDisplay').innerText = dateStrFormatted;
 document.getElementById('trainerDateDisplay').innerText = dateStrFormatted;
 
+// Default Set Picker Month/Day pada Summary View
+const todayObj = new Date();
+document.getElementById('summaryMonthInput').value = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}`;
+document.getElementById('summaryDayInput').value = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
 function getFormattedPhotoDateTime() {
   const d = new Date();
   const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -1304,7 +1529,7 @@ function getTodayString() {
 }
 
 
-// --- VIEW: PHOTO EVIDENCE LOGIC ---
+// --- VIEW: TRY ON PHOTO EVIDENCE LOGIC ---
 let photoReportTemplate = "";
 
 function handlePhotoSubmit(e) {
@@ -1344,7 +1569,7 @@ function handlePhotoSubmit(e) {
         status.innerText = "✅ Foto berhasil diunggah!";
         
         const waktuUpload = getFormattedPhotoDateTime();
-        photoReportTemplate = `📌 LAPORAN FOTO AKTIVITAS M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+        photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
         document.getElementById('reportText').innerText = photoReportTemplate;
         reportBox.style.display = "block";
@@ -1429,17 +1654,14 @@ async function handleLobSubmit(e) {
 
         const waktuUpload = getFormattedPhotoDateTime();
 
-        // Mengambil data real-time staff yang sudah upload hari ini
         const uploadedStaffs = await fetchUploadedLobStaffs();
         
         if (!uploadedStaffs.includes(namaStaff)) {
           uploadedStaffs.push(namaStaff);
         }
 
-        // Cari staff yang BELUM upload hari ini
         const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
 
-        // Format Teks "Staff Yang Belum Upload"
         let missingStaffText = "";
         if (pendingStaffs.length === 0) {
           missingStaffText = "Sudah Upload Semua Bosku";
@@ -1639,16 +1861,16 @@ function defaultConfig(){
   const staff = [
     "Sulton Setiawan","Muhamad Angga Jul F.","Hartono","Eggy Thania A.M","Frandy Putra",
     "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
-    "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S."
+    "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S.","Reni Purwati"
   ];
   return {
     staff,
     activities: [
       {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
-      {id:"a3", name:"SAMUDERA (Submit Link)", icon:"🌊", link:"https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform"},
-      {id:"a4", name:"AKSARA (TimeMark) Minim 6 /Hari", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
-      {id:"a8", name:"CAKRAWALA (Try On)", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
+      {id:"a3", name:"SAMUDERA", icon:"🌊", link:"https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform"},
+      {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
+      {id:"a8", name:"CAKRAWALA", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
       {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
       {id:"a6", name:"SUBMIT FEEDBACK", icon:"📝", link:"https://forms.cloud.microsoft/r/v0jzUN3ieX?origin=lprLink"},
       {id:"a7", name:"ICLOUD+", icon:"☁️", link:"https://www.menti.com/blwrxg7sct7n"}
@@ -2223,6 +2445,178 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
 
 // Inisialisasi Checklist
 initChecklist();
+
+
+/* ==========================================================================
+   --- SUMMARY & ANALYTICS OVERVIEW LOGIC ---
+   ========================================================================== */
+let staffChartInstance = null;
+let actChartInstance = null;
+let currentSummaryDataset = [];
+
+function toggleSummaryDateInputs() {
+  const mode = document.getElementById('summaryModeSelect').value;
+  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'block' : 'none';
+  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'block' : 'none';
+  renderAnalyticsSummary();
+}
+
+function getAllChecklistDataKeys() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith(DATA_PREFIX)) {
+      keys.push(k.replace(DATA_PREFIX, ''));
+    }
+  }
+  return keys;
+}
+
+function renderAnalyticsSummary() {
+  const mode = document.getElementById('summaryModeSelect').value;
+  const monthVal = document.getElementById('summaryMonthInput').value; // YYYY-MM
+  const dayVal = document.getElementById('summaryDayInput').value;     // YYYY-MM-DD
+
+  const availableDates = getAllChecklistDataKeys();
+  let filteredDates = [];
+
+  if (mode === 'month' && monthVal) {
+    filteredDates = availableDates.filter(d => d.startsWith(monthVal));
+  } else if (mode === 'day' && dayVal) {
+    filteredDates = availableDates.filter(d => d === dayVal);
+  }
+
+  currentSummaryDataset = [];
+  const staffSummary = {};
+  const actSummary = {};
+  let totalExecutions = 0;
+
+  filteredDates.forEach(dateStr => {
+    const data = loadDayDataLocal(dateStr);
+    if (data && data.counts) {
+      Object.keys(data.counts).forEach(actId => {
+        const actObj = config.activities.find(a => a.id === actId);
+        const actName = actObj ? actObj.name : actId;
+
+        Object.keys(data.counts[actId]).forEach(staffName => {
+          const count = data.counts[actId][staffName];
+          if (count > 0) {
+            totalExecutions += count;
+            staffSummary[staffName] = (staffSummary[staffName] || 0) + count;
+            actSummary[actName] = (actSummary[actName] || 0) + count;
+
+            currentSummaryDataset.push({
+              date: dateStr,
+              staff: staffName,
+              activity: actName,
+              count: count
+            });
+          }
+        });
+      });
+    }
+  });
+
+  document.getElementById('totalActivityCount').innerText = totalExecutions;
+  document.getElementById('activeStaffCount').innerText = Object.keys(staffSummary).length;
+
+  renderSummaryTable(currentSummaryDataset);
+  renderSummaryCharts(staffSummary, actSummary);
+}
+
+function renderSummaryTable(dataset) {
+  const tbody = document.getElementById('summaryTableBody');
+  if (dataset.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas untuk periode ini.</td></tr>`;
+    return;
+  }
+
+  dataset.sort((a, b) => b.date.localeCompare(a.date));
+
+  tbody.innerHTML = dataset.map(row => `
+    <tr>
+      <td>${row.date}</td>
+      <td><b>${escapeHtml(row.staff)}</b></td>
+      <td>${escapeHtml(row.activity)}</td>
+      <td><span class="submit-chip">${row.count}x Eksekusi</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderSummaryCharts(staffData, actData) {
+  const staffLabels = Object.keys(staffData);
+  const staffCounts = Object.values(staffData);
+
+  const actLabels = Object.keys(actData);
+  const actCounts = Object.values(actData);
+
+  // Render Bar Chart Staff
+  const ctxStaff = document.getElementById('staffBarChart').getContext('2d');
+  if (staffChartInstance) staffChartInstance.destroy();
+  staffChartInstance = new Chart(ctxStaff, {
+    type: 'bar',
+    data: {
+      labels: staffLabels.length ? staffLabels : ['Tidak Ada Data'],
+      datasets: [{
+        label: 'Jumlah Aktivitas',
+        data: staffCounts.length ? staffCounts : [0],
+        backgroundColor: 'rgba(0, 113, 227, 0.75)',
+        borderColor: '#0071e3',
+        borderWidth: 1,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  // Render Doughnut Chart Aktivitas
+  const ctxAct = document.getElementById('activityDoughnutChart').getContext('2d');
+  if (actChartInstance) actChartInstance.destroy();
+  actChartInstance = new Chart(ctxAct, {
+    type: 'doughnut',
+    data: {
+      labels: actLabels.length ? actLabels : ['Tidak Ada Data'],
+      datasets: [{
+        data: actCounts.length ? actCounts : [1],
+        backgroundColor: [
+          '#0fb87f', '#007aff', '#ff6b4a', '#a44fe0', '#d98200', '#ff375f', '#0ea89a'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+    }
+  });
+}
+
+function exportSummaryToCSV() {
+  if (currentSummaryDataset.length === 0) {
+    alert("Tidak ada data untuk diekspor pada periode ini.");
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,Tanggal,Nama Staff,Jenis Aktivitas,Jumlah Eksekusi\n";
+
+  currentSummaryDataset.forEach(row => {
+    const cleanStaff = `"${row.staff.replace(/"/g, '""')}"`;
+    const cleanAct = `"${row.activity.replace(/"/g, '""')}"`;
+    csvContent += `${row.date},${cleanStaff},${cleanAct},${row.count}\n`;
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 
 /* ==========================================================================
    --- SOH LOCAL ENGINE & LOGIC ---
