@@ -279,35 +279,47 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* Elegant Single-Line Filter Bar */
-  .elegant-filter-bar {
-    display: inline-flex;
+  /* Standalone Rounded Pills Filter UI (No Outer Box / Column) */
+  .filter-pills-container {
+    display: flex;
     align-items: center;
     gap: 10px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    padding: 6px 14px;
-    border-radius: 14px;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
   }
-  .elegant-filter-label {
+
+  .filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .filter-pill-text {
     font-size: 11.5px;
     font-weight: 700;
     color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .05em;
   }
-  .elegant-filter-select, .elegant-filter-input {
+
+  .filter-pill-select, .filter-pill-input {
     border: none;
     background: transparent;
     color: var(--text);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
     outline: none;
     cursor: pointer;
-    padding: 2px 4px;
+    padding: 0;
   }
-  .elegant-filter-select option {
+  .filter-pill-select option {
     background: var(--surface-solid);
     color: var(--text);
   }
@@ -604,10 +616,18 @@
     flex:1; min-width:200px; position:relative;
   }
   .search svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-faint); pointer-events:none; }
-  /* Aligning search cursor close to the left border & icon */
+  
+  /* Precision alignment for search input text cursor to align with sort select box */
   .search input {
-    width:100%; padding:12px 14px 12px 34px; border-radius:16px; border:1px solid var(--border);
-    background:var(--surface); font-size:14px; font-family:inherit; color:var(--text);
+    width:100%;
+    padding: 12px 14px 12px 34px;
+    margin: 0;
+    border-radius:16px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    font-size:13.5px;
+    font-family:inherit;
+    color:var(--text);
     box-shadow:var(--shadow-sm);
   }
   .search input::placeholder { color:var(--text-faint); }
@@ -616,7 +636,7 @@
   select#sohSortSel {
     padding:12px 16px; border-radius:16px; border:1px solid var(--border);
     background:var(--surface); font-size:13.5px; font-family:inherit; color:var(--text);
-    box-shadow:var(--shadow-sm); cursor:pointer;
+    box-shadow:var(--shadow-sm); cursor:pointer; margin: 0;
   }
   select#sohSortSel option { background:var(--surface-solid); color:var(--text); }
 
@@ -1225,19 +1245,22 @@
           </div>
         </div>
 
-        <!-- Filter Modern Single Elegant Bar -->
-        <div class="elegant-filter-bar">
-          <span class="elegant-filter-label">Filter:</span>
-          <select id="summaryModeSelect" class="elegant-filter-select" onchange="toggleSummaryDateInputs()">
-            <option value="month">Per Bulan</option>
-            <option value="day">Per Tanggal</option>
-          </select>
-          <span style="color: var(--border);">|</span>
-          <div id="monthPickerWrap" style="display: inline-block;">
-            <input type="month" id="summaryMonthInput" class="elegant-filter-input" onchange="renderAnalyticsSummary()">
+        <!-- Standalone Rounded Pills Filter UI (Tanpa Outer Box/Kolom Tambahan) -->
+        <div class="filter-pills-container">
+          <div class="filter-pill">
+            <span class="filter-pill-text">FILTER:</span>
+            <select id="summaryModeSelect" class="filter-pill-select" onchange="toggleSummaryDateInputs()">
+              <option value="month">Per Bulan</option>
+              <option value="day">Per Tanggal</option>
+            </select>
           </div>
-          <div id="dayPickerWrap" style="display: none;">
-            <input type="date" id="summaryDayInput" class="elegant-filter-input" onchange="renderAnalyticsSummary()">
+
+          <div id="monthPickerWrap" class="filter-pill" style="display: inline-flex;">
+            <input type="month" id="summaryMonthInput" class="filter-pill-input" onchange="renderAnalyticsSummary()">
+          </div>
+
+          <div id="dayPickerWrap" class="filter-pill" style="display: none;">
+            <input type="date" id="summaryDayInput" class="filter-pill-input" onchange="renderAnalyticsSummary()">
           </div>
         </div>
 
@@ -1372,7 +1395,7 @@
           <ol>
             <li>Tim edit stok/harga langsung di file Excel <code>stockpositionreportdetail.xls</code> di OneDrive, lalu simpan.</li>
             <li>GitHub Actions mengecek OneDrive tiap ±2 menit, mengunduh versi terbaru.</li>
-            <li>Data dipproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko (kategori DEVICES/ACCESSORIES + sub kategori PHONE/TABLETS/LAPTOPS/WATCH/EARPHONES/HEADPHONES).</li>
+            <li>Data dippproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko (kategori DEVICES/ACCESSORIES + sub kategori PHONE/TABLETS/LAPTOPS/WATCH/EARPHONES/HEADPHONES).</li>
             <li>Kalau ada perubahan, hasilnya di-commit ke repository dan Netlify otomatis publish ulang website ini.</li>
             <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala (lihat Preferensi) dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
           </ol>
@@ -1711,7 +1734,6 @@ async function handleLobSubmit(e) {
 
         status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
 
-        /* Updated LOB Template Label as requested */
         lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Submit (Abaikan kalo Offday): ${missingStaffText}`;
 
         document.getElementById('lobReportText').innerText = lobReportTemplate;
@@ -2504,8 +2526,8 @@ let currentSummaryDataset = [];
 
 function toggleSummaryDateInputs() {
   const mode = document.getElementById('summaryModeSelect').value;
-  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'inline-block' : 'none';
-  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'inline-block' : 'none';
+  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'inline-flex' : 'none';
+  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'inline-flex' : 'none';
   renderAnalyticsSummary();
 }
 
@@ -2652,13 +2674,14 @@ function renderSummaryCharts(staffData, actData) {
   });
 }
 
+/* Fixed Mobile-Compatible CSV Export Function */
 function exportSummaryToCSV() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
     return;
   }
 
-  let csvContent = "data:text/csv;charset=utf-8,Tanggal,Nama Staff,Jenis Aktivitas,Jumlah Eksekusi\n";
+  let csvContent = "Tanggal,Nama Staff,Jenis Aktivitas,Jumlah Eksekusi\n";
 
   currentSummaryDataset.forEach(row => {
     const cleanStaff = `"${row.staff.replace(/"/g, '""')}"`;
@@ -2666,10 +2689,11 @@ function exportSummaryToCSV() {
     csvContent += `${row.date},${cleanStaff},${cleanAct},${row.count}\n`;
   });
 
-  triggerMobileDownload(encodeURI(csvContent), `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`, "text/csv");
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
 }
 
-/* REAL EXCEL EXPORT ENGINE WITH GROUPING BY ACTIVITY */
+/* Clean Excel (.xls) Summary Export Function */
 function exportSummaryToExcel() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
@@ -2694,7 +2718,7 @@ function exportSummaryToExcel() {
         <x:ExcelWorkbook>
           <x:ExcelWorksheets>
             <x:ExcelWorksheet>
-              <x:Name>Overview Report</x:Name>
+              <x:Name>Laporan Summary</x:Name>
               <x:WorksheetOptions>
                 <x:DisplayGridlines/>
               </x:WorksheetOptions>
@@ -2704,18 +2728,18 @@ function exportSummaryToExcel() {
       </xml>
       <![endif]-->
       <style>
-        body { font-family: Arial, sans-serif; }
-        .title { font-size: 16px; font-weight: bold; text-align: center; height: 35px; background-color: #0071e3; color: #ffffff; }
-        .group-header { font-size: 13px; font-weight: bold; background-color: #e2e8f0; color: #1e293b; height: 28px; }
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .head-title { font-size: 15px; font-weight: bold; text-align: center; height: 32px; background-color: #0071e3; color: #ffffff; }
+        .group-header { font-size: 12px; font-weight: bold; background-color: #e2e8f0; color: #1e293b; height: 26px; }
         .subtotal { font-size: 12px; font-weight: bold; background-color: #f1f5f9; color: #0f172a; }
-        th { background-color: #0fb87f; color: #ffffff; font-weight: bold; height: 25px; border: 1px solid #cccccc; }
-        td { border: 1px solid #cccccc; height: 22px; vertical-align: middle; }
+        th { background-color: #0fb87f; color: #ffffff; font-weight: bold; height: 24px; border: 0.5pt solid #cccccc; }
+        td { border: 0.5pt solid #cccccc; height: 20px; vertical-align: middle; }
       </style>
     </head>
     <body>
       <table>
         <tr>
-          <td colspan="4" class="title">LAPORAN SUMMARY & OVERVIEW AKTIVITAS TOKO DIGIMAP TP3</td>
+          <td colspan="4" class="head-title">LAPORAN SUMMARY & OVERVIEW AKTIVITAS TOKO DIGIMAP TP3</td>
         </tr>
         <tr>
           <td colspan="4">Tanggal Cetak: ${getTodayString()}</td>
@@ -2729,7 +2753,7 @@ function exportSummaryToExcel() {
 
     htmlTable += `
       <tr>
-        <td colspan="4" class="group-header">📂 JENIS AKTIVITAS: ${activityName.toUpperCase()}</td>
+        <td colspan="4" class="group-header">JENIS AKTIVITAS: ${activityName.toUpperCase()}</td>
       </tr>
       <tr>
         <th>Tanggal</th>
@@ -2766,13 +2790,11 @@ function exportSummaryToExcel() {
     </html>
   `;
 
-  const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel;charset=utf-8" });
-  const fileName = `Laporan_Summary_Digimap_TP3_${getTodayString()}.xls`;
-
-  triggerMobileDownloadBlob(blob, fileName);
+  const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  triggerMobileDownloadBlob(blob, `Laporan_Summary_Digimap_TP3_${getTodayString()}.xls`);
 }
 
-/* Mobile-Friendly Blob Download Helper */
+/* Universal Blob Mobile Download Trigger */
 function triggerMobileDownloadBlob(blob, fileName) {
   if (navigator.msSaveBlob) {
     navigator.msSaveBlob(blob, fileName);
@@ -2788,19 +2810,7 @@ function triggerMobileDownloadBlob(blob, fileName) {
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, 300);
-}
-
-function triggerMobileDownload(uri, fileName, mimeType) {
-  const a = document.createElement("a");
-  a.style.display = "none";
-  a.href = uri;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-  }, 300);
+  }, 400);
 }
 
 
@@ -2838,7 +2848,7 @@ let sohState = {
   activeCat: 'Semua',
   stockFilter: 'all',
   search: '',
-  sort: 'name-desc', /* Default Z-A as requested */
+  sort: 'name-desc', /* Default Z-A */
   lastSync: null,
   lastCheck: null,
   syncStatus: 'idle',
