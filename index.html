@@ -279,32 +279,42 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* Compact Modern Filter Bar */
-  .compact-filter-bar {
-    display: flex;
+  /* Elegant Single-Line Filter Bar */
+  .elegant-filter-bar {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     background: var(--surface-soft);
     border: 1px solid var(--border);
-    padding: 6px 10px;
-    border-radius: 16px;
+    padding: 6px 14px;
+    border-radius: 14px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
   }
-  .compact-filter-bar select, .compact-filter-bar input[type="month"], .compact-filter-bar input[type="date"] {
-    width: auto;
-    padding: 6px 10px;
-    font-size: 12.5px;
+  .elegant-filter-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .elegant-filter-select, .elegant-filter-input {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
     font-weight: 600;
-    border-radius: 10px;
-    border: 1px solid var(--border);
+    outline: none;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+  .elegant-filter-select option {
     background: var(--surface-solid);
     color: var(--text);
   }
 
   .stat-grid-modern {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 14px;
     margin-bottom: 22px;
   }
@@ -593,9 +603,10 @@
   .search {
     flex:1; min-width:200px; position:relative;
   }
-  .search svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-faint); }
+  .search svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-faint); pointer-events:none; }
+  /* Aligning search cursor close to the left border & icon */
   .search input {
-    width:100%; padding:12px 14px 12px 40px; border-radius:16px; border:1px solid var(--border);
+    width:100%; padding:12px 14px 12px 34px; border-radius:16px; border:1px solid var(--border);
     background:var(--surface); font-size:14px; font-family:inherit; color:var(--text);
     box-shadow:var(--shadow-sm);
   }
@@ -660,7 +671,7 @@
   .empty .t { font-weight:700; color:var(--text); margin-bottom:4px; font-size:15px; }
   .empty .d { font-size:13.5px; }
   .empty button {
-    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:99px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; border-radius: 999px;
   }
 
   .skele { display: flex; flex-direction: column; gap: 1px; }
@@ -1076,7 +1087,7 @@
               <option value="Eggy Thania A.M">Eggy Thania A.M</option>
               <option value="Frandy Putra">Frandy Putra</option>
               <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
-              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T me</option>
+              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
               <option value="Dewi Andansari">Dewi Andansari</option>
               <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
               <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
@@ -1159,8 +1170,8 @@
           <input type="text" id="sohSearchInput" placeholder="Cari nama produk atau kode SKU...">
         </div>
         <select id="sohSortSel">
+          <option value="name-desc" selected>Nama Z–A</option>
           <option value="name-asc">Nama A–Z</option>
-          <option value="name-desc">Nama Z–A</option>
           <option value="stock-asc">Stock terendah</option>
           <option value="stock-desc">Stock terbanyak</option>
         </select>
@@ -1190,10 +1201,10 @@
       </footer>
     </section>
 
-    <!-- VIEW 7: SUMMARY & ANALYTICS OVERVIEW (COMPACT MODERN DESIGN) -->
+    <!-- VIEW 7: SUMMARY & ANALYTICS OVERVIEW -->
     <section id="viewSummary" class="view-panel">
       <div class="summary-hero-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
           <div>
             <h2 style="margin: 0; font-family: 'Baloo 2'; font-size: 1.35rem; font-weight: 700; color: var(--text);">
               📊 Overview & Analytics
@@ -1208,24 +1219,25 @@
             <button class="btn-export-compact btn-export-csv" onclick="exportSummaryToCSV()">
               📊 Export CSV
             </button>
-            <button class="btn-export-compact btn-export-excel" onclick="exportSummaryToCSV()">
-              📗 Export Excel
+            <button class="btn-export-compact btn-export-excel" onclick="exportSummaryToExcel()">
+              📗 Export Excel (.xls)
             </button>
           </div>
         </div>
 
-        <!-- Filter Mode & Periode Compact Modern -->
-        <div class="compact-filter-bar">
-          <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Filter:</span>
-          <select id="summaryModeSelect" onchange="toggleSummaryDateInputs()">
+        <!-- Filter Modern Single Elegant Bar -->
+        <div class="elegant-filter-bar">
+          <span class="elegant-filter-label">Filter:</span>
+          <select id="summaryModeSelect" class="elegant-filter-select" onchange="toggleSummaryDateInputs()">
             <option value="month">Per Bulan</option>
             <option value="day">Per Tanggal</option>
           </select>
+          <span style="color: var(--border);">|</span>
           <div id="monthPickerWrap" style="display: inline-block;">
-            <input type="month" id="summaryMonthInput" onchange="renderAnalyticsSummary()">
+            <input type="month" id="summaryMonthInput" class="elegant-filter-input" onchange="renderAnalyticsSummary()">
           </div>
           <div id="dayPickerWrap" style="display: none;">
-            <input type="date" id="summaryDayInput" onchange="renderAnalyticsSummary()">
+            <input type="date" id="summaryDayInput" class="elegant-filter-input" onchange="renderAnalyticsSummary()">
           </div>
         </div>
 
@@ -1248,6 +1260,16 @@
             <div>
               <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">Staff Kontributor</div>
               <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="activeStaffCount">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card-modern">
+            <div class="stat-icon-wrapper" style="background: rgba(164, 79, 224, 0.12); color: #a44fe0;">
+              ⚙️
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">OPS & EMS Report</div>
+              <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="opsEmsSummaryCount">0</div>
             </div>
           </div>
         </div>
@@ -1682,14 +1704,15 @@ async function handleLobSubmit(e) {
 
         let missingStaffText = "";
         if (pendingStaffs.length === 0) {
-          missingStaffText = "Sudah Upload Semua Bosku";
+          missingStaffText = "Sudah Submit Semua Bosku";
         } else {
           missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
         }
 
         status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
 
-        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Upload: ${missingStaffText}`;
+        /* Updated LOB Template Label as requested */
+        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Submit (Abaikan kalo Offday): ${missingStaffText}`;
 
         document.getElementById('lobReportText').innerText = lobReportTemplate;
         reportBox.style.display = "block";
@@ -1873,7 +1896,6 @@ function sanitizeConfig(cfg) {
   const blackList = ["ops & ems", "ops", "ems", "open studio", "training", "roleplay", "lob champion"];
   cfg.activities = cfg.activities.filter(a => !blackList.includes(a.name.toLowerCase().trim()));
   
-  // Normalisasi Judul Aktivitas jika masih menggunakan format lama
   cfg.activities.forEach(a => {
     if (a.name.includes("SAMUDERA")) a.name = "SAMUDERA";
     if (a.name.includes("AKSARA")) a.name = "AKSARA";
@@ -2516,6 +2538,7 @@ function renderAnalyticsSummary() {
   const staffSummary = {};
   const actSummary = {};
   let totalExecutions = 0;
+  let opsEmsTotal = 0;
 
   filteredDates.forEach(dateStr => {
     const data = loadDayDataLocal(dateStr);
@@ -2524,7 +2547,6 @@ function renderAnalyticsSummary() {
         const actObj = config.activities.find(a => a.id === actId);
         let actName = actObj ? actObj.name : actId;
 
-        // Normalisasi Judul jika dari cache lama
         if (actName.includes("SAMUDERA")) actName = "SAMUDERA";
         if (actName.includes("AKSARA")) actName = "AKSARA";
         if (actName.includes("CAKRAWALA")) actName = "CAKRAWALA";
@@ -2535,6 +2557,10 @@ function renderAnalyticsSummary() {
             totalExecutions += count;
             staffSummary[staffName] = (staffSummary[staffName] || 0) + count;
             actSummary[actName] = (actSummary[actName] || 0) + count;
+
+            if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems")) {
+              opsEmsTotal += count;
+            }
 
             currentSummaryDataset.push({
               date: dateStr,
@@ -2550,6 +2576,7 @@ function renderAnalyticsSummary() {
 
   document.getElementById('totalActivityCount').innerText = totalExecutions;
   document.getElementById('activeStaffCount').innerText = Object.keys(staffSummary).length;
+  document.getElementById('opsEmsSummaryCount').innerText = opsEmsTotal;
 
   renderSummaryTable(currentSummaryDataset);
   renderSummaryCharts(staffSummary, actSummary);
@@ -2564,7 +2591,6 @@ function renderSummaryTable(dataset) {
 
   dataset.sort((a, b) => b.date.localeCompare(a.date));
 
-  // Tampilan eksekusi bersih tanpa kapsul/rounded
   tbody.innerHTML = dataset.map(row => `
     <tr>
       <td>${row.date}</td>
@@ -2640,13 +2666,141 @@ function exportSummaryToCSV() {
     csvContent += `${row.date},${cleanStaff},${cleanAct},${row.count}\n`;
   });
 
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  triggerMobileDownload(encodeURI(csvContent), `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`, "text/csv");
+}
+
+/* REAL EXCEL EXPORT ENGINE WITH GROUPING BY ACTIVITY */
+function exportSummaryToExcel() {
+  if (currentSummaryDataset.length === 0) {
+    alert("Tidak ada data untuk diekspor pada periode ini.");
+    return;
+  }
+
+  // Group data by Activity Name
+  const groupedData = {};
+  currentSummaryDataset.forEach(item => {
+    if (!groupedData[item.activity]) {
+      groupedData[item.activity] = [];
+    }
+    groupedData[item.activity].push(item);
+  });
+
+  let htmlTable = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="utf-8">
+      <!--[if gte mso 9]>
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>Overview Report</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+      <style>
+        body { font-family: Arial, sans-serif; }
+        .title { font-size: 16px; font-weight: bold; text-align: center; height: 35px; background-color: #0071e3; color: #ffffff; }
+        .group-header { font-size: 13px; font-weight: bold; background-color: #e2e8f0; color: #1e293b; height: 28px; }
+        .subtotal { font-size: 12px; font-weight: bold; background-color: #f1f5f9; color: #0f172a; }
+        th { background-color: #0fb87f; color: #ffffff; font-weight: bold; height: 25px; border: 1px solid #cccccc; }
+        td { border: 1px solid #cccccc; height: 22px; vertical-align: middle; }
+      </style>
+    </head>
+    <body>
+      <table>
+        <tr>
+          <td colspan="4" class="title">LAPORAN SUMMARY & OVERVIEW AKTIVITAS TOKO DIGIMAP TP3</td>
+        </tr>
+        <tr>
+          <td colspan="4">Tanggal Cetak: ${getTodayString()}</td>
+        </tr>
+        <tr><td colspan="4"></td></tr>
+  `;
+
+  Object.keys(groupedData).forEach(activityName => {
+    const records = groupedData[activityName];
+    let activityTotal = 0;
+
+    htmlTable += `
+      <tr>
+        <td colspan="4" class="group-header">📂 JENIS AKTIVITAS: ${activityName.toUpperCase()}</td>
+      </tr>
+      <tr>
+        <th>Tanggal</th>
+        <th>Nama Staff</th>
+        <th>Jenis Aktivitas</th>
+        <th>Jumlah Eksekusi</th>
+      </tr>
+    `;
+
+    records.forEach(row => {
+      activityTotal += row.count;
+      htmlTable += `
+        <tr>
+          <td>${row.date}</td>
+          <td>${row.staff}</td>
+          <td>${row.activity}</td>
+          <td style="text-align: right;">${row.count}</td>
+        </tr>
+      `;
+    });
+
+    htmlTable += `
+      <tr>
+        <td colspan="3" class="subtotal" style="text-align: right;">Total Eksekusi ${activityName}:</td>
+        <td class="subtotal" style="text-align: right;">${activityTotal}x</td>
+      </tr>
+      <tr><td colspan="4"></td></tr>
+    `;
+  });
+
+  htmlTable += `
+      </table>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const fileName = `Laporan_Summary_Digimap_TP3_${getTodayString()}.xls`;
+
+  triggerMobileDownloadBlob(blob, fileName);
+}
+
+/* Mobile-Friendly Blob Download Helper */
+function triggerMobileDownloadBlob(blob, fileName) {
+  if (navigator.msSaveBlob) {
+    navigator.msSaveBlob(blob, fileName);
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 300);
+}
+
+function triggerMobileDownload(uri, fileName, mimeType) {
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = uri;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+  }, 300);
 }
 
 
@@ -2684,7 +2838,7 @@ let sohState = {
   activeCat: 'Semua',
   stockFilter: 'all',
   search: '',
-  sort: 'name-asc',
+  sort: 'name-desc', /* Default Z-A as requested */
   lastSync: null,
   lastCheck: null,
   syncStatus: 'idle',
