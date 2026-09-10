@@ -30,7 +30,7 @@
     --mint-soft: rgba(15, 184, 127, 0.15);
     --chip-text: #0a7a54;
     --coral: #ff6b4a;
-    --coral-soft: rgba(255, 107, 74, 0.15);
+    --coral-soft: rgba(157, 107, 74, 0.15);
     --sky: #007aff;
     --brand: #0071e3;
     --link-bg: linear-gradient(135deg, rgba(234, 245, 255, 0.7), rgba(223, 240, 255, 0.7));
@@ -102,9 +102,7 @@
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  body.sidebar-open {
-    overflow: hidden;
-  }
+  body.sidebar-open { overflow: hidden; }
 
   /* Vanta Net Background Canvas */
   #vanta-bg {
@@ -149,9 +147,7 @@
     object-fit: contain; display: block;
     transition: filter 0.2s;
   }
-  [data-theme="dark"] .sidebar-brand .logo img {
-    filter: invert(1);
-  }
+  [data-theme="dark"] .sidebar-brand .logo img { filter: invert(1); }
 
   .sidebar-brand h2 { font-family: 'Baloo 2'; font-size: 16px; margin: 0; color: var(--text); line-height: 1.2; }
   .sidebar-brand .sub { font-size: 11px; color: var(--text-dim); font-weight: 600; }
@@ -183,9 +179,7 @@
     display: none; align-items: center; justify-content: space-between; margin-bottom: 16px;
     background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border); border-radius: 18px; padding: 10px 14px; box-shadow: var(--shadow);
-    position: sticky;
-    top: 10px;
-    z-index: 85;
+    position: sticky; top: 10px; z-index: 85;
   }
   @media (max-width: 768px) { .top-mobile-bar { display: flex; } }
 
@@ -226,12 +220,8 @@
   .photo-header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; font-family: 'Baloo 2'; line-height: 1.3; }
 
   .section-label {
-    font-size: 11px;
-    letter-spacing: .06em;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    font-weight: 700;
-    margin-bottom: 12px;
+    font-size: 11px; letter-spacing: .06em; color: var(--text-faint); text-transform: uppercase;
+    font-weight: 700; margin-bottom: 12px;
   }
 
   .form-group { margin-bottom: 16px; }
@@ -279,47 +269,56 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* Standalone Rounded Pills Filter UI (No Outer Box / Column) */
-  .filter-pills-container {
+  /* MODERN COMPACT SINGLE-COLUMN FILTER CONTAINER */
+  .single-column-filter-card {
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  }
+
+  .filter-column-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-right: 1px solid var(--border);
+    padding-right: 10px;
+  }
+
+  .filter-inline-controls {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 22px;
+    flex: 1;
+    min-width: 0;
   }
 
-  .filter-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--surface);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    padding: 8px 16px;
-    border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-
-  .filter-pill-text {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-
-  .filter-pill-select, .filter-pill-input {
+  .filter-compact-select, .filter-compact-input {
     border: none;
-    background: transparent;
+    background: var(--surface-soft);
     color: var(--text);
-    font-size: 13.5px;
-    font-weight: 600;
+    font-size: 12.5px;
+    font-weight: 700;
     outline: none;
     cursor: pointer;
-    padding: 0;
+    padding: 6px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
   }
-  .filter-pill-select option {
+  .filter-compact-select option {
     background: var(--surface-solid);
     color: var(--text);
   }
@@ -353,10 +352,10 @@
   }
 
   .btn-export-compact {
-    padding: 9px 16px;
+    padding: 8px 14px;
     border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
     border: 1px solid var(--border);
     display: inline-flex;
@@ -617,7 +616,6 @@
   }
   .search svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-faint); pointer-events:none; }
   
-  /* Precision alignment for search input text cursor to align with sort select box */
   .search input {
     width:100%;
     padding: 12px 14px 12px 34px;
@@ -734,7 +732,7 @@
   
   .tabs { display:flex; gap:4px; background:var(--surface-2); padding:4px; border-radius:14px; margin-bottom:16px; flex-wrap:wrap; }
   .tabs button {
-    flex:1; min-width:70px; border:none; background:transparent; padding:9px 6px; border-radius:10px; font-size:12.5px;
+    flex:1; min-width:70px; border:none; background:transparent; padding:99px 6px; border-radius:10px; font-size:12.5px;
     font-weight:600; color:var(--text-dim); cursor:pointer; font-family:inherit;
   }
   .tabs button.active { background:var(--surface-solid); color:var(--text); box-shadow:var(--shadow-sm); }
@@ -1234,7 +1232,7 @@
             </div>
           </div>
           
-          <!-- Tombol Export Ramping Dipisah -->
+          <!-- Tombol Export Compact -->
           <div style="display: flex; gap: 8px;">
             <button class="btn-export-compact btn-export-csv" onclick="exportSummaryToCSV()">
               📊 Export CSV
@@ -1245,22 +1243,24 @@
           </div>
         </div>
 
-        <!-- Standalone Rounded Pills Filter UI (Tanpa Outer Box/Kolom Tambahan) -->
-        <div class="filter-pills-container">
-          <div class="filter-pill">
-            <span class="filter-pill-text">FILTER:</span>
-            <select id="summaryModeSelect" class="filter-pill-select" onchange="toggleSummaryDateInputs()">
+        <!-- REVISED UI: COMPACT SINGLE-COLUMN FILTER CARD -->
+        <div class="single-column-filter-card">
+          <div class="filter-column-label">
+            <span>🔍</span> FILTER DATA
+          </div>
+          <div class="filter-inline-controls">
+            <select id="summaryModeSelect" class="filter-compact-select" onchange="toggleSummaryDateInputs()">
               <option value="month">Per Bulan</option>
               <option value="day">Per Tanggal</option>
             </select>
-          </div>
 
-          <div id="monthPickerWrap" class="filter-pill" style="display: inline-flex;">
-            <input type="month" id="summaryMonthInput" class="filter-pill-input" onchange="renderAnalyticsSummary()">
-          </div>
+            <div id="monthPickerWrap" style="display: inline-block;">
+              <input type="month" id="summaryMonthInput" class="filter-compact-input" onchange="renderAnalyticsSummary()">
+            </div>
 
-          <div id="dayPickerWrap" class="filter-pill" style="display: none;">
-            <input type="date" id="summaryDayInput" class="filter-pill-input" onchange="renderAnalyticsSummary()">
+            <div id="dayPickerWrap" style="display: none;">
+              <input type="date" id="summaryDayInput" class="filter-compact-input" onchange="renderAnalyticsSummary()">
+            </div>
           </div>
         </div>
 
@@ -1395,13 +1395,10 @@
           <ol>
             <li>Tim edit stok/harga langsung di file Excel <code>stockpositionreportdetail.xls</code> di OneDrive, lalu simpan.</li>
             <li>GitHub Actions mengecek OneDrive tiap ±2 menit, mengunduh versi terbaru.</li>
-            <li>Data dippproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko (kategori DEVICES/ACCESSORIES + sub kategori PHONE/TABLETS/LAPTOPS/WATCH/EARPHONES/HEADPHONES).</li>
+            <li>Data dippproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko.</li>
             <li>Kalau ada perubahan, hasilnya di-commit ke repository dan Netlify otomatis publish ulang website ini.</li>
-            <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala (lihat Preferensi) dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
+            <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
           </ol>
-        </div>
-        <div class="steps" style="margin-top:12px;">
-          <b>Catatan penting:</b> ini <i>near real-time</i>, bukan instan sepersekian detik — ada jeda maksimal seukuran interval cek GitHub Actions (~2 menit) ditambah waktu Netlify publish (biasanya beberapa detik). Kalau butuh update paksa segera, buka tab Actions di GitHub lalu klik <b>Run workflow</b>.
         </div>
       </div>
 
@@ -1479,6 +1476,43 @@ function initVanta() {
   });
 }
 window.addEventListener('DOMContentLoaded', initVanta);
+
+
+// --- IMAGE COMPRESSION UTILITY FUNCTION ---
+// Mengompres foto sebelum diupload agar cepat dan tidak memberatkan koneksi mobile
+function compressImage(file, maxWidth = 1280, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      return reject(new Error('File bukan gambar.'));
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(e) {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = function() {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+}
 
 
 // --- NAVIGATION SIDEBAR LOGIC ---
@@ -1592,64 +1626,64 @@ function getTodayString() {
 }
 
 
-// --- VIEW: TRY ON PHOTO EVIDENCE LOGIC ---
+// --- VIEW: TRY ON PHOTO EVIDENCE LOGIC (WITH AUTO-COMPRESSION) ---
 let photoReportTemplate = "";
 
-function handlePhotoSubmit(e) {
+async function handlePhotoSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-submit');
   const status = document.getElementById('status');
   const reportBox = document.getElementById('reportBox');
   const file = document.getElementById('foto').files[0];
 
+  if (!file) return;
+
   btn.disabled = true;
-  btn.innerText = "Uploading...";
+  btn.innerText = "Mengompres & Uploading...";
   status.innerText = "";
   reportBox.style.display = "none";
 
   const namaStaff = document.getElementById('namaStaff').value;
   const tujuan = document.getElementById('tujuan').value;
 
-  const reader = new FileReader();
-  reader.onload = function(evt) {
+  try {
+    const compressedBase64 = await compressImage(file, 1280, 0.75);
+
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: evt.target.result,
-      mimeType: file.type
+      fileData: compressedBase64,
+      mimeType: "image/jpeg"
     };
 
-    fetch(APPS_SCRIPT_URL, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
-      btn.disabled = false;
-      btn.innerText = "Submit";
-      if(res.success) {
-        status.style.color = "var(--mint)";
-        status.innerText = "✅ Foto berhasil diunggah!";
-        
-        const waktuUpload = getFormattedPhotoDateTime();
-        photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+    }).then(r => r.json());
 
-        document.getElementById('reportText').innerText = photoReportTemplate;
-        reportBox.style.display = "block";
-        document.getElementById('upload-form').reset();
-      } else {
-        status.style.color = "var(--danger)";
-        status.innerText = "❌ Gagal: " + res.error;
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Submit";
+    btn.disabled = false;
+    btn.innerText = "Submit";
+
+    if(res.success) {
+      status.style.color = "var(--mint)";
+      status.innerText = "✅ Foto berhasil dikompres & diunggah!";
+      
+      const waktuUpload = getFormattedPhotoDateTime();
+      photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+      document.getElementById('reportText').innerText = photoReportTemplate;
+      reportBox.style.display = "block";
+      document.getElementById('upload-form').reset();
+    } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-    });
-  };
-  reader.readAsDataURL(file);
+      status.innerText = "❌ Gagal: " + res.error;
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerText = "Submit";
+    status.style.color = "var(--danger)";
+    status.innerText = "❌ Gagal memproses & mengunggah foto.";
+  }
 }
 
 function copyPhotoReportOnly() {
@@ -1663,7 +1697,7 @@ function copyPhotoAndOpenWA() {
 }
 
 
-// --- VIEW: LOB CHAMPION REPORT LOGIC ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC (WITH AUTO-COMPRESSION) ---
 let lobReportTemplate = "";
 
 async function fetchUploadedLobStaffs() {
@@ -1685,72 +1719,71 @@ async function handleLobSubmit(e) {
   const reportBox = document.getElementById('lobReportBox');
   const file = document.getElementById('lobFoto').files[0];
 
+  if (!file) return;
+
   btn.disabled = true;
-  btn.innerText = "Uploading...";
+  btn.innerText = "Mengompres & Uploading...";
   status.innerText = "";
   reportBox.style.display = "none";
 
   const namaStaff = document.getElementById('lobNamaStaff').value;
   const tujuan = "LOB Champion";
 
-  const reader = new FileReader();
-  reader.onload = async function(evt) {
+  try {
+    const compressedBase64 = await compressImage(file, 1280, 0.75);
+
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: evt.target.result,
-      mimeType: file.type
+      fileData: compressedBase64,
+      mimeType: "image/jpeg"
     };
 
-    try {
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      }).then(r => r.json());
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }).then(r => r.json());
 
-      btn.disabled = false;
-      btn.innerText = "Upload ke Google Drive";
+    btn.disabled = false;
+    btn.innerText = "Upload ke Google Drive";
 
-      if (res.success) {
-        status.style.color = "var(--mint)";
-        status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
+    if (res.success) {
+      status.style.color = "var(--mint)";
+      status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
 
-        const waktuUpload = getFormattedPhotoDateTime();
-
-        const uploadedStaffs = await fetchUploadedLobStaffs();
-        
-        if (!uploadedStaffs.includes(namaStaff)) {
-          uploadedStaffs.push(namaStaff);
-        }
-
-        const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
-
-        let missingStaffText = "";
-        if (pendingStaffs.length === 0) {
-          missingStaffText = "Sudah Submit Semua Bosku";
-        } else {
-          missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
-        }
-
-        status.innerText = "✅ Foto LOB Champion berhasil diunggah!";
-
-        lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Submit (Abaikan kalo Offday): ${missingStaffText}`;
-
-        document.getElementById('lobReportText').innerText = lobReportTemplate;
-        reportBox.style.display = "block";
-        document.getElementById('lob-upload-form').reset();
-      } else {
-        status.style.color = "var(--danger)";
-        status.innerText = "❌ Gagal: " + res.error;
+      const waktuUpload = getFormattedPhotoDateTime();
+      const uploadedStaffs = await fetchUploadedLobStaffs();
+      
+      if (!uploadedStaffs.includes(namaStaff)) {
+        uploadedStaffs.push(namaStaff);
       }
-    } catch (err) {
-      btn.disabled = false;
-      btn.innerText = "Upload ke Google Drive";
+
+      const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
+
+      let missingStaffText = "";
+      if (pendingStaffs.length === 0) {
+        missingStaffText = "Sudah Submit Semua Bosku";
+      } else {
+        missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
+      }
+
+      status.innerText = "✅ Foto LOB Champion berhasil dikompres & diunggah!";
+
+      lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Submit (Abaikan kalo Offday): ${missingStaffText}`;
+
+      document.getElementById('lobReportText').innerText = lobReportTemplate;
+      reportBox.style.display = "block";
+      document.getElementById('lob-upload-form').reset();
+    } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+      status.innerText = "❌ Gagal: " + res.error;
     }
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerText = "Upload ke Google Drive";
+    status.style.color = "var(--danger)";
+    status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+  }
 }
 
 function copyLobReportOnly() {
@@ -1764,64 +1797,64 @@ function copyLobAndOpenWA() {
 }
 
 
-// --- VIEW: OPS & EMS REPORT LOGIC ---
+// --- VIEW: OPS & EMS REPORT LOGIC (WITH AUTO-COMPRESSION) ---
 let opsEmsReportTemplate = "";
 
-function handleOpsEmsSubmit(e) {
+async function handleOpsEmsSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-opsems-submit');
   const status = document.getElementById('opsEmsStatus');
   const reportBox = document.getElementById('opsEmsReportBox');
   const file = document.getElementById('opsEmsFoto').files[0];
 
+  if (!file) return;
+
   btn.disabled = true;
-  btn.innerText = "Uploading...";
+  btn.innerText = "Mengompres & Uploading...";
   status.innerText = "";
   reportBox.style.display = "none";
 
   const namaStaff = document.getElementById('opsEmsNamaStaff').value;
   const tujuan = document.getElementById('opsEmsTujuan').value;
 
-  const reader = new FileReader();
-  reader.onload = function(evt) {
+  try {
+    const compressedBase64 = await compressImage(file, 1280, 0.75);
+
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: evt.target.result,
-      mimeType: file.type
+      fileData: compressedBase64,
+      mimeType: "image/jpeg"
     };
 
-    fetch(APPS_SCRIPT_URL, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
-      btn.disabled = false;
-      btn.innerText = "Upload ke Google Drive";
-      if(res.success) {
-        status.style.color = "var(--mint)";
-        status.innerText = "✅ Foto OPS & EMS berhasil diunggah!";
-        
-        const waktuUpload = getFormattedPhotoDateTime();
-        opsEmsReportTemplate = `📌 LAPORAN OPS & EMS M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+    }).then(r => r.json());
 
-        document.getElementById('opsEmsReportText').innerText = opsEmsReportTemplate;
-        reportBox.style.display = "block";
-        document.getElementById('opsems-upload-form').reset();
-      } else {
-        status.style.color = "var(--danger)";
-        status.innerText = "❌ Gagal: " + res.error;
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Upload ke Google Drive";
+    btn.disabled = false;
+    btn.innerText = "Upload ke Google Drive";
+
+    if(res.success) {
+      status.style.color = "var(--mint)";
+      status.innerText = "✅ Foto OPS & EMS berhasil dikompres & diunggah!";
+      
+      const waktuUpload = getFormattedPhotoDateTime();
+      opsEmsReportTemplate = `📌 LAPORAN OPS & EMS M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+      document.getElementById('opsEmsReportText').innerText = opsEmsReportTemplate;
+      reportBox.style.display = "block";
+      document.getElementById('opsems-upload-form').reset();
+    } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-    });
-  };
-  reader.readAsDataURL(file);
+      status.innerText = "❌ Gagal: " + res.error;
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerText = "Upload ke Google Drive";
+    status.style.color = "var(--danger)";
+    status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+  }
 }
 
 function copyOpsEmsReportOnly() {
@@ -1835,64 +1868,64 @@ function copyOpsEmsAndOpenWA() {
 }
 
 
-// --- VIEW: TRAINER REPORT LOGIC ---
+// --- VIEW: TRAINER REPORT LOGIC (WITH AUTO-COMPRESSION) ---
 let trainerReportTemplate = "";
 
-function handleTrainerSubmit(e) {
+async function handleTrainerSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-trainer-submit');
   const status = document.getElementById('trainerStatus');
   const reportBox = document.getElementById('trainerReportBox');
   const file = document.getElementById('trainerFoto').files[0];
 
+  if (!file) return;
+
   btn.disabled = true;
-  btn.innerText = "Uploading...";
+  btn.innerText = "Mengompres & Uploading...";
   status.innerText = "";
   reportBox.style.display = "none";
 
   const namaStaff = document.getElementById('trainerNamaStaff').value;
   const tujuan = document.getElementById('trainerTujuan').value;
 
-  const reader = new FileReader();
-  reader.onload = function(evt) {
+  try {
+    const compressedBase64 = await compressImage(file, 1280, 0.75);
+
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: evt.target.result,
-      mimeType: file.type
+      fileData: compressedBase64,
+      mimeType: "image/jpeg"
     };
 
-    fetch(APPS_SCRIPT_URL, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
-      btn.disabled = false;
-      btn.innerText = "Upload ke Google Drive";
-      if(res.success) {
-        status.style.color = "var(--mint)";
-        status.innerText = "✅ Foto Trainer berhasil diunggah!";
-        
-        const waktuUpload = getFormattedPhotoDateTime();
-        trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+    }).then(r => r.json());
 
-        document.getElementById('trainerReportText').innerText = trainerReportTemplate;
-        reportBox.style.display = "block";
-        document.getElementById('trainer-upload-form').reset();
-      } else {
-        status.style.color = "var(--danger)";
-        status.innerText = "❌ Gagal: " + res.error;
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Upload ke Google Drive";
+    btn.disabled = false;
+    btn.innerText = "Upload ke Google Drive";
+
+    if(res.success) {
+      status.style.color = "var(--mint)";
+      status.innerText = "✅ Foto Trainer berhasil dikompres & diunggah!";
+      
+      const waktuUpload = getFormattedPhotoDateTime();
+      trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
+
+      document.getElementById('trainerReportText').innerText = trainerReportTemplate;
+      reportBox.style.display = "block";
+      document.getElementById('trainer-upload-form').reset();
+    } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-    });
-  };
-  reader.readAsDataURL(file);
+      status.innerText = "❌ Gagal: " + res.error;
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerText = "Upload ke Google Drive";
+    status.style.color = "var(--danger)";
+    status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
+  }
 }
 
 function copyTrainerReportOnly() {
@@ -2231,7 +2264,7 @@ function renderActivities(){
 }
 
 function escapeHtml(s){
-  return s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
 function buildReportText(){
@@ -2526,8 +2559,8 @@ let currentSummaryDataset = [];
 
 function toggleSummaryDateInputs() {
   const mode = document.getElementById('summaryModeSelect').value;
-  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'inline-flex' : 'none';
-  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'inline-flex' : 'none';
+  document.getElementById('monthPickerWrap').style.display = mode === 'month' ? 'inline-block' : 'none';
+  document.getElementById('dayPickerWrap').style.display = mode === 'day' ? 'inline-block' : 'none';
   renderAnalyticsSummary();
 }
 
@@ -2674,7 +2707,7 @@ function renderSummaryCharts(staffData, actData) {
   });
 }
 
-/* Fixed Mobile-Compatible CSV Export Function */
+/* FIXED EXPORT TO CSV (MOBILE SUPPORT & CLEAN FORMATTING) */
 function exportSummaryToCSV() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
@@ -2693,21 +2726,12 @@ function exportSummaryToCSV() {
   triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
 }
 
-/* Clean Excel (.xls) Summary Export Function */
+/* EXPORT TO EXCEL (.XLS) WITH SAME TABULAR DATA CONTENT AS CSV */
 function exportSummaryToExcel() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
     return;
   }
-
-  // Group data by Activity Name
-  const groupedData = {};
-  currentSummaryDataset.forEach(item => {
-    if (!groupedData[item.activity]) {
-      groupedData[item.activity] = [];
-    }
-    groupedData[item.activity].push(item);
-  });
 
   let htmlTable = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -2718,7 +2742,7 @@ function exportSummaryToExcel() {
         <x:ExcelWorkbook>
           <x:ExcelWorksheets>
             <x:ExcelWorksheet>
-              <x:Name>Laporan Summary</x:Name>
+              <x:Name>Laporan Activity</x:Name>
               <x:WorksheetOptions>
                 <x:DisplayGridlines/>
               </x:WorksheetOptions>
@@ -2729,72 +2753,46 @@ function exportSummaryToExcel() {
       <![endif]-->
       <style>
         body { font-family: Arial, sans-serif; font-size: 12px; }
-        .head-title { font-size: 15px; font-weight: bold; text-align: center; height: 32px; background-color: #0071e3; color: #ffffff; }
-        .group-header { font-size: 12px; font-weight: bold; background-color: #e2e8f0; color: #1e293b; height: 26px; }
-        .subtotal { font-size: 12px; font-weight: bold; background-color: #f1f5f9; color: #0f172a; }
-        th { background-color: #0fb87f; color: #ffffff; font-weight: bold; height: 24px; border: 0.5pt solid #cccccc; }
-        td { border: 0.5pt solid #cccccc; height: 20px; vertical-align: middle; }
+        th { background-color: #0071e3; color: #ffffff; font-weight: bold; height: 26px; text-align: left; border: 0.5pt solid #cccccc; }
+        td { border: 0.5pt solid #cccccc; height: 22px; vertical-align: middle; }
       </style>
     </head>
     <body>
       <table>
-        <tr>
-          <td colspan="4" class="head-title">LAPORAN SUMMARY & OVERVIEW AKTIVITAS TOKO DIGIMAP TP3</td>
-        </tr>
-        <tr>
-          <td colspan="4">Tanggal Cetak: ${getTodayString()}</td>
-        </tr>
-        <tr><td colspan="4"></td></tr>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Nama Staff</th>
+            <th>Jenis Aktivitas</th>
+            <th>Jumlah Eksekusi</th>
+          </tr>
+        </thead>
+        <tbody>
   `;
 
-  Object.keys(groupedData).forEach(activityName => {
-    const records = groupedData[activityName];
-    let activityTotal = 0;
-
+  currentSummaryDataset.forEach(row => {
     htmlTable += `
       <tr>
-        <td colspan="4" class="group-header">JENIS AKTIVITAS: ${activityName.toUpperCase()}</td>
+        <td>${row.date}</td>
+        <td>${escapeHtml(row.staff)}</td>
+        <td>${escapeHtml(row.activity)}</td>
+        <td style="text-align: right;">${row.count}</td>
       </tr>
-      <tr>
-        <th>Tanggal</th>
-        <th>Nama Staff</th>
-        <th>Jenis Aktivitas</th>
-        <th>Jumlah Eksekusi</th>
-      </tr>
-    `;
-
-    records.forEach(row => {
-      activityTotal += row.count;
-      htmlTable += `
-        <tr>
-          <td>${row.date}</td>
-          <td>${row.staff}</td>
-          <td>${row.activity}</td>
-          <td style="text-align: right;">${row.count}</td>
-        </tr>
-      `;
-    });
-
-    htmlTable += `
-      <tr>
-        <td colspan="3" class="subtotal" style="text-align: right;">Total Eksekusi ${activityName}:</td>
-        <td class="subtotal" style="text-align: right;">${activityTotal}x</td>
-      </tr>
-      <tr><td colspan="4"></td></tr>
     `;
   });
 
   htmlTable += `
+        </tbody>
       </table>
     </body>
     </html>
   `;
 
   const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel;charset=utf-8;" });
-  triggerMobileDownloadBlob(blob, `Laporan_Summary_Digimap_TP3_${getTodayString()}.xls`);
+  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.xls`);
 }
 
-/* Universal Blob Mobile Download Trigger */
+/* UNIVERSAL BLOB DOWNLOAD TRIGGER FOR MOBILE BROWSERS */
 function triggerMobileDownloadBlob(blob, fileName) {
   if (navigator.msSaveBlob) {
     navigator.msSaveBlob(blob, fileName);
