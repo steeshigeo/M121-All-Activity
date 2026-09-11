@@ -271,7 +271,7 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* NEW FRESH LOOK: MOBILE-FRIENDLY FILTER CARD */
+  /* NEW FRESH LOOK & RESPONSIVE FILTER CARD */
   .fresh-filter-card {
     background: var(--surface);
     backdrop-filter: blur(16px);
@@ -725,7 +725,7 @@
   .empty .t { font-weight:700; color:var(--text); margin-bottom:4px; font-size:15px; }
   .empty .d { font-size:13.5px; }
   .empty button {
-    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; border-radius: 999px;
+    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:99px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; border-radius: 999px;
   }
 
   .skele { display: flex; flex-direction: column; gap: 1px; }
@@ -1653,6 +1653,39 @@ function getTodayString() {
 }
 
 
+// --- HELPER UNTUK PENCATATAN OTOMATIS AKTIVITAS FORM KELUAR KE ANALYTICS ---
+function recordExternalActivityToAnalytics(actName, rawStaffName) {
+  let staffName = rawStaffName.split(' (')[0].trim(); // Bersihkan sufiks LOB Champion jika ada
+  let cleanActName = actName.replace(/^📁\s*/, '').trim().toUpperCase();
+
+  // Bersihkan pemetaan nama agar konsisten
+  if (cleanActName.includes("TRY ON")) {
+    cleanActName = cleanActName.replace("TRY ON ", "");
+  }
+
+  // 1. Cari atau buat ID Aktivitas di config
+  let actObj = config.activities.find(a => a.name.toUpperCase() === cleanActName);
+  if (!actObj) {
+    actObj = { id: "a_ext_" + Date.now(), name: cleanActName, icon: "📁", link: "" };
+    config.activities.push(actObj);
+    saveConfigLocal(config);
+  }
+
+  // 2. Load data hari ini
+  const tKey = getTodayString();
+  const currentDayData = loadDayDataLocal(tKey);
+  if (!currentDayData.counts) currentDayData.counts = {};
+  if (!currentDayData.counts[actObj.id]) currentDayData.counts[actObj.id] = {};
+
+  // 3. Tambahkan count eksekusi
+  currentDayData.counts[actObj.id][staffName] = (currentDayData.counts[actObj.id][staffName] || 0) + 1;
+  saveDayDataLocal(tKey, currentDayData);
+
+  // Synchronize remote
+  remoteSet(remoteDataKey(tKey), currentDayData).catch(() => {});
+}
+
+
 // --- VIEW: TRY ON PHOTO EVIDENCE LOGIC ---
 let photoReportTemplate = "";
 
@@ -1695,6 +1728,9 @@ async function handlePhotoSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto berhasil dikompres & diunggah!";
       
+      // RECORD TO ANALYTICS DATA
+      recordExternalActivityToAnalytics(tujuan, namaStaff);
+
       const waktuUpload = getFormattedPhotoDateTime();
       photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
@@ -1777,6 +1813,9 @@ async function handleLobSubmit(e) {
     if (res.success) {
       status.style.color = "var(--mint)";
       status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
+
+      // RECORD TO ANALYTICS DATA
+      recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
       const uploadedStaffs = await fetchUploadedLobStaffs();
@@ -1866,6 +1905,9 @@ async function handleOpsEmsSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto OPS & EMS berhasil dikompres & diunggah!";
       
+      // RECORD TO ANALYTICS DATA
+      recordExternalActivityToAnalytics(tujuan, namaStaff);
+
       const waktuUpload = getFormattedPhotoDateTime();
       opsEmsReportTemplate = `📌 LAPORAN OPS & EMS M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
@@ -1937,6 +1979,9 @@ async function handleTrainerSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto Trainer berhasil dikompres & diunggah!";
       
+      // RECORD TO ANALYTICS DATA
+      recordExternalActivityToAnalytics(tujuan, namaStaff);
+
       const waktuUpload = getFormattedPhotoDateTime();
       trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
@@ -1975,8 +2020,6 @@ const DATA_PREFIX = "digimap_checklist_data_";
 
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
-  const blackList = ["ops & ems", "ops", "ems", "open studio", "training", "roleplay", "lob champion"];
-  cfg.activities = cfg.activities.filter(a => !blackList.includes(a.name.toLowerCase().trim()));
   
   cfg.activities.forEach(a => {
     if (a.name.includes("SAMUDERA")) a.name = "SAMUDERA";
@@ -2642,7 +2685,7 @@ function renderAnalyticsSummary() {
             staffSummary[staffName] = (staffSummary[staffName] || 0) + count;
             actSummary[actName] = (actSummary[actName] || 0) + count;
 
-            if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems")) {
+            if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems") || actName.toLowerCase().includes("open studio")) {
               opsEmsTotal += count;
             }
 
