@@ -271,7 +271,6 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* NEW FRESH LOOK & RESPONSIVE FILTER CARD */
   .fresh-filter-card {
     background: var(--surface);
     backdrop-filter: blur(16px);
@@ -1655,10 +1654,9 @@ function getTodayString() {
 
 // --- HELPER UNTUK PENCATATAN OTOMATIS AKTIVITAS FORM KELUAR KE ANALYTICS ---
 function recordExternalActivityToAnalytics(actName, rawStaffName) {
-  let staffName = rawStaffName.split(' (')[0].trim(); // Bersihkan sufiks LOB Champion jika ada
+  let staffName = rawStaffName.split(' (')[0].trim();
   let cleanActName = actName.replace(/^📁\s*/, '').trim().toUpperCase();
 
-  // Bersihkan pemetaan nama agar konsisten
   if (cleanActName.includes("TRY ON")) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
@@ -1668,6 +1666,8 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
   if (!actObj) {
     actObj = { id: "a_ext_" + Date.now(), name: cleanActName, icon: "📁", link: "" };
     config.activities.push(actObj);
+    pushConfig(); // Sinkronkan langsung ke cloud agar namanya tersimpan
+  } else {
     saveConfigLocal(config);
   }
 
@@ -2672,7 +2672,16 @@ function renderAnalyticsSummary() {
     if (data && data.counts) {
       Object.keys(data.counts).forEach(actId => {
         const actObj = config.activities.find(a => a.id === actId);
-        let actName = actObj ? actObj.name : actId;
+        let actName = actObj ? actObj.name : "";
+
+        // PEMBERSIHAN PENAMAKAN UNTUK MEMPERBAIKI KODE FALLBACK (a_ext_...)
+        if (!actName || actName.startsWith("a_ext_")) {
+          if (actId.startsWith("a_ext_")) {
+            actName = "EXTERNAL REPORT / UPLOAD";
+          } else {
+            actName = actId;
+          }
+        }
 
         if (actName.includes("SAMUDERA")) actName = "SAMUDERA";
         if (actName.includes("AKSARA")) actName = "AKSARA";
@@ -2685,7 +2694,7 @@ function renderAnalyticsSummary() {
             staffSummary[staffName] = (staffSummary[staffName] || 0) + count;
             actSummary[actName] = (actSummary[actName] || 0) + count;
 
-            if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems") || actName.toLowerCase().includes("open studio")) {
+            if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems") || actName.toLowerCase().includes("open studio") || actName.toLowerCase().includes("external")) {
               opsEmsTotal += count;
             }
 
@@ -2798,7 +2807,7 @@ function exportSummaryToCSV() {
   triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
 }
 
-/* EXPORT TO MURNI .XLSX (SESUAI DESAIN GAMBAR ATTACHMENT) */
+/* EXPORT TO MURNI .XLSX */
 function exportSummaryToXLSX() {
   if (currentSummaryDataset.length === 0) {
     alert("Tidak ada data untuk diekspor pada periode ini.");
@@ -2807,7 +2816,6 @@ function exportSummaryToXLSX() {
 
   currentSummaryDataset.sort((a, b) => b.date.localeCompare(a.date));
 
-  // Menyiapkan data array of arrays sesuai kolom attachment
   const excelData = [
     ["Tanggal", "Nama Staff", "Jenis Aktivitas", "Jumlah Eksekusi"]
   ];
@@ -2818,7 +2826,6 @@ function exportSummaryToXLSX() {
 
   const ws = XLSX.utils.aoa_to_sheet(excelData);
 
-  // Set lebar kolom agar persis & tidak terpotong
   ws['!cols'] = [
     { wch: 14 }, // Tanggal
     { wch: 28 }, // Nama Staff
@@ -2829,20 +2836,18 @@ function exportSummaryToXLSX() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Laporan Aktivitas");
 
-  // Write file .xlsx murni
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
   triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.xlsx`);
 }
 
-/* UNIVERSAL BLOB DOWNLOAD TRIGGER FOR MOBILE BROWSERS */
 function triggerMobileDownloadBlob(blob, fileName) {
   if (navigator.msSaveBlob) {
     navigator.msSaveBlob(blob, fileName);
     return;
   }
-  const url = URL.createObjectURL(blob);
+  const url = URL.URL.createObjectURL ? URL.createObjectURL(blob) : window.webkitURL.createObjectURL(blob);
   const a = document.createElement("a");
   a.style.display = "none";
   a.href = url;
@@ -2890,7 +2895,7 @@ let sohState = {
   activeCat: 'Semua',
   stockFilter: 'all',
   search: '',
-  sort: 'name-desc', /* Default Z-A */
+  sort: 'name-desc',
   lastSync: null,
   lastCheck: null,
   syncStatus: 'idle',
