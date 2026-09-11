@@ -1,3203 +1,910 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<title>Digimap TP3 - Activity Hub</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Library Vanta.js Net Effect & Three.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
-<!-- Library Chart.js untuk Diagram & Analytics -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Library SheetJS untuk Export Murni .XLSX -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-<style>
-  :root {
-    --bg-gradient: linear-gradient(135deg, rgba(224, 195, 252, 0.4) 0%, rgba(142, 197, 252, 0.4) 100%);
-    --surface: rgba(255, 255, 255, 0.45);
-    --surface-solid: rgba(255, 255, 255, 0.7);
-    --surface-soft: rgba(255, 255, 255, 0.35);
-    --surface-2: rgba(255, 255, 255, 0.4);
-    --border: rgba(255, 255, 255, 0.6);
-    --border-hi: rgba(255, 255, 255, 0.6);
-    --text: #1c1c1e;
-    --text-dim: #636366;
-    --text-faint: #8e8e93;
-    --mint: #0fb87f;
-    --mint-soft: rgba(15, 184, 127, 0.15);
-    --chip-text: #0a7a54;
-    --coral: #ff6b4a;
-    --coral-soft: rgba(157, 107, 74, 0.15);
-    --sky: #007aff;
-    --brand: #0071e3;
-    --link-bg: linear-gradient(135deg, rgba(234, 245, 255, 0.7), rgba(223, 240, 255, 0.7));
-    --link-border: rgba(207, 230, 255, 0.8);
-    --danger: #ff3b30;
-    --danger-bg: rgba(255, 59, 48, 0.12);
-    --danger-border: rgba(255, 59, 48, 0.25);
-    --modal-bg: rgba(255, 255, 255, 0.85);
-    --field-bg: rgba(255, 255, 255, 0.5);
-    --dash-border: rgba(205, 215, 207, 0.8);
-    --bubble-chat-bg: rgba(239, 234, 226, 0.7);
-    --bubble-sent-bg: rgba(217, 253, 211, 0.85);
-    --bubble-text: #111b21;
-    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
-    --radius: 20px;
-
-    /* Status & Category Colors (SOH Local) */
-    --ok: #1c8a43;      --ok-bg: rgba(28,138,67,0.12);
-    --warn: #b06a00;    --warn-bg: rgba(176,106,0,0.13);
-    --bad: #d92d20;     --bad-bg: rgba(217,45,32,0.12);
-    --c-iphone: #0a84ff;
-    --c-ipad: #a44fe0;
-    --c-mac: #d98200;
-    --c-watch: #ff375f;
-    --c-airpods: #0ea89a;
-  }
-
-  [data-theme="dark"] {
-    --bg-gradient: linear-gradient(135deg, rgba(15, 32, 39, 0.6) 0%, rgba(32, 58, 67, 0.6) 50%, rgba(44, 83, 100, 0.6) 100%);
-    --surface: rgba(255, 255, 255, 0.08);
-    --surface-solid: rgba(30, 35, 40, 0.8);
-    --surface-soft: rgba(255, 255, 255, 0.05);
-    --surface-2: rgba(60,60,64,0.4);
-    --border: rgba(255, 255, 255, 0.15);
-    --border-hi: rgba(255,255,255,0.16);
-    --text: #f2f2f7;
-    --text-dim: #aeaeb2;
-    --text-faint: #636366;
-    --mint: #34d399;
-    --mint-soft: rgba(52, 211, 153, 0.18);
-    --chip-text: #5eead4;
-    --coral: #ff8a68;
-    --coral-soft: rgba(255, 138, 104, 0.18);
-    --sky: #6db8ff;
-    --link-bg: linear-gradient(135deg, rgba(61, 140, 222, 0.2), rgba(61, 140, 222, 0.12));
-    --link-border: rgba(109, 184, 255, 0.3);
-    --danger: #ff453a;
-    --danger-bg: rgba(255, 69, 58, 0.18);
-    --danger-border: rgba(255, 69, 58, 0.3);
-    --modal-bg: rgba(28, 28, 30, 0.9);
-    --field-bg: rgba(255, 255, 255, 0.08);
-    --dash-border: rgba(255, 255, 255, 0.15);
-    --bubble-chat-bg: rgba(11, 20, 26, 0.7);
-    --bubble-sent-bg: rgba(0, 92, 75, 0.85);
-    --bubble-text: #e9edef;
-    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-
-    /* Status Colors Dark (SOH Local) */
-    --ok: #32d74b;       --ok-bg: rgba(50,215,75,0.16);
-    --warn: #ffb340;     --warn-bg: rgba(255,179,64,0.16);
-    --bad: #ff453a;      --bad-bg: rgba(255,69,58,0.16);
-  }
-
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    min-height: 100vh;
-    background: var(--bg-gradient);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-  body.sidebar-open { overflow: hidden; }
-
-  /* Vanta Net Background Canvas */
-  #vanta-bg {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  /* Layout Sidebar Liquid Glass */
-  .layout-container { display: flex; min-height: 100vh; }
-  .sidebar-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 90;
-  }
-  .sidebar-overlay.open { display: block; }
-
-  .sidebar {
-    width: 260px; background: var(--surface);
-    backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; padding: 20px 16px; position: fixed;
-    top: 0; bottom: 0; left: 0; height: 100vh; height: 100dvh; z-index: 100; transition: transform 0.3s ease;
-    box-shadow: var(--shadow); overscroll-behavior: contain;
-  }
-  @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.open { transform: translateX(0); }
-  }
-
-  .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .sidebar-brand { display: flex; align-items: center; gap: 10px; }
-  .sidebar-brand .logo {
-    width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 6px; flex-shrink: 0;
-  }
-  .sidebar-brand .logo img {
-    width: 100%; height: 100%;
-    object-fit: contain; display: block;
-    transition: filter 0.2s;
-  }
-  [data-theme="dark"] .sidebar-brand .logo img { filter: invert(1); }
-
-  .sidebar-brand h2 { font-family: 'Baloo 2'; font-size: 16px; margin: 0; color: var(--text); line-height: 1.2; }
-  .sidebar-brand .sub { font-size: 11px; color: var(--text-dim); font-weight: 600; }
-
-  .sidebar-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px;
-    background: transparent; color: var(--text-dim); border: 1px solid transparent;
-    font-size: 13.5px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s;
-  }
-  .nav-item:hover { background: var(--surface-soft); color: var(--text); }
-  .nav-item.active {
-    background: var(--mint-soft); color: var(--mint); font-weight: 700;
-    border-color: var(--border); backdrop-filter: blur(8px);
-  }
-
-  .sidebar-footer {
-    font-size: 11px; color: var(--text-faint); text-align: center;
-    padding-top: 14px; border-top: 1px solid var(--border); font-weight: 500;
-  }
-  .sidebar-footer span { color: var(--coral); }
-
-  /* Main Content Area */
-  .main-content { flex: 1; margin-left: 260px; padding: 24px 20px 110px; width: 100%; max-width: 100%; }
-  @media (max-width: 768px) { .main-content { margin-left: 0; padding: 16px 14px 110px; } }
-
-  /* Header Mobile Freeze (Sticky) */
-  .top-mobile-bar {
-    display: none; align-items: center; justify-content: space-between; margin-bottom: 16px;
-    background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border); border-radius: 18px; padding: 10px 14px; box-shadow: var(--shadow);
-    position: sticky; top: 10px; z-index: 85;
-  }
-  @media (max-width: 768px) { .top-mobile-bar { display: flex; } }
-
-  .toggle-btn {
-    background: var(--surface-soft); border: 1px solid var(--border); border-radius: 10px;
-    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; color: var(--text); cursor: pointer;
-  }
-
-  .view-panel { display: none; max-width: 900px; margin: 0 auto; }
-  .view-panel.active { display: block; }
-
-  /* Liquid Glass Card Styling */
-  .glass-card, .activity, .datebar, .bubble-wrap, .summary-card, .glass {
-    background: var(--surface);
-    backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid var(--border); border-radius: 24px; padding: 24px;
-    box-shadow: var(--shadow); margin-bottom: 20px;
-    position: relative;
-  }
-
-  /* Modern Theme Toggle Button & SVG Icons */
-  .theme-toggle-btn {
-    width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border);
-    background: var(--surface-soft); color: var(--text); display: flex; align-items: center;
-    justify-content: center; cursor: pointer; transition: all 0.25s ease;
-  }
-  .theme-toggle-btn:hover { background: var(--surface-solid); transform: translateY(-1px); }
-  .theme-toggle-btn:active { transform: scale(0.92); }
-  .theme-toggle-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .theme-icon-sun { display: none; }
-  .theme-icon-moon { display: block; }
-  [data-theme="dark"] .theme-icon-sun { display: block; }
-  [data-theme="dark"] .theme-icon-moon { display: none; }
-
-  /* Forms & Headers */
-  .photo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .photo-header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; font-family: 'Baloo 2'; line-height: 1.3; }
-
-  .section-label {
-    font-size: 11px; letter-spacing: .06em; color: var(--text-faint); text-transform: uppercase;
-    font-weight: 700; margin-bottom: 12px;
-  }
-
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 500; opacity: 0.9; }
-  select, input[type="file"], input[type="text"], input[type="date"], input[type="month"], textarea {
-    width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
-    background: var(--field-bg); color: var(--text); font-size: 0.95rem; box-sizing: border-box;
-    outline: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  }
-  select option { background: var(--surface-solid); color: var(--text); }
-
-  .btn-submit {
-    width: 100%; padding: 14px; border: none; border-radius: 14px; background: #007aff;
-    color: white; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 10px;
-    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); transition: 0.2s;
-  }
-  .btn-submit:active { transform: scale(0.98); }
-
-  .report-box {
-    display: none; margin-top: 20px; padding: 16px; background: var(--surface-soft);
-    border: 1px solid var(--border); border-radius: 16px;
-  }
-  .report-text { font-size: 0.85rem; white-space: pre-wrap; word-break: break-all; margin: 0 0 16px 0; line-height: 1.5; }
-
-  .btn-action-group { display: flex; flex-direction: column; gap: 10px; }
-  .btn-action {
-    padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 0.9rem;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
-  }
-  .btn-copy { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
-  .btn-wa { background: #25d366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
-
-  /* Summary Table & Modern Analytics UI */
-  .summary-hero-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 22px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    margin-bottom: 24px;
-  }
-  [data-theme="dark"] .summary-hero-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
-  }
-
-  /* NEW FRESH LOOK & RESPONSIVE FILTER CARD */
-  .fresh-filter-card {
-    background: var(--surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 12px 14px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
-  }
-
-  .filter-segmented-control {
-    display: flex;
-    background: var(--surface-soft);
-    padding: 3px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    width: auto;
-  }
-
-  .segmented-btn {
-    border: none;
-    background: transparent;
-    color: var(--text-dim);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 9px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .segmented-btn.active {
-    background: var(--surface-solid);
-    color: var(--brand);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-
-  .filter-picker-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 200px;
-    justify-content: flex-end;
-  }
-
-  .fresh-filter-input {
-    border: 1px solid var(--border);
-    background: var(--surface-solid);
-    color: var(--text);
-    font-size: 12.5px;
-    font-weight: 700;
-    outline: none;
-    cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 220px;
-  }
-
-  @media (max-width: 520px) {
-    .fresh-filter-card {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    .filter-segmented-control {
-      width: 100%;
-    }
-    .segmented-btn {
-      flex: 1;
-      text-align: center;
-    }
-    .filter-picker-group {
-      width: 100%;
-      min-width: 0;
-    }
-    .fresh-filter-input {
-      max-width: 100%;
-    }
-  }
-
-  .stat-grid-modern {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-    margin-bottom: 22px;
-  }
-
-  .stat-card-modern {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .stat-card-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-  }
-
-  .stat-icon-wrapper {
-    width: 48px; height: 48px; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; flex-shrink: 0;
-  }
-
-  .btn-export-compact {
-    padding: 8px 14px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
-  .btn-export-csv {
-    background: var(--surface-solid);
-    color: var(--text);
-  }
-  .btn-export-csv:hover { background: var(--surface-soft); transform: translateY(-1px); }
-  
-  .btn-export-excel {
-    background: #107c41;
-    color: #ffffff;
-    border-color: #0e6b37;
-  }
-  .btn-export-excel:hover { background: #0e6e39; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
-
-  .chart-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-  @media (max-width: 768px) {
-    .chart-grid { grid-template-columns: 1fr; }
-  }
-  .chart-card {
-    background: var(--surface);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 18px;
-  }
-  .data-table-wrap {
-    overflow-x: auto;
-    margin-top: 14px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-  }
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    text-align: left;
-  }
-  .data-table th, .data-table td {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  .data-table th {
-    background: var(--surface-soft);
-    font-weight: 700;
-    color: var(--text);
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-  }
-
-  /* View Checklist */
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand .logo {
-    width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg,var(--mint),#0a8f63);
-    display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15,184,127,0.3); flex-shrink: 0; color: #fff; font-weight: 800;
-  }
-  .brand h1 { font-family: 'Baloo 2'; font-size: 19px; font-weight: 700; margin: 0; color: var(--text); }
-  .brand .sub { font-size: 11.5px; color: var(--text-dim); font-weight: 600; }
-
-  .topbar-right { display: flex; align-items: center; gap: 8px; }
-  .sync-pill {
-    font-size: 10.5px; font-weight: 700; padding: 6px 12px; border-radius: 20px; background: var(--surface-soft);
-    color: var(--text-dim); white-space: nowrap; border: 1px solid var(--border); display: flex; align-items: center; gap: 6px;
-  }
-  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
-  .sync-pill.saved .sync-dot { background: var(--mint); }
-  .sync-pill.saving .sync-dot { background: #ffb020; animation: pulse 1s infinite; }
-  .sync-pill.offline .sync-dot { background: var(--danger); }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
-
-  .datebar { display: flex; align-items: center; gap: 8px; padding: 10px; margin-bottom: 8px; }
-  .datebar button {
-    width: 38px; height: 38px; border-radius: 12px; border: none; background: var(--mint-soft);
-    color: var(--mint); font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-  .date-display { flex: 1; text-align: center; display: flex; flex-direction: column; cursor: pointer; }
-  .date-display .big { font-family: 'Baloo 2'; font-weight: 700; font-size: 15.5px; color: var(--text); }
-  .date-display .small { font-size: 10.5px; color: var(--text-faint); margin-top: 1px; font-weight: 600; }
-  #dateInput { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
-
-  .today-pill { display: none; text-align: center; margin-bottom: 16px; }
-  .today-pill.show { display: block; }
-  .today-pill button {
-    background: var(--coral-soft); color: var(--coral); border: none; border-radius: 20px; padding: 7px 16px;
-    font-size: 12px; font-weight: 700; cursor: pointer;
-  }
-
-  .activity { padding: 16px; margin-bottom: 14px; }
-  .activity-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-  .activity-name { font-family: 'Baloo 2'; font-weight: 700; font-size: 18.5px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .activity-meta { font-size: 11px; color: var(--text-faint); margin-top: 3px; font-weight: 600; }
-  .activity-actions { display: flex; gap: 6px; }
-  .icon-btn-sm {
-    width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-soft);
-    color: var(--text-dim); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-
-  .staff-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 2px; border-top: 1px solid var(--border); }
-  .staff-row:first-of-type { border-top: none; }
-  .staff-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; color: var(--text); }
-  .stepper { display: flex; align-items: center; gap: 4px; }
-  .stepper button {
-    width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-soft);
-    color: var(--text); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-  .stepper .count { width: 24px; text-align: center; font-weight: 700; font-size: 13px; color: var(--text-faint); }
-  .stepper .count.active { color: var(--mint); }
-  .rm-staff {
-    width: 30px; height: 30px; border: none; background: var(--danger-bg); color: var(--danger);
-    font-size: 14px; font-weight: 700; cursor: pointer; border-radius: 99px; margin-left: 10px; display: flex; align-items: center; justify-content: center;
-  }
-
-  .add-staff-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-  .link-btn {
-    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
-    background: var(--link-bg); border: 1px solid var(--link-border); color: var(--sky); border-radius: 12px;
-    padding: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none;
-    margin-top: 12px; text-align: center;
-  }
-
-  .add-activity-btn {
-    width: 100%; background: var(--surface-soft); border: 1.5px dashed var(--dash-border); border-radius: var(--radius);
-    color: var(--text-dim); font-size: 13.5px; font-weight: 700; padding: 14px; cursor: pointer; margin-bottom: 22px;
-  }
-
-  .preview-label { font-size: 11px; letter-spacing: .06em; color: var(--text-faint); text-transform: uppercase; margin: 12px 0 8px 4px; font-weight: 700; }
-  .bubble {
-    background: var(--bubble-sent-bg); color: var(--bubble-text); border-radius: 10px 10px 2px 10px;
-    padding: 12px 14px 8px; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
-  }
-  .bubble-time { font-size: 10.5px; color: var(--bubble-text); opacity: .5; text-align: right; margin-top: 4px; font-weight: 600; }
-
-  .summary-card { padding: 6px 16px; }
-  .summary-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0; border-top: 1px solid var(--border); }
-  .summary-row:first-child { border-top: none; }
-  .summary-row-label { font-size: 13.5px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .summary-row-val { font-size: 12.5px; font-weight: 700; color: var(--mint); }
-  .summary-total { text-align: center; font-size: 12.5px; color: var(--text-dim); font-weight: 600; padding: 13px 0 11px; border-top: 1px solid var(--border); }
-  
-  .summary-row-block { padding: 12px 0; border-top: 1px solid var(--border); }
-  .summary-row-block:first-child { border-top: none; }
-  .submit-names { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .submit-chip { background: var(--mint-soft); color: var(--chip-text); font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 20px; }
-
-  /* Actionbars & Modals Glassmorphism */
-  .actionbar {
-    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, transparent, var(--surface-solid) 40%); display: flex; gap: 10px; max-width: 640px; margin: 0 auto; z-index: 80;
-  }
-  .btn-send {
-    flex: 1; background: linear-gradient(135deg,#25d366,#1fb959); color: #04150c; border: none; border-radius: 16px;
-    padding: 14px 8px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center;
-    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
-  }
-  .btn-manual {
-    flex: 1; background: var(--surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    color: var(--text); border: 1px solid var(--border); border-radius: 16px;
-    padding: 14px 8px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center;
-  }
-
-  .toast {
-    position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(8px); opacity: 0;
-    background: #1f2937; color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
-    transition: .25s; pointer-events: none; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  .modal-bg {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    display: none; align-items: flex-end; z-index: 150;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: var(--modal-bg); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--border); border-radius: 28px 28px 0 0;
-    width: 100%; max-width: 640px; margin: 0 auto; max-height: 85vh; overflow-y: auto; padding: 24px 20px; box-shadow: var(--shadow);
-  }
-  .modal h2 { font-family: 'Baloo 2'; font-size: 18px; margin: 0 0 14px; color: var(--text); }
-  .modal h3 { font-family: 'Baloo 2'; font-size: 13px; text-transform: uppercase; color: var(--text-faint); margin: 20px 0 8px; }
-  .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-  .chip { display: flex; align-items: center; gap: 6px; background: var(--mint-soft); border-radius: 20px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--chip-text); }
-  .chip button { background: none; border: none; color: var(--chip-text); font-size: 15px; cursor: pointer; }
-  .inline-add { display: flex; gap: 8px; margin-top: 4px; }
-  .inline-add input { flex: 1; border-radius: 12px; }
-  .inline-add button { background: var(--mint); border: none; color: #04150c; font-weight: 700; border-radius: 12px; padding: 0 18px; cursor: pointer; }
-  .modal-close { width: 100%; margin-top: 24px; background: var(--mint); border: none; color: #04150c; border-radius: 16px; padding: 14px; font-family: 'Baloo 2'; font-weight: 700; font-size: 14.5px; cursor: pointer; }
-  .danger-zone { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); }
-  .danger-btn { width: 100%; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); border-radius: 14px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  
-  .picker-chip { cursor: pointer; padding: 9px 16px; font-size: 13.5px; border: none; }
-
-  /* SOH LOCAL STYLES */
-  .sync-status {
-    display:flex; align-items:center; gap:8px;
-    font-size:12.5px; color:var(--text-dim);
-    background:var(--surface-2); border:1px solid var(--border);
-    padding:7px 12px 7px 10px; border-radius:999px;
-  }
-  .dot { width:8px;height:8px;border-radius:50%;background:var(--ok); position:relative; flex-shrink:0; }
-  .dot.syncing { background:var(--warn); }
-  .dot.error { background:var(--bad); }
-  .dot::after {
-    content:''; position:absolute; inset:-4px; border-radius:50%;
-    border:1.5px solid currentColor; color:var(--ok);
-    opacity:0; animation:pulse 2s ease-out infinite;
-  }
-  .dot.syncing::after { color:var(--warn); animation:pulse 1s ease-out infinite; }
-  .dot.error::after { display:none; }
-
-  .iconbtn {
-    width:38px;height:38px; border-radius:50%; border:1px solid var(--border);
-    background:var(--surface-2); display:flex; align-items:center; justify-content:center;
-    cursor:pointer; color:var(--text); transition:.15s; flex-shrink:0;
-  }
-  .iconbtn:hover { background:var(--surface); border-color:var(--border-hi); }
-  .iconbtn:active { transform:scale(0.92); }
-  .iconbtn svg { width:17px;height:17px; }
-  .iconbtn.spin svg { animation:spin .8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  .statbar {
-    display:flex; align-items:stretch; border-radius:999px; padding:5px; margin-bottom:18px;
-    box-shadow:var(--shadow-sm);
-  }
-  .statchip {
-    flex:1; display:flex; flex-direction:row; align-items:baseline; justify-content:center; gap:6px;
-    background:transparent; border:2px solid transparent; padding:7px 8px; border-radius:999px; cursor:pointer;
-    font-family:inherit; color:inherit; transition:.15s;
-  }
-  .statchip:hover { background:rgba(128,128,128,0.08); }
-  .statchip:active { border-color:var(--brand); }
-  .statchip.warn:active { border-color:var(--warn); }
-  .statchip.active { background:var(--surface-solid); box-shadow:var(--shadow-sm); border-color:var(--brand); }
-  .statchip.warn.active { border-color:var(--warn); }
-  .statchip .scnum { font-size:16px; font-weight:800; letter-spacing:-0.01em; }
-  .statchip .sclabel { font-size:11px; color:var(--text-dim); font-weight:600; text-transform:uppercase; letter-spacing:.03em; }
-  .statchip.warn .scnum { color:var(--warn); }
-  .statdiv { width:1px; align-self:center; height:20px; background:var(--border); }
-
-  .controls {
-    display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap;
-  }
-  .search {
-    flex:1; min-width:200px; position:relative;
-  }
-  .search svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-faint); pointer-events:none; }
-  
-  .search input {
-    width:100%;
-    padding: 12px 14px 12px 34px;
-    margin: 0;
-    border-radius:16px;
-    border:1px solid var(--border);
-    background:var(--surface);
-    font-size:13.5px;
-    font-family:inherit;
-    color:var(--text);
-    box-shadow:var(--shadow-sm);
-  }
-  .search input::placeholder { color:var(--text-faint); }
-  .search input:focus { outline:2px solid var(--brand); outline-offset:1px; border-color:transparent; }
-  
-  select#sohSortSel {
-    padding:12px 16px; border-radius:16px; border:1px solid var(--border);
-    background:var(--surface); font-size:13.5px; font-family:inherit; color:var(--text);
-    box-shadow:var(--shadow-sm); cursor:pointer; margin: 0;
-  }
-  select#sohSortSel option { background:var(--surface-solid); color:var(--text); }
-
-  .pills {
-    display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:18px;
-    scrollbar-width:none;
-  }
-  .pills::-webkit-scrollbar { display:none; }
-  .pill {
-    flex-shrink:0; display:flex; align-items:center; gap:7px;
-    padding:9px 15px; border-radius:999px; border:1px solid var(--border);
-    background:var(--surface); font-size:13.5px; font-weight:600; color:var(--text-dim);
-    cursor:pointer; transition:.15s; white-space:nowrap; font-family:inherit;
-    box-shadow:var(--shadow-sm);
-  }
-  .pill:hover { border-color:var(--border-hi); }
-  .pill .pillicon { width:16px;height:16px; flex-shrink:0; display:flex; color:var(--accent,#8e8e93); }
-  .pill .pillicon svg { width:100%;height:100%; }
-  .pill .ct { font-size:11.5px; padding:1px 6px; border-radius:999px; background:rgba(128,128,128,0.18); color:var(--text-faint); font-weight:700; }
-  .pill.active { background:var(--text); color:var(--surface-solid); border-color:var(--text); }
-  .pill.active .ct { background:rgba(128,128,128,0.35); color:inherit; }
-  .pill.active .pillicon { color:inherit; }
-
-  .list { display: flex; flex-direction: column; gap: 1px; }
-  .row {
-    display: flex; align-items: center; gap: 10px; border-radius: 18px; padding: 8px 16px;
-    box-shadow: var(--shadow-sm); transition: .15s; overflow: hidden; margin-bottom: 2px;
-  }
-  .row:hover { box-shadow:var(--shadow); }
-  .row .icon {
-    width:36px; height:36px; border-radius:10px; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    background:rgba(128,128,128,0.14); color:var(--accent,#888);
-  }
-  .row .icon svg { width:18px; height:18px; stroke:currentColor; display:block; }
-  .row .info { flex:1; min-width:0; }
-  .row .name { font-size:14px; font-weight:600; line-height:1.3; overflow-wrap:anywhere; }
-  .row .meta { display:flex; align-items:center; gap:6px; margin-top:2px; flex-wrap:wrap; }
-  .row .cat { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--accent,#888); }
-  .row .code { font-size:11.5px; color:var(--text-faint); font-family:inherit; }
-  .row .qtycol { font-size:11px; color:var(--text-faint); font-style:italic; }
-  
-  .stockbadge { display:flex; flex-direction:column; align-items:flex-end; line-height:1; flex-shrink:0; }
-  .stockbadge .n { font-size:17px; font-weight:800; }
-  .stockbadge .s { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:2px 6px; border-radius:999px; margin-top:2px; white-space:nowrap; }
-  .stockbadge.ok .n { color:var(--ok); } .stockbadge.ok .s { color:var(--ok); background:var(--ok-bg); }
-  .stockbadge.warn .n { color:var(--warn); } .stockbadge.warn .s { color:var(--warn); background:var(--warn-bg); }
-  .stockbadge.bad .n { color:var(--bad); } .stockbadge.bad .s { color:var(--bad); background:var(--bad-bg); }
-
-  .empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
-  .empty svg { width:44px;height:44px; color:var(--text-faint); margin-bottom:10px; }
-  .empty .t { font-weight:700; color:var(--text); margin-bottom:4px; font-size:15px; }
-  .empty .d { font-size:13.5px; }
-  .empty button {
-    margin-top:14px; border:none; background:var(--text); color:var(--surface-solid); padding:99px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; border-radius: 999px;
-  }
-
-  .skele { display: flex; flex-direction: column; gap: 1px; }
-  .skrow { height:54px; border-radius:18px; background:linear-gradient(90deg,rgba(128,128,128,0.12) 25%,rgba(128,128,128,0.2) 37%,rgba(128,128,128,0.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; }
-  @keyframes shimmer { 0%{background-position:100% 0;} 100%{background-position:0 0;} }
-
-  .soh-overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-    display:none; align-items:center; justify-content:center; z-index:150; padding:16px;
-  }
-  .soh-overlay.show { display:flex; }
-  .soh-modal {
-    background:var(--surface); backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%);
-    border:1px solid var(--border); border-radius:28px; width:100%; max-width:560px;
-    max-height:88vh; overflow-y:auto; box-shadow:var(--shadow);
-  }
-  .soh-modal-head {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:18px 20px; border-bottom:1px solid var(--border); position:sticky; top:0;
-    background:var(--surface); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); z-index:10;
-  }
-  .soh-modal-head h3 { margin:0; font-size:16px; font-weight:700; color:var(--text); }
-  .soh-modal-body { padding:20px; }
-  .field { margin-bottom:18px; }
-  .field label { display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--text); }
-  .field .hint { font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.5; }
-  .field input[type=text], .field select {
-    width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border);
-    font-size:14px; font-family:inherit; background:var(--surface-2); color:var(--text);
-  }
-  .field input:focus, .field select:focus { outline:2px solid var(--brand); outline-offset:0; border-color:transparent; }
-  
-  .steps {
-    background:var(--surface-2); border:1px solid var(--border); border-radius:14px;
-    padding:14px 16px; font-size:13px; color:var(--text-dim); line-height:1.7;
-  }
-  .steps b { color:var(--text); }
-  .steps ol { margin:6px 0 0; padding-left:18px; }
-  .steps code { background:rgba(128,128,128,0.18); padding:1px 5px; border-radius:5px; font-size:12px; }
-  
-  .tabs { display:flex; gap:4px; background:var(--surface-2); padding:4px; border-radius:14px; margin-bottom:16px; flex-wrap:wrap; }
-  .tabs button {
-    flex:1; min-width:70px; border:none; background:transparent; padding:99px 6px; border-radius:10px; font-size:12.5px;
-    font-weight:600; color:var(--text-dim); cursor:pointer; font-family:inherit;
-  }
-  .tabs button.active { background:var(--surface-solid); color:var(--text); box-shadow:var(--shadow-sm); }
-  .tabpane { display:none; } .tabpane.active { display:block; }
-  
-  .soh-modal-foot { padding:16px 20px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end; position:sticky; bottom:0; background:var(--surface); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); }
-  .btn {
-    padding:10px 20px; border-radius:999px; font-size:13.5px; font-weight:600; cursor:pointer; border:1px solid var(--border);
-    background:var(--surface-2); font-family:inherit; color:var(--text);
-  }
-  .btn.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
-  .btn.ghost { background:transparent; }
-  .btn.danger { color:var(--bad); border-color:var(--bad); }
-
-  @media(max-width:640px){
-    .statchip { padding:8px 4px; }
-    .statchip .scnum { font-size:14px; }
-    .statchip .sclabel { font-size:9.5px; }
-    .row .code { display:none; }
-    .row .qtycol { display:none; }
-  }
-</style>
-</head>
-<body>
-
-<!-- Vanta Net Background Canvas -->
-<div id="vanta-bg"></div>
-
-<div class="layout-container">
-  <!-- Overlay Mobile -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- Sidebar Liquid Glass -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-brand">
-        <!-- Logo Apple -->
-        <div class="logo" title="Apple">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" alt="Apple Logo">
-        </div>
-        <div>
-          <h2>Digimap TP3</h2>
-          <div class="sub">Activity Hub</div>
-        </div>
-      </div>
-      <!-- Modern Theme Toggle -->
-      <button class="theme-toggle-btn" onclick="toggleGlobalTheme()" title="Ganti Tema">
-        <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-    </div>
-
-    <nav class="sidebar-nav">
-      <button class="nav-item active" id="navChecklist" onclick="switchTab('Checklist')">
-        📋 Checklist Harian Toko
-      </button>
-      <button class="nav-item" id="navPhoto" onclick="switchTab('Photo')">
-        📸 Try On Photo Evidence
-      </button>
-      <button class="nav-item" id="navLob" onclick="switchTab('Lob')">
-        🏆 LOB Champion Report
-      </button>
-      <button class="nav-item" id="navOpsems" onclick="switchTab('Opsems')">
-        ⚙️ OPS & EMS Report
-      </button>
-      <button class="nav-item" id="navTrainer" onclick="switchTab('Trainer')">
-        🎓 Trainer Report
-      </button>
-      <button class="nav-item" id="navSoh" onclick="switchTab('Soh')">
-        📦 SOH Local
-      </button>
-      <button class="nav-item" id="navSummary" onclick="switchTab('Summary')">
-        📊 Summary & Analytics
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">
-      made with <span>❤️</span> by frans
-    </div>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="main-content">
-    <!-- Mobile Header Navbar -->
-    <div class="top-mobile-bar">
-      <button class="toggle-btn" id="toggleSidebar">☰</button>
-      <div style="font-family:'Baloo 2'; font-weight:700; font-size:16px;">Digimap TP3 Hub</div>
-      <button class="theme-toggle-btn" onclick="toggleGlobalTheme()">
-        <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-    </div>
-
-    <!-- VIEW 1: CHECKLIST HARIAN TOKO -->
-    <section id="viewChecklist" class="view-panel active">
-      <div class="topbar">
-        <div class="brand">
-          <div class="logo">✓</div>
-          <div>
-            <h1>Checklist Harian Toko</h1>
-            <div class="sub">Digimap TP3 Surabaya</div>
-          </div>
-        </div>
-        <div class="topbar-right">
-          <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span> Memuat...</div>
-          <button class="theme-toggle-btn" id="openSettings" title="Pengaturan">⚙️</button>
-        </div>
-      </div>
-
-      <div class="datebar">
-        <button id="prevDay">‹</button>
-        <div class="date-display" id="dateDisplay">
-          <div class="big" id="dateBig">--</div>
-          <div class="small" id="dateSmall">--</div>
-        </div>
-        <button id="nextDay">›</button>
-        <input type="date" id="dateInput">
-      </div>
-      <div class="today-pill" id="todayPill"><button id="jumpToday">↺ Kembali ke hari ini</button></div>
-
-      <div id="activityList"></div>
-      <button class="add-activity-btn" id="addActivityBtn">+ Tambah aktivitas</button>
-
-      <div class="preview-label">Preview pesan WhatsApp</div>
-      <div class="bubble-wrap">
-        <div class="bubble" id="previewText"></div>
-        <div class="bubble-time" id="previewTime"></div>
-      </div>
-
-      <div class="summary-section" id="summarySection">
-        <div class="preview-label">Ringkasan Aktivitas Hari Ini</div>
-        <div class="summary-card" id="summaryCard"></div>
-      </div>
-
-      <div class="summary-section" id="submitSummarySection">
-        <div class="preview-label">Status Submit Link</div>
-        <div class="summary-card" id="submitSummaryCard"></div>
-      </div>
-
-      <div class="actionbar">
-        <button class="btn-manual" id="manualBtn">📋 Copy & Paste Manual WA</button>
-        <button class="btn-send" id="autoBtn">📋💬 Copy & Auto Buka WA</button>
-      </div>
-    </section>
-
-    <!-- VIEW 2: TRY ON PHOTO EVIDENCE -->
-    <section id="viewPhoto" class="view-panel">
-      <div class="glass-card">
-        <div class="photo-header">
-          <h2>Try On Photo Evidence</h2>
-        </div>
-
-        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="photoDateDisplay">--</div>
-
-        <form id="upload-form" onsubmit="handlePhotoSubmit(event)">
-          <div class="form-group">
-            <label>Nama Staff</label>
-            <select id="namaStaff" required>
-              <option value="" disabled selected>Pilih Staff...</option>
-              <option value="Sulton Setiawan">Sulton Setiawan</option>
-              <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
-              <option value="Hartono">Hartono</option>
-              <option value="Eggy Thania A.M">Eggy Thania A.M</option>
-              <option value="Frandy Putra">Frandy Putra</option>
-              <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
-              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
-              <option value="Dewi Andansari">Dewi Andansari</option>
-              <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
-              <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
-              <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
-              <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
-              <option value="Reni Purwati">Reni Purwati</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Tujuan Aktivitas</label>
-            <select id="tujuan" required>
-              <option value="" disabled selected>Pilih Tujuan...</option>
-              <option value="Try On Aksara">📁 Try On Aksara</option>
-              <option value="Try On Cakrawala">📁 Try On Cakrawala</option>
-              <option value="Try On Samudra">📁 Try On Samudra</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Upload Foto</label>
-            <input type="file" id="foto" accept="image/*" required>
-          </div>
-
-          <button type="submit" class="btn-submit" id="btn-submit">Submit</button>
-        </form>
-
-        <div id="status" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
-
-        <div class="report-box" id="reportBox">
-          <div class="report-text" id="reportText"></div>
-          <div class="btn-action-group">
-            <button class="btn-action btn-copy" onclick="copyPhotoReportOnly()">📋 Copy Teks Saja</button>
-            <button class="btn-action btn-wa" onclick="copyPhotoAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 3: LOB CHAMPION REPORT -->
-    <section id="viewLob" class="view-panel">
-      <div class="glass-card">
-        <div class="photo-header">
-          <h2>LOB Champion Report</h2>
-        </div>
-
-        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="lobDateDisplay">--</div>
-
-        <div style="margin-bottom: 20px;">
-          <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Buka Form Submit LOB Champion
-          </a>
-        </div>
-
-        <form id="lob-upload-form" onsubmit="handleLobSubmit(event)">
-          <div class="form-group">
-            <label>Nama Staff (LOB Champion)</label>
-            <select id="lobNamaStaff" required>
-              <option value="" disabled selected>Pilih Staff LOB Champion...</option>
-              <option value="Moh Asfiyak Kamida (Apple Watch)">Moh Asfiyak Kamida (Apple Watch)</option>
-              <option value="Achmad Rafi Kurnia T. (Mac)">Achmad Rafi Kurnia T. (Mac)</option>
-              <option value="Linda Indi Kusumanigrum (iPhone)">Linda Indi Kusumanigrum (iPhone)</option>
-              <option value="Hyskia Indra Aphista (iPad)">Hyskia Indra Aphista (iPad)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Upload Foto Evidence ke Google Drive</label>
-            <input type="file" id="lobFoto" accept="image/*" required>
-          </div>
-
-          <button type="submit" class="btn-submit" id="btn-lob-submit">Upload ke Google Drive</button>
-        </form>
-
-        <div id="lobStatus" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
-
-        <div class="report-box" id="lobReportBox">
-          <div class="report-text" id="lobReportText"></div>
-          <div class="btn-action-group">
-            <button class="btn-action btn-copy" onclick="copyLobReportOnly()">📋 Copy Teks Saja</button>
-            <button class="btn-action btn-wa" onclick="copyLobAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 4: OPS & EMS REPORT -->
-    <section id="viewOpsems" class="view-panel">
-      <div class="glass-card">
-        <div class="photo-header">
-          <h2>OPS & EMS Report</h2>
-        </div>
-
-        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="opsEmsDateDisplay">--</div>
-
-        <div style="margin-bottom: 20px; display:flex; flex-direction:column; gap:10px;">
-          <a href="https://forms.gle/cjE3NPNqQhPwHyQZ9" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Buka Form Submit OPS
-          </a>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSe8K1gHsP0auF1YougpKE5NK5_9qiEFSuV3Fn7ITF8cs1ojxA/viewform" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Buka Form Submit EMS
-          </a>
-        </div>
-
-        <form id="opsems-upload-form" onsubmit="handleOpsEmsSubmit(event)">
-          <div class="form-group">
-            <label>Nama Staff</label>
-            <select id="opsEmsNamaStaff" required>
-              <option value="" disabled selected>Pilih Staff...</option>
-              <option value="Sulton Setiawan">Sulton Setiawan</option>
-              <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
-              <option value="Hartono">Hartono</option>
-              <option value="Eggy Thania A.M">Eggy Thania A.M</option>
-              <option value="Frandy Putra">Frandy Putra</option>
-              <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
-              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
-              <option value="Dewi Andansari">Dewi Andansari</option>
-              <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
-              <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
-              <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
-              <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
-              <option value="Reni Purwati">Reni Purwati</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Tujuan Aktivitas</label>
-            <select id="opsEmsTujuan" required>
-              <option value="" disabled selected>Pilih Tujuan...</option>
-              <option value="Open Studio">📁 Open Studio</option>
-              <option value="EMS">📁 EMS</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Upload Foto Evidence ke Google Drive</label>
-            <input type="file" id="opsEmsFoto" accept="image/*" required>
-          </div>
-
-          <button type="submit" class="btn-submit" id="btn-opsems-submit">Upload ke Google Drive</button>
-        </form>
-
-        <div id="opsEmsStatus" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
-
-        <div class="report-box" id="opsEmsReportBox">
-          <div class="report-text" id="opsEmsReportText"></div>
-          <div class="btn-action-group">
-            <button class="btn-action btn-copy" onclick="copyOpsEmsReportOnly()">📋 Copy Teks Saja</button>
-            <button class="btn-action btn-wa" onclick="copyOpsEmsAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 5: TRAINER REPORT -->
-    <section id="viewTrainer" class="view-panel">
-      <div class="glass-card">
-        <div class="photo-header">
-          <h2>Trainer Report</h2>
-        </div>
-
-        <div class="date-display" style="text-align:left; margin-bottom:18px;" id="trainerDateDisplay">--</div>
-
-        <!-- Judul Kumpulan Link -->
-        <div class="section-label">Link Report Dan Lain-Lain</div>
-
-        <!-- Daftar Link Pendukung Trainer -->
-        <div style="margin-bottom: 24px; display:flex; flex-direction:column; gap:10px;">
-          <a href="https://forms.gle/CkiXCACKnaPsQF6Q8" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Submit Plan & Result
-          </a>
-          <a href="https://docs.google.com/spreadsheets/d/18iSGzacN6ioLUM5JN-CEWRGkt__FEx_oCchE9U9dCnc/edit?usp=sharing" target="_blank" class="link-btn" style="margin-top:0;">
-            📊 Dashboard PNR Tracking ST Q1-Q4 2026
-          </a>
-          <a href="https://docs.google.com/spreadsheets/d/1FeRMw7L9gVfnfOHW792mlNtXe9GKuFnTKjIQZmM3NYE/edit?gid=1558849716#gid=1558849716" target="_blank" class="link-btn" style="margin-top:0;">
-            📊 Dashboard Training East Region
-          </a>
-          <a href="https://ztevejob.github.io/dailymapclub/#" target="_blank" class="link-btn" style="margin-top:0; flex-direction:column; gap:2px;">
-            <span>🌐 Dashboard Mapclub Timur</span>
-            <span style="font-size:11px; font-weight:500; opacity:0.85;">User: Kode Toko | Pass: maptech</span>
-          </a>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9sQXnpz9Js8LD3xl6dWqhfydo1BJr6Vk91-vgnYBqm_EtmA/viewform?pli=1" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Submit Weekly Activity Apple Watch
-          </a>
-          <a href="https://docs.google.com/spreadsheets/d/1WhYyHN8gu6QFtoeGVzDpgGQfuv3B74Bc894oFCwrJ_8/edit?usp=sharing" target="_blank" class="link-btn" style="margin-top:0;">
-            🗑️ Deleted Seed Request
-          </a>
-        </div>
-
-        <!-- Garis Pemisah -->
-        <hr style="border:none; border-top:1px solid var(--border); margin: 24px 0;">
-
-        <!-- Sub-Judul Photo Evidence -->
-        <div class="section-label">Try On Photo Evidence</div>
-
-        <form id="trainer-upload-form" onsubmit="handleTrainerSubmit(event)">
-          <div class="form-group">
-            <label>Nama Staff</label>
-            <select id="trainerNamaStaff" required>
-              <option value="" disabled selected>Pilih Staff...</option>
-              <option value="Sulton Setiawan">Sulton Setiawan</option>
-              <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
-              <option value="Hartono">Hartono</option>
-              <option value="Eggy Thania A.M">Eggy Thania A.M</option>
-              <option value="Frandy Putra">Frandy Putra</option>
-              <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
-              <option value="Achmad Rafi Kurnia T.">Achmad Rafi Kurnia T.</option>
-              <option value="Dewi Andansari">Dewi Andansari</option>
-              <option value="Moh Asfiyak Kamida">Moh Asfiyak Kamida</option>
-              <option value="Hyskia Indra Aphista">Hyskia Indra Aphista</option>
-              <option value="Linda Indi Kusumanigrum">Linda Indi Kusumanigrum</option>
-              <option value="Nur Indah Oktaviani S.">Nur Indah Oktaviani S.</option>
-              <option value="Reni Purwati">Reni Purwati</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Tujuan Aktivitas</label>
-            <select id="trainerTujuan" required>
-              <option value="" disabled selected>Pilih Tujuan...</option>
-              <option value="Training">📁 Training</option>
-              <option value="Roleplay">📁 Roleplay</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Upload Foto Evidence ke Google Drive</label>
-            <input type="file" id="trainerFoto" accept="image/*" required>
-          </div>
-
-          <button type="submit" class="btn-submit" id="btn-trainer-submit">Upload ke Google Drive</button>
-        </form>
-
-        <div id="trainerStatus" style="margin-top:15px; text-align:center; font-size:0.85rem; font-weight:500;"></div>
-
-        <div class="report-box" id="trainerReportBox">
-          <div class="report-text" id="trainerReportText"></div>
-          <div class="btn-action-group">
-            <button class="btn-action btn-copy" onclick="copyTrainerReportOnly()">📋 Copy Teks Saja</button>
-            <button class="btn-action btn-wa" onclick="copyTrainerAndOpenWA()">🚀 Copy & Auto Buka Group WA</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 6: SOH LOCAL -->
-    <section id="viewSoh" class="view-panel">
-      <!-- Topbar Header SOH -->
-      <div class="glass" style="border-radius:24px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <div class="brandmark" style="display:flex; align-items:center; gap:10px; margin-right:auto;">
-          <div class="logo" id="sohLogoBox" style="width:38px;height:38px;border-radius:13px;background:linear-gradient(155deg,#1d1d1f,#3a3a3c);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <img src="https://cdn-icons-png.flaticon.com/256/0/747.png" alt="Apple" id="sohLogoImg" style="width:19px;height:19px; filter:invert(1) brightness(1.4);" onerror="this.style.display='none'; document.getElementById('sohLogoFallback').style.display='block';">
-            <svg id="sohLogoFallback" style="display:none; width:19px;height:19px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.5 3c.1 1.2-.35 2.35-1.05 3.2-.72.87-1.9 1.55-3.05 1.46-.14-1.15.43-2.36 1.1-3.13C14.24 3.7 15.42 3.05 16.5 3zM20.9 17.3c-.55 1.28-.82 1.85-1.53 2.98-.99 1.56-2.39 3.5-4.12 3.52-1.53.02-1.93-1-4-1-2.08 0-2.52.98-4 1-1.68.03-2.97-1.72-3.96-3.28C.6 17.1-.5 12.15 1.06 8.8c1.1-2.37 2.98-3.75 4.83-3.75 1.5 0 2.4.99 3.98 1 1.53 0 2.14-1 4-1 1.02 0 3.51.35 5.2 2.8-4.7 2.55-3.94 8.86 1.83 9.45z" fill="white"/></svg>
-          </div>
-          <div class="titles" style="line-height:1.15;">
-            <div class="t1" style="font-weight:700; font-size:15px;">SOH Local</div>
-            <div class="t2" style="font-size:12px; color:var(--text-dim);">Digimap Tunjungan Plaza 3</div>
-          </div>
-        </div>
-        <div class="sync-status" id="sohSyncStatus">
-          <span class="dot" id="sohSyncDot"></span>
-          <span id="sohSyncLabel">Belum tersambung</span>
-        </div>
-        <div class="headerbtns" style="display:flex; align-items:center; gap:8px;">
-          <button class="iconbtn" id="sohBtnRefresh" title="Sync sekarang">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-          </button>
-          <button class="iconbtn" id="sohBtnSettings" title="Preferensi">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.04z"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Statbar -->
-      <div class="statbar glass">
-        <button class="statchip" id="sohStatAllBtn" data-filter="all"><span class="scnum" id="sohStatSku">–</span><span class="sclabel">SKU</span></button>
-        <span class="statdiv"></span>
-        <button class="statchip" id="sohStatUnitBtn" data-filter="all"><span class="scnum" id="sohStatUnit">–</span><span class="sclabel">Unit</span></button>
-        <span class="statdiv"></span>
-        <button class="statchip warn" id="sohStatLowBtn" data-filter="warn"><span class="scnum" id="sohStatLow">–</span><span class="sclabel">Terbatas</span></button>
-      </div>
-
-      <!-- Controls -->
-      <div class="controls">
-        <div class="search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="text" id="sohSearchInput" placeholder="Cari nama produk atau kode SKU...">
-        </div>
-        <select id="sohSortSel">
-          <option value="name-desc" selected>Nama Z–A</option>
-          <option value="name-asc">Nama A–Z</option>
-          <option value="stock-asc">Stock terendah</option>
-          <option value="stock-desc">Stock terbanyak</option>
-        </select>
-      </div>
-
-      <!-- Pills Category -->
-      <div class="pills" id="sohPillRow"></div>
-
-      <!-- Skeleton Loading -->
-      <div id="sohSkeleton" class="skele" style="display:none;">
-        <div class="skrow"></div><div class="skrow"></div><div class="skrow"></div><div class="skrow"></div><div class="skrow"></div>
-      </div>
-
-      <!-- Product List Container -->
-      <div class="list" id="sohList"></div>
-
-      <!-- Empty State -->
-      <div class="empty" id="sohEmptyState" style="display:none;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <div class="t">Produk tidak ditemukan</div>
-        <div class="d">Coba kata kunci lain, atau reset filter yang aktif.</div>
-        <button id="sohBtnResetFilter">Reset Filter</button>
-      </div>
-
-      <footer style="text-align:center; padding:30px 20px 40px; font-size:12px; color:var(--text-faint);">
-        SOH Local · Digimap Tunjungan Plaza 3 — data disinkronkan dari file stock toko
-      </footer>
-    </section>
-
-    <!-- VIEW 7: SUMMARY & ANALYTICS OVERVIEW -->
-    <section id="viewSummary" class="view-panel">
-      <div class="summary-hero-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
-          <div>
-            <h2 style="margin: 0; font-family: 'Baloo 2'; font-size: 1.35rem; font-weight: 700; color: var(--text);">
-              📊 Overview & Analytics
-            </h2>
-            <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">
-              Ringkasan performa dan eksekusi aktivitas toko
-            </div>
-          </div>
-          
-          <!-- Tombol Export Compact -->
-          <div style="display: flex; gap: 8px;">
-            <button class="btn-export-compact btn-export-csv" onclick="exportSummaryToCSV()">
-              📊 Export CSV
-            </button>
-            <button class="btn-export-compact btn-export-excel" onclick="exportSummaryToXLSX()">
-              📗 Export XLSX
-            </button>
-          </div>
-        </div>
-
-        <!-- NEW FRESH LOOK & RESPONSIVE FILTER CARD -->
-        <div class="fresh-filter-card">
-          <div class="filter-segmented-control">
-            <button id="btnFilterMonth" class="segmented-btn active" onclick="setSummaryFilterMode('month')">Per Bulan</button>
-            <button id="btnFilterDay" class="segmented-btn" onclick="setSummaryFilterMode('day')">Per Tanggal</button>
-          </div>
-
-          <div class="filter-picker-group">
-            <input type="month" id="summaryMonthInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
-            <input type="date" id="summaryDayInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
-          </div>
-        </div>
-
-        <!-- Modern Metric Stat Cards -->
-        <div class="stat-grid-modern">
-          <div class="stat-card-modern">
-            <div class="stat-icon-wrapper" style="background: rgba(0, 113, 227, 0.12); color: #0071e3;">
-              ⚡
-            </div>
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">Total Eksekusi</div>
-              <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="totalActivityCount">0</div>
-            </div>
-          </div>
-          
-          <div class="stat-card-modern">
-            <div class="stat-icon-wrapper" style="background: var(--mint-soft); color: var(--mint);">
-              👥
-            </div>
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">Staff Kontributor</div>
-              <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="activeStaffCount">0</div>
-            </div>
-          </div>
-
-          <div class="stat-card-modern">
-            <div class="stat-icon-wrapper" style="background: rgba(164, 79, 224, 0.12); color: #a44fe0;">
-              ⚙️
-            </div>
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em;">OPS & EMS Report</div>
-              <div style="font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px;" id="opsEmsSummaryCount">0</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Charts Grid -->
-        <div class="chart-grid">
-          <div class="chart-card">
-            <div class="section-label" style="text-align: center; margin-bottom: 12px;">Total Aktivitas per Staff</div>
-            <canvas id="staffBarChart"></canvas>
-          </div>
-          <div class="chart-card">
-            <div class="section-label" style="text-align: center; margin-bottom: 12px;">Kontribusi Jenis Aktivitas</div>
-            <canvas id="activityDoughnutChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Detail Data Table -->
-        <div class="section-label" style="margin-top: 24px; margin-bottom: 8px;">Rincian Log Aktivitas</div>
-        <div class="data-table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Nama Staff</th>
-                <th>Jenis Aktivitas</th>
-                <th>Jumlah Eksekusi</th>
-              </tr>
-            </thead>
-            <tbody id="summaryTableBody">
-              <tr>
-                <td colspan="4" style="text-align: center; color: var(--text-faint);">Memuat data...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-  </main>
-</div>
-
-<!-- SOH Local Settings Modal -->
-<div class="soh-overlay" id="sohOverlay">
-  <div class="soh-modal">
-    <div class="soh-modal-head">
-      <h3>Preferensi SOH Local</h3>
-      <button class="iconbtn" id="sohBtnCloseModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-    </div>
-    <div class="soh-modal-body">
-
-      <div class="tabs">
-        <button class="tabbtn active" data-tab="sohPref">Preferensi</button>
-        <button class="tabbtn" data-tab="sohInfo">Info Sinkron</button>
-        <button class="tabbtn" data-tab="sohGuide">Cara Kerja</button>
-      </div>
-
-      <div class="tabpane active" data-pane="sohPref">
-        <div class="field">
-          <label>Ambang batas status "Terbatas"</label>
-          <select id="sohLowThreshold">
-            <option value="2">≤ 2 unit</option>
-            <option value="3" selected>≤ 3 unit</option>
-            <option value="5">≤ 5 unit</option>
-            <option value="10">≤ 10 unit</option>
-          </select>
-          <div class="hint">Produk dengan stok di bawah/sama dengan angka ini akan ditandai "Terbatas". Selain itu, stok 0 selalu "Habis".</div>
-        </div>
-        <div class="field">
-          <label>Cek pembaruan setiap</label>
-          <select id="sohRefreshInterval">
-            <option value="0.5">30 detik</option>
-            <option value="1">1 menit</option>
-            <option value="2" selected>2 menit</option>
-            <option value="5">5 menit</option>
-          </select>
-          <div class="hint">Aplikasi ini cuma memeriksa file data ringan (data.json) yang sudah disiapkan sistem — jadi aman dicek sesering ini tanpa memberatkan.</div>
-        </div>
-        <div class="field">
-          <label>Maintenance</label>
-          <button class="btn danger" id="sohBtnResetAll" type="button">Reset Data &amp; Pengaturan Tersimpan</button>
-          <div class="hint">Menghapus cache stock dan preferensi tampilan yang tersimpan di perangkat ini.</div>
-        </div>
-      </div>
-
-      <div class="tabpane" data-pane="sohInfo">
-        <div class="steps">
-          <b>Sumber data:</b> file Excel di OneDrive toko (<code>stockpositionreportdetail.xls</code>)<br><br>
-          <b>Data per (tanggal di sheet):</b> <span id="sohInfoSourceDate">–</span><br>
-          <b>Terakhir dibangun ulang oleh sistem:</b> <span id="sohInfoGeneratedAt">–</span><br>
-          <b>Terakhir dicek dari HP/laptop ini:</b> <span id="sohInfoLastCheck">–</span>
-        </div>
-        <div class="steps" style="margin-top:12px;">
-          Kalau data di sini terasa ketinggalan, cek dulu riwayat run di tab <b>Actions</b> pada repository GitHub proyek ini — di situ kelihatan jelas apakah proses sync terakhir sukses atau gagal, dan kenapa.
-        </div>
-      </div>
-
-      <div class="tabpane" data-pane="sohGuide">
-        <div class="steps">
-          <b>Alur otomatisnya:</b>
-          <ol>
-            <li>Tim edit stok/harga langsung di file Excel <code>stockpositionreportdetail.xls</code> di OneDrive, lalu simpan.</li>
-            <li>GitHub Actions mengecek OneDrive tiap ±2 menit, mengunduh versi terbaru.</li>
-            <li>Data dippproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko.</li>
-            <li>Kalau ada perubahan, hasilnya di-commit ke repository dan Netlify otomatis publish ulang website ini.</li>
-            <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
-          </ol>
-        </div>
-      </div>
-
-    </div>
-    <div class="soh-modal-foot">
-      <button class="btn ghost" id="sohBtnCancel">Batal</button>
-      <button class="btn primary" id="sohBtnSaveSettings">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modals for Checklist -->
-<div class="modal-bg" id="submitPickerBg">
-  <div class="modal">
-    <h2>Siapa yang submit link ini?</h2>
-    <div class="chip-list" id="submitPickerChips"></div>
-    <button class="modal-close" id="closeSubmitPicker">Batal</button>
-  </div>
-</div>
-
-<div class="modal-bg" id="confirmBg">
-  <div class="modal">
-    <h2 id="confirmTitle">Konfirmasi</h2>
-    <p id="confirmMsg" style="color:var(--text-dim); font-size:14px; line-height:1.55; margin:0 0 20px;"></p>
-    <div style="display:flex; gap:10px;">
-      <button class="modal-close" id="confirmCancelBtn" style="margin-top:0; background:var(--surface-soft); color:var(--text);">Batal</button>
-      <button class="modal-close" id="confirmOkBtn" style="margin-top:0; background:var(--danger); color:#fff;">Ya, Lanjutkan</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <h2>Pengaturan</h2>
-    <h3>Staff Toko</h3>
-    <div class="chip-list" id="staffChips"></div>
-    <div class="inline-add">
-      <input type="text" id="newStaffName" placeholder="Nama staff baru">
-      <button id="addStaffBtn">+</button>
-    </div>
-    <h3>Teks pembuka</h3>
-    <textarea id="openingText" rows="2"></textarea>
-    <h3>Teks penutup</h3>
-    <textarea id="closingText" rows="2"></textarea>
-    <div class="danger-zone">
-      <button class="danger-btn" id="resetDayBtn">Reset centang hari ini</button>
-      <button class="danger-btn" id="resetConfigBtn" style="margin-top:10px;">Reset ke setelan awal</button>
-    </div>
-    <button class="modal-close" id="closeSettings">Selesai</button>
-  </div>
-</div>
-
-<div class="toast" id="toast">Tersalin ✓</div>
-
-<script>
-// --- VANTA.JS NET ANIMATION INIT ---
-let vantaEffect = null;
-function initVanta() {
-  if (vantaEffect) vantaEffect.destroy();
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  vantaEffect = VANTA.NET({
-    el: "#vanta-bg",
-    mouseControls: true,
-    touchControls: true,
-    gyroControls: false,
-    minHeight: 200.00,
-    minWidth: 200.00,
-    scale: 1.00,
-    scaleMobile: 1.00,
-    color: isDark ? 0x34d399 : 0x0fb87f,
-    backgroundColor: isDark ? 0x0c100e : 0xeafbf3,
-    points: 9.00,
-    maxDistance: 18.00,
-    spacing: 16.00
-  });
-}
-window.addEventListener('DOMContentLoaded', initVanta);
-
-
-// --- IMAGE COMPRESSION UTILITY FUNCTION ---
-function compressImage(file, maxWidth = 1280, quality = 0.75) {
-  return new Promise((resolve, reject) => {
-    if (!file || !file.type.startsWith('image/')) {
-      return reject(new Error('File bukan gambar.'));
-    }
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function(e) {
-      const img = new Image();
-      img.src = e.target.result;
-      img.onload = function() {
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedDataUrl);
-      };
-      img.onerror = (err) => reject(err);
-    };
-    reader.onerror = (err) => reject(err);
-  });
-}
-
-
-// --- NAVIGATION SIDEBAR LOGIC ---
-function switchTab(tab) {
-  const tabs = ['Checklist', 'Photo', 'Lob', 'Opsems', 'Trainer', 'Soh', 'Summary'];
-  tabs.forEach(t => {
-    const navEl = document.getElementById('nav' + t);
-    const viewEl = document.getElementById('view' + t);
-    if (navEl) navEl.classList.remove('active');
-    if (viewEl) viewEl.classList.remove('active');
-  });
-
-  const targetNav = document.getElementById('nav' + tab);
-  const targetView = document.getElementById('view' + tab);
-  if (targetNav) targetNav.classList.add('active');
-  if (targetView) targetView.classList.add('active');
-
-  if(tab === 'Summary') {
-    renderAnalyticsSummary();
-  }
-
-  closeSidebar();
-}
-
-const toggleSidebarBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-toggleSidebarBtn.addEventListener('click', () => {
-  sidebar.classList.add('open');
-  sidebarOverlay.classList.add('open');
-  document.body.classList.add('sidebar-open');
-});
-
-sidebarOverlay.addEventListener('click', closeSidebar);
-
-function closeSidebar() {
-  sidebar.classList.remove('open');
-  sidebarOverlay.classList.remove('open');
-  document.body.classList.remove('sidebar-open');
-}
-
-
-// --- GLOBAL THEME LOGIC ---
-const THEME_KEY = "digimap_theme_pref";
-function applyTheme(pref) {
-  if (pref === "light" || pref === "dark") {
-    document.documentElement.setAttribute("data-theme", pref);
-  } else {
-    document.documentElement.removeAttribute("data-theme");
-  }
-  if (typeof VANTA !== 'undefined') initVanta();
-}
-let themePref = localStorage.getItem(THEME_KEY) || "auto";
-applyTheme(themePref);
-
-function toggleGlobalTheme() {
-  themePref = themePref === "auto" ? "light" : themePref === "light" ? "dark" : "auto";
-  localStorage.setItem(THEME_KEY, themePref);
-  applyTheme(themePref);
-}
-
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"), 1800);
-}
-
-
-// --- SHARED BACKEND URL & DATE LOGIC ---
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRPnMN_HYnvEttG9s160UEi0Qkco-M9NZe_SRJ1ph-qe8XydPCXdE_KO4H09ycY_P7/exec";
-const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i&mlu=4&ilr=4";
-
-const LOB_STAFF_LIST = [
-  "Moh Asfiyak Kamida (Apple Watch)",
-  "Achmad Rafi Kurnia T. (Mac)",
-  "Linda Indi Kusumanigrum (iPhone)",
-  "Hyskia Indra Aphista (iPad)"
-];
-
-const photoNow = new Date();
-const photoDateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-const dateStrFormatted = photoNow.toLocaleDateString('id-ID', photoDateOptions);
-
-document.getElementById('photoDateDisplay').innerText = dateStrFormatted;
-document.getElementById('lobDateDisplay').innerText = dateStrFormatted;
-document.getElementById('opsEmsDateDisplay').innerText = dateStrFormatted;
-document.getElementById('trainerDateDisplay').innerText = dateStrFormatted;
-
-// Default Set Picker Month/Day pada Summary View
-const todayObj = new Date();
-document.getElementById('summaryMonthInput').value = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}`;
-document.getElementById('summaryDayInput').value = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
-
-function getFormattedPhotoDateTime() {
-  const d = new Date();
-  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const dateStr = d.toLocaleDateString('id-ID', opts);
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${dateStr} ${hours}:${minutes}`;
-}
-
-function getTodayString() {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-
-// --- HELPER UNTUK PENCATATAN OTOMATIS AKTIVITAS FORM KELUAR KE ANALYTICS ---
-function recordExternalActivityToAnalytics(actName, rawStaffName) {
-  let staffName = rawStaffName.split(' (')[0].trim(); // Bersihkan sufiks LOB Champion jika ada
-  let cleanActName = actName.replace(/^📁\s*/, '').trim().toUpperCase();
-
-  // Bersihkan pemetaan nama agar konsisten
-  if (cleanActName.includes("TRY ON")) {
-    cleanActName = cleanActName.replace("TRY ON ", "");
-  }
-
-  // 1. Cari atau buat ID Aktivitas di config
-  let actObj = config.activities.find(a => a.name.toUpperCase() === cleanActName);
-  if (!actObj) {
-    actObj = { id: "a_ext_" + Date.now(), name: cleanActName, icon: "📁", link: "" };
-    config.activities.push(actObj);
-    saveConfigLocal(config);
-  }
-
-  // 2. Load data hari ini
-  const tKey = getTodayString();
-  const currentDayData = loadDayDataLocal(tKey);
-  if (!currentDayData.counts) currentDayData.counts = {};
-  if (!currentDayData.counts[actObj.id]) currentDayData.counts[actObj.id] = {};
-
-  // 3. Tambahkan count eksekusi
-  currentDayData.counts[actObj.id][staffName] = (currentDayData.counts[actObj.id][staffName] || 0) + 1;
-  saveDayDataLocal(tKey, currentDayData);
-
-  // Synchronize remote
-  remoteSet(remoteDataKey(tKey), currentDayData).catch(() => {});
-}
-
-
-// --- VIEW: TRY ON PHOTO EVIDENCE LOGIC ---
-let photoReportTemplate = "";
-
-async function handlePhotoSubmit(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-submit');
-  const status = document.getElementById('status');
-  const reportBox = document.getElementById('reportBox');
-  const file = document.getElementById('foto').files[0];
-
-  if (!file) return;
-
-  btn.disabled = true;
-  btn.innerText = "Mengompres & Uploading...";
-  status.innerText = "";
-  reportBox.style.display = "none";
-
-  const namaStaff = document.getElementById('namaStaff').value;
-  const tujuan = document.getElementById('tujuan').value;
-
-  try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
-
-    const payload = {
-      namaStaff: namaStaff,
-      tujuan: tujuan,
-      fileData: compressedBase64,
-      mimeType: "image/jpeg"
-    };
-
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-
-    btn.disabled = false;
-    btn.innerText = "Submit";
-
-    if(res.success) {
-      status.style.color = "var(--mint)";
-      status.innerText = "✅ Foto berhasil dikompres & diunggah!";
-      
-      // RECORD TO ANALYTICS DATA
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
-
-      const waktuUpload = getFormattedPhotoDateTime();
-      photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
-
-      document.getElementById('reportText').innerText = photoReportTemplate;
-      reportBox.style.display = "block";
-      document.getElementById('upload-form').reset();
-    } else {
-      status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
-    }
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerText = "Submit";
-    status.style.color = "var(--danger)";
-    status.innerText = "❌ Gagal memproses & mengunggah foto.";
-  }
-}
-
-function copyPhotoReportOnly() {
-  if (!photoReportTemplate) return;
-  navigator.clipboard.writeText(photoReportTemplate).then(() => showToast("✅ Teks laporan berhasil disalin!"));
-}
-
-function copyPhotoAndOpenWA() {
-  if (!photoReportTemplate) return;
-  navigator.clipboard.writeText(photoReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
-}
-
-
-// --- VIEW: LOB CHAMPION REPORT LOGIC ---
-let lobReportTemplate = "";
-
-async function fetchUploadedLobStaffs() {
-  try {
-    const todayDate = getTodayString();
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getLobProgress&date=${todayDate}&t=${Date.now()}`);
-    const json = await res.json();
-    if (json.success && Array.isArray(json.uploadedStaffs)) return json.uploadedStaffs;
-  } catch (err) {
-    console.error("Gagal menarik progress upload LOB:", err);
-  }
-  return [];
-}
-
-async function handleLobSubmit(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-lob-submit');
-  const status = document.getElementById('lobStatus');
-  const reportBox = document.getElementById('lobReportBox');
-  const file = document.getElementById('lobFoto').files[0];
-
-  if (!file) return;
-
-  btn.disabled = true;
-  btn.innerText = "Mengompres & Uploading...";
-  status.innerText = "";
-  reportBox.style.display = "none";
-
-  const namaStaff = document.getElementById('lobNamaStaff').value;
-  const tujuan = "LOB Champion";
-
-  try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
-
-    const payload = {
-      namaStaff: namaStaff,
-      tujuan: tujuan,
-      fileData: compressedBase64,
-      mimeType: "image/jpeg"
-    };
-
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-
-    btn.disabled = false;
-    btn.innerText = "Upload ke Google Drive";
-
-    if (res.success) {
-      status.style.color = "var(--mint)";
-      status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
-
-      // RECORD TO ANALYTICS DATA
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
-
-      const waktuUpload = getFormattedPhotoDateTime();
-      const uploadedStaffs = await fetchUploadedLobStaffs();
-      
-      if (!uploadedStaffs.includes(namaStaff)) {
-        uploadedStaffs.push(namaStaff);
-      }
-
-      const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
-
-      let missingStaffText = "";
-      if (pendingStaffs.length === 0) {
-        missingStaffText = "Sudah Submit Semua Bosku";
-      } else {
-        missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
-      }
-
-      status.innerText = "✅ Foto LOB Champion berhasil dikompres & diunggah!";
-
-      lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Submit (Abaikan kalo Offday): ${missingStaffText}`;
-
-      document.getElementById('lobReportText').innerText = lobReportTemplate;
-      reportBox.style.display = "block";
-      document.getElementById('lob-upload-form').reset();
-    } else {
-      status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
-    }
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerText = "Upload ke Google Drive";
-    status.style.color = "var(--danger)";
-    status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-  }
-}
-
-function copyLobReportOnly() {
-  if (!lobReportTemplate) return;
-  navigator.clipboard.writeText(lobReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
-}
-
-function copyLobAndOpenWA() {
-  if (!lobReportTemplate) return;
-  navigator.clipboard.writeText(lobReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
-}
-
-
-// --- VIEW: OPS & EMS REPORT LOGIC ---
-let opsEmsReportTemplate = "";
-
-async function handleOpsEmsSubmit(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-opsems-submit');
-  const status = document.getElementById('opsEmsStatus');
-  const reportBox = document.getElementById('opsEmsReportBox');
-  const file = document.getElementById('opsEmsFoto').files[0];
-
-  if (!file) return;
-
-  btn.disabled = true;
-  btn.innerText = "Mengompres & Uploading...";
-  status.innerText = "";
-  reportBox.style.display = "none";
-
-  const namaStaff = document.getElementById('opsEmsNamaStaff').value;
-  const tujuan = document.getElementById('opsEmsTujuan').value;
-
-  try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
-
-    const payload = {
-      namaStaff: namaStaff,
-      tujuan: tujuan,
-      fileData: compressedBase64,
-      mimeType: "image/jpeg"
-    };
-
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-
-    btn.disabled = false;
-    btn.innerText = "Upload ke Google Drive";
-
-    if(res.success) {
-      status.style.color = "var(--mint)";
-      status.innerText = "✅ Foto OPS & EMS berhasil dikompres & diunggah!";
-      
-      // RECORD TO ANALYTICS DATA
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
-
-      const waktuUpload = getFormattedPhotoDateTime();
-      opsEmsReportTemplate = `📌 LAPORAN OPS & EMS M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
-
-      document.getElementById('opsEmsReportText').innerText = opsEmsReportTemplate;
-      reportBox.style.display = "block";
-      document.getElementById('opsems-upload-form').reset();
-    } else {
-      status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
-    }
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerText = "Upload ke Google Drive";
-    status.style.color = "var(--danger)";
-    status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-  }
-}
-
-function copyOpsEmsReportOnly() {
-  if (!opsEmsReportTemplate) return;
-  navigator.clipboard.writeText(opsEmsReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
-}
-
-function copyOpsEmsAndOpenWA() {
-  if (!opsEmsReportTemplate) return;
-  navigator.clipboard.writeText(opsEmsReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
-}
-
-
-// --- VIEW: TRAINER REPORT LOGIC ---
-let trainerReportTemplate = "";
-
-async function handleTrainerSubmit(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-trainer-submit');
-  const status = document.getElementById('trainerStatus');
-  const reportBox = document.getElementById('trainerReportBox');
-  const file = document.getElementById('trainerFoto').files[0];
-
-  if (!file) return;
-
-  btn.disabled = true;
-  btn.innerText = "Mengompres & Uploading...";
-  status.innerText = "";
-  reportBox.style.display = "none";
-
-  const namaStaff = document.getElementById('trainerNamaStaff').value;
-  const tujuan = document.getElementById('trainerTujuan').value;
-
-  try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
-
-    const payload = {
-      namaStaff: namaStaff,
-      tujuan: tujuan,
-      fileData: compressedBase64,
-      mimeType: "image/jpeg"
-    };
-
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-
-    btn.disabled = false;
-    btn.innerText = "Upload ke Google Drive";
-
-    if(res.success) {
-      status.style.color = "var(--mint)";
-      status.innerText = "✅ Foto Trainer berhasil dikompres & diunggah!";
-      
-      // RECORD TO ANALYTICS DATA
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
-
-      const waktuUpload = getFormattedPhotoDateTime();
-      trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
-
-      document.getElementById('trainerReportText').innerText = trainerReportTemplate;
-      reportBox.style.display = "block";
-      document.getElementById('trainer-upload-form').reset();
-    } else {
-      status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
-    }
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerText = "Upload ke Google Drive";
-    status.style.color = "var(--danger)";
-    status.innerText = "❌ Gagal mengunggah foto. Periksa koneksi internet.";
-  }
-}
-
-function copyTrainerReportOnly() {
-  if (!trainerReportTemplate) return;
-  navigator.clipboard.writeText(trainerReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
-}
-
-function copyTrainerAndOpenWA() {
-  if (!trainerReportTemplate) return;
-  navigator.clipboard.writeText(trainerReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
-}
-
-
-// --- VIEW: CHECKLIST HARIAN TOKO LOGIC ---
-const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
-const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-
-const CONFIG_KEY = "digimap_checklist_config_v4";
-const DATA_PREFIX = "digimap_checklist_data_";
-
-function sanitizeConfig(cfg) {
-  if (!cfg || !cfg.activities) return cfg;
-  
-  cfg.activities.forEach(a => {
-    if (a.name.includes("SAMUDERA")) a.name = "SAMUDERA";
-    if (a.name.includes("AKSARA")) a.name = "AKSARA";
-    if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
-  });
-
-  return cfg;
-}
-
-function defaultConfig(){
-  const staff = [
-    "Sulton Setiawan","Muhamad Angga Jul F.","Hartono","Eggy Thania A.M","Frandy Putra",
-    "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
-    "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S.","Reni Purwati"
-  ];
-  return {
-    staff,
-    activities: [
-      {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
-      {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
-      {id:"a3", name:"SAMUDERA", icon:"🌊", link:"https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform"},
-      {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
-      {id:"a8", name:"CAKRAWALA", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
-      {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
-      {id:"a6", name:"SUBMIT FEEDBACK", icon:"📝", link:"https://forms.cloud.microsoft/r/v0jzUN3ieX?origin=lprLink"},
-      {id:"a7", name:"ICLOUD+", icon:"☁️", link:"https://www.menti.com/blwrxg7sct7n"}
-    ],
-    opening: "Minimal 1 Staff / 1 Per Activity",
-    closing: "KIRIM DI GRUP INI GUYS 🔥🤝"
-  };
-}
-
-function loadConfigLocal(){
-  try{
-    const raw = localStorage.getItem(CONFIG_KEY);
-    if(raw) return sanitizeConfig(JSON.parse(raw));
-  }catch(e){}
-  return defaultConfig();
-}
-function saveConfigLocal(c){ localStorage.setItem(CONFIG_KEY, JSON.stringify(c)); }
-
-function dateKey(d){
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-function loadDayDataLocal(key){
-  try{
-    const raw = localStorage.getItem(DATA_PREFIX+key);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return {counts:{}, submissions:{}};
-}
-function saveDayDataLocal(key, data){
-  localStorage.setItem(DATA_PREFIX+key, JSON.stringify(data));
-}
-
-const API_CHECKLIST_URL = "https://script.google.com/macros/s/AKfycbzCW6bmhILJNbDAGpIita9d0GpTwKRo1EGdDm9HJ-Bczj-2GRjovOIp0cNDUWB4N5qlgA/exec";
-const REMOTE_CONFIG_KEY = "config";
-function remoteDataKey(dateStr){ return "data_" + dateStr; }
-
-async function remoteGet(key){
-  const res = await fetch(API_CHECKLIST_URL + "?key=" + encodeURIComponent(key) + "&t=" + Date.now());
-  if(!res.ok) throw new Error("bad status");
-  const j = await res.json();
-  return j.value;
-}
-async function remoteSet(key, valueObj){
-  const res = await fetch(API_CHECKLIST_URL, { method:"POST", body: JSON.stringify({key, value: JSON.stringify(valueObj)}) });
-  if(!res.ok) throw new Error("bad status");
-  return res.json();
-}
-
-function setStatus(state){
-  const el = document.getElementById("syncPill");
-  if(!el) return;
-  el.className = "sync-pill " + state;
-  if(state==="loading") el.innerHTML = `<span class="sync-dot"></span> Memuat...`;
-  else if(state==="saving") el.innerHTML = `<span class="sync-dot"></span> Menyimpan...`;
-  else if(state==="saved") el.innerHTML = `<span class="sync-dot"></span> Tersimpan`;
-  else if(state==="offline") el.innerHTML = `<span class="sync-dot"></span> Offline`;
-}
-
-let config = defaultConfig();
-let currentDate = new Date();
-let dayData = {counts:{}, submissions:{}};
-let followToday = true;
-let configDirty = false;
-let countsDebounceTimer = null;
-
-function getCount(activityId, staffName){
-  return (dayData.counts[activityId] && dayData.counts[activityId][staffName]) || 0;
-}
-function setCount(activityId, staffName, val){
-  if(val < 0) val = 0;
-  if(!dayData.counts[activityId]) dayData.counts[activityId] = {};
-  dayData.counts[activityId][staffName] = val;
-  saveDayDataLocal(dateKey(currentDate), dayData);
-  scheduleCountsPush();
-}
-
-function scheduleCountsPush(){
-  setStatus("saving");
-  if(countsDebounceTimer) clearTimeout(countsDebounceTimer);
-  countsDebounceTimer = setTimeout(flushCounts, 900);
-}
-async function flushCounts(){
-  countsDebounceTimer = null;
-  const key = dateKey(currentDate);
-  saveDayDataLocal(key, dayData);
-  try{
-    await remoteSet(remoteDataKey(key), dayData);
-    setStatus("saved");
-  }catch(e){ setStatus("offline"); }
-}
-
-async function pushConfig(){
-  saveConfigLocal(config);
-  configDirty = true;
-  setStatus("saving");
-  try{
-    await remoteSet(REMOTE_CONFIG_KEY, config);
-    configDirty = false;
-    setStatus("saved");
-  }catch(e){ setStatus("offline"); }
-}
-
-async function loadCurrentDayData(){
-  const key = dateKey(currentDate);
-  try{
-    const raw = await remoteGet(remoteDataKey(key));
-    dayData = raw ? JSON.parse(raw) : {counts:{}, submissions:{}};
-    if(!dayData.counts) dayData.counts = {};
-    if(!dayData.submissions) dayData.submissions = {};
-    saveDayDataLocal(key, dayData);
-    setStatus("saved");
-  }catch(e){
-    dayData = loadDayDataLocal(key);
-    if(!dayData.counts) dayData.counts = {};
-    if(!dayData.submissions) dayData.submissions = {};
-    setStatus("offline");
-  }
-}
-
-async function initChecklist(){
-  setStatus("loading");
-  try{
-    const raw = await remoteGet(REMOTE_CONFIG_KEY);
-    if(raw){
-      config = sanitizeConfig(JSON.parse(raw));
-      saveConfigLocal(config);
-    } else {
-      config = defaultConfig();
-      saveConfigLocal(config);
-      await remoteSet(REMOTE_CONFIG_KEY, config);
-    }
-  }catch(e){
-    config = loadConfigLocal();
-    setStatus("offline");
-  }
-  await loadCurrentDayData();
-  renderAllChecklist();
-}
-
-function showConfirm(message, title){
-  return new Promise(resolve=>{
-    document.getElementById("confirmTitle").textContent = title || "Konfirmasi";
-    document.getElementById("confirmMsg").textContent = message;
-    document.getElementById("confirmBg").classList.add("open");
-    const okBtn = document.getElementById("confirmOkBtn");
-    const cancelBtn = document.getElementById("confirmCancelBtn");
-    function cleanup(result){
-      document.getElementById("confirmBg").classList.remove("open");
-      okBtn.removeEventListener("click", onOk);
-      cancelBtn.removeEventListener("click", onCancel);
-      resolve(result);
-    }
-    function onOk(){ cleanup(true); }
-    function onCancel(){ cleanup(false); }
-    okBtn.addEventListener("click", onOk);
-    cancelBtn.addEventListener("click", onCancel);
-  });
-}
-
-function activeStaffFor(actId){
-  const obj = dayData.counts[actId] || {};
-  return Object.keys(obj).filter(name => obj[name] > 0);
-}
-
-function renderDateBar(){
-  document.getElementById("dateBig").textContent =
-    currentDate.getDate()+" "+MONTHS[currentDate.getMonth()]+" "+currentDate.getFullYear();
-  document.getElementById("dateSmall").textContent = DAYS[currentDate.getDay()];
-  document.getElementById("dateInput").value = dateKey(currentDate);
-  document.getElementById("todayPill").classList.toggle("show", !followToday);
-}
-
-function renderActivities(){
-  const list = document.getElementById("activityList");
-  list.innerHTML = "";
-  config.activities.forEach(act => {
-    const card = document.createElement("div");
-    card.className = "activity";
-    const activeStaff = activeStaffFor(act.id);
-
-    const head = document.createElement("div");
-    head.className = "activity-head";
-    head.innerHTML = `
-      <div>
-        <div class="activity-name"><span>${act.icon || "📌"}</span>${escapeHtml(act.name)}</div>
-        <div class="activity-meta">${activeStaff.length} staff melaksanakan</div>
-      </div>
-      <div class="activity-actions">
-        <button class="icon-btn-sm" data-edit="${act.id}">✎</button>
-        <button class="icon-btn-sm" data-delact="${act.id}">🗑</button>
-      </div>`;
-    card.appendChild(head);
-
-    if(activeStaff.length === 0){
-      const hint = document.createElement("div");
-      hint.style.fontSize = "12px";
-      hint.style.color = "var(--text-faint)";
-      hint.style.fontStyle = "italic";
-      hint.style.padding = "6px 2px 2px";
-      hint.textContent = "Belum ada staff — tambahkan lewat dropdown di bawah saat mulai mengerjakan.";
-      card.appendChild(hint);
-    }
-
-    activeStaff.forEach(staffName => {
-      const count = getCount(act.id, staffName);
-      const row = document.createElement("div");
-      row.className = "staff-row";
-      row.innerHTML = `
-        <div class="staff-name"><span>${escapeHtml(staffName)}</span>${count>0 ? `<span>${"✅".repeat(count)}</span>`:""}</div>
-        <div class="stepper">
-          <button data-dec="${act.id}|${staffName}">−</button>
-          <span class="count ${count>0?'active':''}">${count}</span>
-          <button data-inc="${act.id}|${staffName}">+</button>
-          <button class="rm-staff" data-unassign="${act.id}|${staffName}">✕</button>
-        </div>`;
-      card.appendChild(row);
-    });
-
-    const addRow = document.createElement("div");
-    addRow.className = "add-staff-row";
-    const available = config.staff.filter(s => !activeStaff.includes(s));
-    if(available.length){
-      const sel = document.createElement("select");
-      sel.innerHTML = `<option value="">+ Tambah staff ke aktivitas ini</option>` +
-        available.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
-      sel.addEventListener("change", ()=>{
-        if(sel.value){
-          setCount(act.id, sel.value, 1);
-          renderAllChecklist();
-        }
-      });
-      addRow.appendChild(sel);
-    }
-    card.appendChild(addRow);
-
-    if(act.link && act.link.trim()){
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "link-btn";
-      btn.innerHTML = "🔗 Buka Link Submit";
-      btn.addEventListener("click", ()=> openSubmitPicker(act.id, act.link.trim()));
-      card.appendChild(btn);
-    }
-
-    list.appendChild(card);
-  });
-
-  list.querySelectorAll("[data-inc]").forEach(b=>b.addEventListener("click",()=>{
-    const [aid,name] = b.dataset.inc.split("|");
-    setCount(aid,name, getCount(aid,name)+1);
-    renderAllChecklist();
-  }));
-  list.querySelectorAll("[data-dec]").forEach(b=>b.addEventListener("click",()=>{
-    const [aid,name] = b.dataset.dec.split("|");
-    setCount(aid,name, getCount(aid,name)-1);
-    renderAllChecklist();
-  }));
-  list.querySelectorAll("[data-unassign]").forEach(b=>b.addEventListener("click", async ()=>{
-    const [aid,name] = b.dataset.unassign.split("|");
-    const act = config.activities.find(a=>a.id===aid);
-    const actName = act ? act.name : "aktivitas ini";
-    const ok = await showConfirm(`Hapus centang ${name} dari "${actName}"?`, "Hapus Centang");
-    if(ok){
-      setCount(aid,name, 0);
-      renderAllChecklist();
-    }
-  }));
-  list.querySelectorAll("[data-delact]").forEach(b=>b.addEventListener("click", async ()=>{
-    const ok = await showConfirm("Hapus aktivitas ini?", "Hapus Aktivitas");
-    if(ok){
-      config.activities = config.activities.filter(a=>a.id!==b.dataset.delact);
-      renderAllChecklist();
-      pushConfig();
-    }
-  }));
-  list.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>{
-    const act = config.activities.find(a=>a.id===b.dataset.edit);
-    const newName = prompt("Nama aktivitas:", act.name);
-    if(newName === null) return;
-    if(newName.trim()) act.name = newName.trim();
-    const newLink = prompt("Link submit (kosongkan jika tidak ada):", act.link || "");
-    if(newLink !== null) act.link = newLink.trim();
-    const newIcon = prompt("Icon/emoji (contoh: 📊):", act.icon || "📌");
-    if(newIcon !== null && newIcon.trim()) act.icon = newIcon.trim();
-    renderAllChecklist();
-    pushConfig();
-  }));
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-}
-
-function buildReportText(){
-  const lines = [];
-  lines.push(currentDate.getDate()+" "+MONTHS[currentDate.getMonth()]+" "+currentDate.getFullYear());
-  lines.push("");
-  if(config.opening.trim()){ lines.push(config.opening.trim()); lines.push(""); }
-
-  config.activities.forEach(act=>{
-    const doneStaff = activeStaffFor(act.id);
-    lines.push(`${act.icon || "📌"} ${act.name}`);
-    doneStaff.forEach((s,i)=>{
-      const c = getCount(act.id,s);
-      lines.push(`${i+1}. ${s} ${"✅".repeat(c)}`);
-    });
-    lines.push("");
-  });
-
-  const summaryRows = config.activities
-    .map(act=>{
-      const staffList = activeStaffFor(act.id);
-      const totalC = staffList.reduce((sum,s)=>sum+getCount(act.id,s),0);
-      return {act, staffList, totalC};
-    })
-    .filter(r => r.staffList.length > 0);
-
-  if(summaryRows.length){
-    lines.push("📊 RINGKASAN AKTIVITAS");
-    let totalChecks = 0;
-    summaryRows.forEach(r=>{
-      totalChecks += r.totalC;
-      lines.push(`${r.act.icon || "📌"} ${r.act.name}: ${r.staffList.length} staff, ${r.totalC}x`);
-    });
-    lines.push(`Total: ${totalChecks}x dari ${summaryRows.length} aktivitas`);
-    lines.push("");
-  }
-
-  const linked = config.activities.filter(a=>{
-    if(!a.link || !a.link.trim()) return false;
-    const subs = (dayData.submissions && dayData.submissions[a.id]) || {};
-    return Object.keys(subs).length > 0;
-  });
-  if(linked.length){
-    lines.push("🔗 STATUS SUBMIT LINK");
-    linked.forEach(act=>{
-      const subs = (dayData.submissions && dayData.submissions[act.id]) || {};
-      const names = Object.keys(subs);
-      lines.push(`${act.icon || "📌"} ${act.name}: ${names.join(", ")}`);
-    });
-    lines.push("");
-  }
-
-  if(config.closing.trim()) lines.push(config.closing.trim());
-  return lines.join("\n");
-}
-
-function renderPreview(){
-  document.getElementById("previewText").textContent = buildReportText();
-  const now = new Date();
-  document.getElementById("previewTime").textContent =
-    String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
-}
-
-function renderSummary(){
-  const section = document.getElementById("summarySection");
-  const card = document.getElementById("summaryCard");
-  let totalChecks = 0;
-  const filled = config.activities
-    .map(act=>{
-      const staffList = activeStaffFor(act.id);
-      const totalC = staffList.reduce((sum,s)=>sum+getCount(act.id,s),0);
-      return {act, staffList, totalC};
-    })
-    .filter(r => r.staffList.length > 0);
-
-  if(filled.length === 0){
-    section.style.display = "none";
-    return;
-  }
-  section.style.display = "";
-  const rows = filled.map(r=>{
-    totalChecks += r.totalC;
-    return `<div class="summary-row">
-      <div class="summary-row-label"><span>${r.act.icon||"📌"}</span><span>${escapeHtml(r.act.name)}</span></div>
-      <div class="summary-row-val">${r.staffList.length} staff · ${r.totalC}x</div>
-    </div>`;
-  }).join("");
-  card.innerHTML = rows + `<div class="summary-total">Total tercatat hari ini: <b>${totalChecks}x</b> dari <b>${filled.length}</b> aktivitas</div>`;
-}
-
-function renderSubmitSummary(){
-  const section = document.getElementById("submitSummarySection");
-  const card = document.getElementById("submitSummaryCard");
-  const filled = config.activities.filter(a=>{
-    if(!a.link || !a.link.trim()) return false;
-    const subs = (dayData.submissions && dayData.submissions[a.id]) || {};
-    return Object.keys(subs).length > 0;
-  });
-  if(filled.length === 0){
-    section.style.display = "none";
-    return;
-  }
-  section.style.display = "";
-  card.innerHTML = filled.map(act=>{
-    const subs = (dayData.submissions && dayData.submissions[act.id]) || {};
-    const names = Object.keys(subs);
-    return `<div class="summary-row-block">
-      <div class="summary-row-label"><span>${act.icon||"📌"}</span><span>${escapeHtml(act.name)}</span></div>
-      <div class="submit-names">${names.map(n=>`<span class="submit-chip">✅ ${escapeHtml(n)}</span>`).join("")}</div>
-    </div>`;
-  }).join("");
-}
-
-let pendingSubmit = null;
-function openSubmitPicker(actId, url){
-  pendingSubmit = {actId, url};
-  const chips = document.getElementById("submitPickerChips");
-  chips.innerHTML = config.staff.map(name=>
-    `<button type="button" class="chip picker-chip" data-pick="${escapeHtml(name)}">${escapeHtml(name)}</button>`
-  ).join("");
-  chips.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click",()=>{
-    const name = b.dataset.pick;
-    recordSubmission(pendingSubmit.actId, name);
-    document.getElementById("submitPickerBg").classList.remove("open");
-    window.open(pendingSubmit.url, "_blank");
-    renderAllChecklist();
-  }));
-  document.getElementById("submitPickerBg").classList.add("open");
-}
-
-document.getElementById("closeSubmitPicker").addEventListener("click",()=>{
-  document.getElementById("submitPickerBg").classList.remove("open");
-});
-
-function recordSubmission(actId, staffName){
-  if(!dayData.submissions) dayData.submissions = {};
-  if(!dayData.submissions[actId]) dayData.submissions[actId] = {};
-  dayData.submissions[actId][staffName] = new Date().toISOString();
-  saveDayDataLocal(dateKey(currentDate), dayData);
-  scheduleCountsPush();
-}
-
-function renderSettingsChips(){
-  const chips = document.getElementById("staffChips");
-  chips.innerHTML = "";
-  config.staff.forEach(name=>{
-    const chip = document.createElement("div");
-    chip.className = "chip";
-    chip.innerHTML = `<span>${escapeHtml(name)}</span><button data-rmstaff="${escapeHtml(name)}">✕</button>`;
-    chips.appendChild(chip);
-  });
-  chips.querySelectorAll("[data-rmstaff]").forEach(b=>b.addEventListener("click", async ()=>{
-    const name = b.dataset.rmstaff;
-    const ok = await showConfirm(`Hapus "${name}" dari daftar roster staff?`, "Hapus Staff");
-    if(ok){
-      config.staff = config.staff.filter(s=>s!==name);
-      renderAllChecklist();
-      renderSettingsChips();
-      pushConfig();
-    }
-  }));
-  document.getElementById("openingText").value = config.opening;
-  document.getElementById("closingText").value = config.closing;
-}
-
-function renderAllChecklist(){
-  renderDateBar();
-  renderActivities();
-  renderPreview();
-  renderSummary();
-  renderSubmitSummary();
-}
-
-// Event Listeners Checklist Harian
-document.getElementById("prevDay").addEventListener("click", async ()=>{
-  followToday = false;
-  currentDate.setDate(currentDate.getDate()-1);
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
-});
-document.getElementById("nextDay").addEventListener("click", async ()=>{
-  followToday = false;
-  currentDate.setDate(currentDate.getDate()+1);
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
-});
-document.getElementById("dateDisplay").addEventListener("click",()=>{
-  const el = document.getElementById("dateInput");
-  el.showPicker ? el.showPicker() : el.click();
-});
-document.getElementById("dateInput").addEventListener("change", async (e)=>{
-  const [y,m,d] = e.target.value.split("-").map(Number);
-  currentDate = new Date(y, m-1, d);
-  followToday = (dateKey(currentDate) === dateKey(new Date()));
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
-});
-document.getElementById("jumpToday").addEventListener("click", async ()=>{
-  followToday = true;
-  currentDate = new Date();
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
-});
-
-document.getElementById("addActivityBtn").addEventListener("click",()=>{
-  const name = prompt("Nama aktivitas baru:");
-  if(name === null || !name.trim()) return;
-  const link = prompt("Link submit (kosongkan jika tidak ada):", "") || "";
-  const icon = prompt("Icon/emoji (contoh: 📌):", "📌") || "📌";
-  config.activities.push({id:"a"+Date.now(), name:name.trim(), link:link.trim(), icon:icon.trim() || "📌"});
-  renderAllChecklist();
-  pushConfig();
-});
-
-document.getElementById("manualBtn").addEventListener("click", async ()=>{
-  await navigator.clipboard.writeText(buildReportText());
-  showToast("Disalin ✓ — Buka WA lalu paste");
-});
-
-document.getElementById("autoBtn").addEventListener("click", async ()=>{
-  await navigator.clipboard.writeText(buildReportText());
-  showToast("Disalin ✓ — Membuka WA...");
-  window.open(WA_GROUP_LINK, "_blank");
-});
-
-document.getElementById("openSettings").addEventListener("click",()=>{
-  renderSettingsChips();
-  document.getElementById("modalBg").classList.add("open");
-});
-document.getElementById("closeSettings").addEventListener("click",()=>{
-  config.opening = document.getElementById("openingText").value;
-  config.closing = document.getElementById("closingText").value;
-  document.getElementById("modalBg").classList.remove("open");
-  renderAllChecklist();
-  pushConfig();
-});
-document.getElementById("addStaffBtn").addEventListener("click",()=>{
-  const input = document.getElementById("newStaffName");
-  const name = input.value.trim();
-  if(name && !config.staff.includes(name)){
-    config.staff.push(name);
-    input.value = "";
-    renderSettingsChips();
-    pushConfig();
-  }
-});
-document.getElementById("newStaffName").addEventListener("keydown",(e)=>{
-  if(e.key === "Enter") document.getElementById("addStaffBtn").click();
-});
-document.getElementById("resetDayBtn").addEventListener("click", async ()=>{
-  const ok = await showConfirm("Reset semua centang untuk tanggal ini?", "Reset Centang Hari Ini");
-  if(ok){
-    dayData = {counts:{}, submissions:{}};
-    const key = dateKey(currentDate);
-    saveDayDataLocal(key, dayData);
-    renderAllChecklist();
-    setStatus("saving");
-    try{ await remoteSet(remoteDataKey(key), dayData); setStatus("saved"); }
-    catch(e){ setStatus("offline"); }
-  }
-});
-document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
-  const ok = await showConfirm(
-    "Kembalikan daftar staff & aktivitas ke setelan awal?",
-    "Reset ke Setelan Awal"
-  );
-  if(ok){
-    config = defaultConfig();
-    document.getElementById("modalBg").classList.remove("open");
-    renderAllChecklist();
-    renderSettingsChips();
-    setStatus("saving");
-    try{ await remoteSet(REMOTE_CONFIG_KEY, config); setStatus("saved"); }
-    catch(e){ setStatus("offline"); }
-  }
-});
-
-// Inisialisasi Checklist
-initChecklist();
-
-
-/* ==========================================================================
-   --- SUMMARY & ANALYTICS OVERVIEW LOGIC ---
-   ========================================================================== */
-let staffChartInstance = null;
-let actChartInstance = null;
-let currentSummaryDataset = [];
-let summaryFilterMode = 'month';
-
-function setSummaryFilterMode(mode) {
-  summaryFilterMode = mode;
-  document.getElementById('btnFilterMonth').classList.toggle('active', mode === 'month');
-  document.getElementById('btnFilterDay').classList.toggle('active', mode === 'day');
-  document.getElementById('summaryMonthInput').style.display = mode === 'month' ? 'block' : 'none';
-  document.getElementById('summaryDayInput').style.display = mode === 'day' ? 'block' : 'none';
-  renderAnalyticsSummary();
-}
-
-function getAllChecklistDataKeys() {
-  const keys = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k.startsWith(DATA_PREFIX)) {
-      keys.push(k.replace(DATA_PREFIX, ''));
-    }
-  }
-  return keys;
-}
-
-function renderAnalyticsSummary() {
-  const monthVal = document.getElementById('summaryMonthInput').value; // YYYY-MM
-  const dayVal = document.getElementById('summaryDayInput').value;     // YYYY-MM-DD
-
-  const availableDates = getAllChecklistDataKeys();
-  let filteredDates = [];
-
-  if (summaryFilterMode === 'month' && monthVal) {
-    filteredDates = availableDates.filter(d => d.startsWith(monthVal));
-  } else if (summaryFilterMode === 'day' && dayVal) {
-    filteredDates = availableDates.filter(d => d === dayVal);
-  }
-
-  currentSummaryDataset = [];
-  const staffSummary = {};
-  const actSummary = {};
-  let totalExecutions = 0;
-  let opsEmsTotal = 0;
-
-  filteredDates.forEach(dateStr => {
-    const data = loadDayDataLocal(dateStr);
-    if (data && data.counts) {
-      Object.keys(data.counts).forEach(actId => {
-        const actObj = config.activities.find(a => a.id === actId);
-        let actName = actObj ? actObj.name : actId;
-
-        if (actName.includes("SAMUDERA")) actName = "SAMUDERA";
-        if (actName.includes("AKSARA")) actName = "AKSARA";
-        if (actName.includes("CAKRAWALA")) actName = "CAKRAWALA";
-
-        Object.keys(data.counts[actId]).forEach(staffName => {
-          const count = data.counts[actId][staffName];
-          if (count > 0) {
-            totalExecutions += count;
-            staffSummary[staffName] = (staffSummary[staffName] || 0) + count;
-            actSummary[actName] = (actSummary[actName] || 0) + count;
-
-            if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems") || actName.toLowerCase().includes("open studio")) {
-              opsEmsTotal += count;
-            }
-
-            currentSummaryDataset.push({
-              date: dateStr,
-              staff: staffName,
-              activity: actName,
-              count: count
-            });
-          }
-        });
-      });
-    }
-  });
-
-  document.getElementById('totalActivityCount').innerText = totalExecutions;
-  document.getElementById('activeStaffCount').innerText = Object.keys(staffSummary).length;
-  document.getElementById('opsEmsSummaryCount').innerText = opsEmsTotal;
-
-  renderSummaryTable(currentSummaryDataset);
-  renderSummaryCharts(staffSummary, actSummary);
-}
-
-function renderSummaryTable(dataset) {
-  const tbody = document.getElementById('summaryTableBody');
-  if (dataset.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas untuk periode ini.</td></tr>`;
-    return;
-  }
-
-  dataset.sort((a, b) => b.date.localeCompare(a.date));
-
-  tbody.innerHTML = dataset.map(row => `
-    <tr>
-      <td><b>${row.date}</b></td>
-      <td>${escapeHtml(row.staff)}</td>
-      <td>${escapeHtml(row.activity)}</td>
-      <td style="font-weight: 700; text-align: right;">${row.count}</td>
-    </tr>
-  `).join('');
-}
-
-function renderSummaryCharts(staffData, actData) {
-  const staffLabels = Object.keys(staffData);
-  const staffCounts = Object.values(staffData);
-
-  const actLabels = Object.keys(actData);
-  const actCounts = Object.values(actData);
-
-  // Render Bar Chart Staff
-  const ctxStaff = document.getElementById('staffBarChart').getContext('2d');
-  if (staffChartInstance) staffChartInstance.destroy();
-  staffChartInstance = new Chart(ctxStaff, {
-    type: 'bar',
-    data: {
-      labels: staffLabels.length ? staffLabels : ['Tidak Ada Data'],
-      datasets: [{
-        label: 'Jumlah Aktivitas',
-        data: staffCounts.length ? staffCounts : [0],
-        backgroundColor: 'rgba(0, 113, 227, 0.75)',
-        borderColor: '#0071e3',
-        borderWidth: 1,
-        borderRadius: 8
-      }]
+{
+  "generatedAt": "2026-09-11T09:34:06.471189Z",
+  "sourceDate": "2026-09-11T09:24:26",
+  "items": [
+    {
+      "kategori": "AirPods",
+      "kode": "APPMXP63ID/A",
+      "nama": "AIRPODS 4",
+      "stok": 23,
+      "baris": 1,
+      "qtyKolom": 23
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-    }
-  });
-
-  // Render Doughnut Chart Aktivitas
-  const ctxAct = document.getElementById('activityDoughnutChart').getContext('2d');
-  if (actChartInstance) actChartInstance.destroy();
-  actChartInstance = new Chart(ctxAct, {
-    type: 'doughnut',
-    data: {
-      labels: actLabels.length ? actLabels : ['Tidak Ada Data'],
-      datasets: [{
-        data: actCounts.length ? actCounts : [1],
-        backgroundColor: [
-          '#0fb87f', '#007aff', '#ff6b4a', '#a44fe0', '#d98200', '#ff375f', '#0ea89a'
-        ]
-      }]
+    {
+      "kategori": "AirPods",
+      "kode": "APPMXP93ID/A",
+      "nama": "AIRPODS 4 (ACTIVE NOISE CANCELLATION)",
+      "stok": 5,
+      "baris": 1,
+      "qtyKolom": 5
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+    {
+      "kategori": "AirPods",
+      "kode": "APPMHWM4ID/A",
+      "nama": "AIRPODS MAX 2 BLUE",
+      "stok": 3,
+      "baris": 1,
+      "qtyKolom": 3
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMHWK4ID/A",
+      "nama": "AIRPODS MAX 2 MIDNIGHT",
+      "stok": 9,
+      "baris": 1,
+      "qtyKolom": 9
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMHWN4ID/A",
+      "nama": "AIRPODS MAX 2 ORANGE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMHWP4ID/A",
+      "nama": "AIRPODS MAX 2 PURPLE",
+      "stok": 2,
+      "baris": 1,
+      "qtyKolom": 2
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMHWL4ID/A",
+      "nama": "AIRPODS MAX 2 STARLIGHT",
+      "stok": 4,
+      "baris": 1,
+      "qtyKolom": 4
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMFHP4ID/A",
+      "nama": "AIRPODS PRO 3",
+      "stok": 16,
+      "baris": 1,
+      "qtyKolom": 16
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMYQY3FE/A",
+      "nama": "EARPODS (USB-C)-FAE",
+      "stok": 14,
+      "baris": 1,
+      "qtyKolom": 14
+    },
+    {
+      "kategori": "AirPods",
+      "kode": "APPMWTY3FE/A",
+      "nama": "EARPODS WITH LIGHTNING CONNECTOR",
+      "stok": 7,
+      "baris": 1,
+      "qtyKolom": 7
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEU04ID/A",
+      "nama": "APPLE WATCH 11 42 RG AL LB SB SM GPS-IND",
+      "stok": 7,
+      "baris": 7,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEUX4ID/A",
+      "nama": "APPLE WATCH 11 46 JB AL BK SB ML GPS-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEV44ID/A",
+      "nama": "APPLE WATCH 11 46 SG AL BK SB ML GPS-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEV04ID/A",
+      "nama": "APPLE WATCH 11 46 SG AL BK SB SM GPS-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEH94ID/A",
+      "nama": "APPLE WATCH SE 3 40 M AL M SB SM GPS-IND",
+      "stok": 16,
+      "baris": 16,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEH34ID/A",
+      "nama": "APPLE WATCH SE 3 40 S AL S SB SM GPS-IND",
+      "stok": 8,
+      "baris": 8,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEHQ4ID/A",
+      "nama": "APPLE WATCH SE 3 44 M AL M SB ML GPS-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEHJ4ID/A",
+      "nama": "APPLE WATCH SE 3 44 S AL S SB ML GPS-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMF1H4ID/A",
+      "nama": "APPLE WATCH ULTRA3 49 BK TI BC TL ML-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMF0V4ID/A",
+      "nama": "APPLE WATCH ULTRA3 49 BK TI BK ALP M-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMF1Q4ID/A",
+      "nama": "APPLE WATCH ULTRA3 49 BK TI BK TML M-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMF0J4ID/A",
+      "nama": "APPLE WATCH ULTRA3 49 BLACK TI BK OB-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEWU4ID/A",
+      "nama": "APPLE WATCH ULTRA3 49 N T B/BB TL ML-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Apple Watch",
+      "kode": "APPMEWM4ID/A",
+      "nama": "APPLE WATCH ULTRA3 49 NT TI LB ALP M-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMDVK4ID/A",
+      "nama": "MBA 15.3 MDN/M5/10C GPU/16GB/1TB-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMDVT4ID/A",
+      "nama": "MBA 15.3 SKY/M5/10C GPU/16GB/1TB-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFH4ID/A",
+      "nama": "MBN 13 BLS/8GB/256GB-IND",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFD4ID/A",
+      "nama": "MBN 13 CIT/8GB/256GB-IND",
+      "stok": 10,
+      "baris": 10,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFE4ID/A",
+      "nama": "MBN 13 CIT/8GB/512GB-IND",
+      "stok": 10,
+      "baris": 10,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFF4ID/A",
+      "nama": "MBN 13 IND/8GB/256GB-IND",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFG4ID/A",
+      "nama": "MBN 13 IND/8GB/512GB-IND",
+      "stok": 9,
+      "baris": 9,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFA4ID/A",
+      "nama": "MBN 13 SLV/8GB/256GB-IND",
+      "stok": 12,
+      "baris": 12,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMHFC4ID/A",
+      "nama": "MBN 13 SLV/8GB/512GB-IND",
+      "stok": 7,
+      "baris": 7,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMDE14ID/A",
+      "nama": "MBP 14 SB/M5/10C/10C GPU/16GB/1TB-IND",
+      "stok": 3,
+      "baris": 3,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMDE34ID/A",
+      "nama": "MBP 14 SB/M5/10C/10C GPU/24GB/1TB-IND",
+      "stok": 3,
+      "baris": 3,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMJLW4ID/A",
+      "nama": "MBP 14 SB/M5/PRO/15C/16CGPU/24GB/2T-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMGDQ4ID/A",
+      "nama": "MBP 14 SL/M5/MAX/18C/32CGPU/36GB/2T-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMGDN4ID/A",
+      "nama": "MBP 14 SL/M5/PRO/15C/16CGPU/24GB/1T-IND",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMJLV4ID/A",
+      "nama": "MBP 14 SL/M5/PRO/15C/16CGPU/24GB/2T-IND",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMGDP4ID/A",
+      "nama": "MBP 14 SL/M5/PRO/18C/20CGPU/24GB/2T-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMR962ID/A",
+      "nama": "MBP 15.4/2.2GHZ(I7)/16GB/256GB/TB/SL",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMRW63ID/A",
+      "nama": "MBP 16 SL/M3/12C/18C GP/36G/512G-ID 23",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "Mac",
+      "kode": "APPMGE44ID/A",
+      "nama": "MBP 16 SL/M5/PRO/18C/20CGPU/24GB/1T-IND",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMD4A4PA/A",
+      "nama": "IPAD 11TH WI-FI 128GB BLUE",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMD4E4PA/A",
+      "nama": "IPAD 11TH WI-FI 128GB PINK",
+      "stok": 7,
+      "baris": 7,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMD3Y4PA/A",
+      "nama": "IPAD 11TH WI-FI 128GB SILVER",
+      "stok": 20,
+      "baris": 20,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMD4D4PA/A",
+      "nama": "IPAD 11TH WI-FI 128GB YELLOW",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMD4H4PA/A",
+      "nama": "IPAD 11TH WI-FI 256GB BLUE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH7C4PA/A",
+      "nama": "IPAD AIR 11 WF CL 128GB PUR M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH7F4PA/A",
+      "nama": "IPAD AIR 11 WF CL 256GB STL M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH304PA/A",
+      "nama": "IPAD AIR 11 WIFI 128GB SPG M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH3G4PA/A",
+      "nama": "IPAD AIR 11 WIFI 1TB SPG M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH5P4PA/A",
+      "nama": "IPAD AIR 13 WIFI 128GB BLU M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH5T4PA/A",
+      "nama": "IPAD AIR 13 WIFI 128GB PUR M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMH5N4PA/A",
+      "nama": "IPAD AIR 13 WIFI 128GB SPG M4",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMXN73PA/A",
+      "nama": "IPAD MINI 7 WIFI 128GB  BLUE",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMXN93PA/A",
+      "nama": "IPAD MINI 7 WIFI 128GB  PURPLE",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMXN63PA/A",
+      "nama": "IPAD MINI 7 WIFI 128GB  SPACE GREY",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMDYL4PA/A",
+      "nama": "IPAD PRO  13-INCH M5 WI-FI 512GB SPACE B",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMP263PA/A",
+      "nama": "IPAD PRO 12.9 WF CL 2T GRY-PAC 6TH 2022",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMVY03PA/A",
+      "nama": "IPAD PRO 13 WF CL 2TB SILVER-PAC",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPad",
+      "kode": "APPMVXY3PA/A",
+      "nama": "IPAD PRO 13 WF CL 2TB SP BLK-PAC",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMPWW3ID/A",
+      "nama": "IPHONE 14 512GB MIDNIGHT",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMTP03ID/A",
+      "nama": "IPHONE 15 128GB BLACK",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMTP43ID/A",
+      "nama": "IPHONE 15 128GB BLUE",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMTP13ID/A",
+      "nama": "IPHONE 15 128GB PINK",
+      "stok": 9,
+      "baris": 9,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMTP63ID/A",
+      "nama": "IPHONE 15 256GB BLACK",
+      "stok": 18,
+      "baris": 18,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMTP93ID/A",
+      "nama": "IPHONE 15 256GB BLUE",
+      "stok": 11,
+      "baris": 11,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMTP73ID/A",
+      "nama": "IPHONE 15 256GB PINK",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMU1M3ID/A",
+      "nama": "IPHONE 15 PLUS 512GB YELLOW",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYE73ID/A",
+      "nama": "IPHONE 16 128GB BLACK",
+      "stok": 3,
+      "baris": 3,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYEA3ID/A",
+      "nama": "IPHONE 16 128GB PINK",
+      "stok": 10,
+      "baris": 10,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYED3ID/A",
+      "nama": "IPHONE 16 128GB TEAL",
+      "stok": 8,
+      "baris": 8,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYEC3ID/A",
+      "nama": "IPHONE 16 128GB ULTRAMARINE",
+      "stok": 10,
+      "baris": 10,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYE93ID/A",
+      "nama": "IPHONE 16 128GB WHITE",
+      "stok": 3,
+      "baris": 3,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYEU3ID/A",
+      "nama": "IPHONE 16 512GB TEAL",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMYER3ID/A",
+      "nama": "IPHONE 16 512GB ULTRAMARINE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMXVU3ID/A",
+      "nama": "IPHONE 16 PLUS 128GB BLACK",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMXVW3ID/A",
+      "nama": "IPHONE 16 PLUS 128GB PINK",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMXVX3ID/A",
+      "nama": "IPHONE 16 PLUS 128GB ULTRAMARINE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMXY53ID/A",
+      "nama": "IPHONE 16 PLUS 256GB TEAL",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMXY23ID/A",
+      "nama": "IPHONE 16 PLUS 256GB ULTRAMARINE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMXWV3ID/A",
+      "nama": "IPHONE 16 PLUS 256GB WHITE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMY1P3ID/A",
+      "nama": "IPHONE 16 PLUS 512GB BLACK",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMY253ID/A",
+      "nama": "IPHONE 16 PLUS 512GB PINK",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMY2J3ID/A",
+      "nama": "IPHONE 16 PLUS 512GB TEAL",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMY2D3ID/A",
+      "nama": "IPHONE 16 PLUS 512GB ULTRAMARINE",
+      "stok": 2,
+      "baris": 2,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMY1X3ID/A",
+      "nama": "IPHONE 16 PLUS 512GB WHITE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG6J4ID/A",
+      "nama": "IPHONE 17 256GB BLACK",
+      "stok": 4,
+      "baris": 4,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG6M4ID/A",
+      "nama": "IPHONE 17 256GB LAVENDER",
+      "stok": 12,
+      "baris": 12,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG6N4ID/A",
+      "nama": "IPHONE 17 256GB SAGE",
+      "stok": 9,
+      "baris": 9,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG6K4ID/A",
+      "nama": "IPHONE 17 256GB WHITE",
+      "stok": 15,
+      "baris": 15,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG8Q4ID/A",
+      "nama": "IPHONE 17 PRO 1TB COSMIC ORANGE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG8H4ID/A",
+      "nama": "IPHONE 17 PRO 256GB COSMIC ORANGE",
+      "stok": 15,
+      "baris": 15,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG8J4ID/A",
+      "nama": "IPHONE 17 PRO 256GB DEEP BLUE",
+      "stok": 85,
+      "baris": 85,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG8M4ID/A",
+      "nama": "IPHONE 17 PRO 512GB COSMIC ORANGE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG8N4ID/A",
+      "nama": "IPHONE 17 PRO 512GB DEEP BLUE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG8K4ID/A",
+      "nama": "IPHONE 17 PRO 512GB SILVER",
+      "stok": 3,
+      "baris": 3,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYX4ID/A",
+      "nama": "IPHONE 17 PRO MAX 1TB DEEP BLUE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYV4ID/A",
+      "nama": "IPHONE 17 PRO MAX 1TB SILVER",
+      "stok": 4,
+      "baris": 4,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYN4ID/A",
+      "nama": "IPHONE 17 PRO MAX 256GB COSMIC ORANGE",
+      "stok": 21,
+      "baris": 21,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYP4ID/A",
+      "nama": "IPHONE 17 PRO MAX 256GB DEEP BLUE",
+      "stok": 21,
+      "baris": 21,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYM4ID/A",
+      "nama": "IPHONE 17 PRO MAX 256GB SILVER",
+      "stok": 4,
+      "baris": 4,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYT4ID/A",
+      "nama": "IPHONE 17 PRO MAX 512GB COSMIC ORANGE",
+      "stok": 7,
+      "baris": 7,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMFYQ4ID/A",
+      "nama": "IPHONE 17 PRO MAX 512GB SILVER",
+      "stok": 3,
+      "baris": 3,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMHRY4ID/A",
+      "nama": "IPHONE 17E 512GB BLACK",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMHU34ID/A",
+      "nama": "IPHONE 17E 512GB SOFT PINK",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMHU04ID/A",
+      "nama": "IPHONE 17E 512GB WHITE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG2N4ID/A",
+      "nama": "IPHONE AIR 256GB LIGHT GOLD",
+      "stok": 4,
+      "baris": 4,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG2P4ID/A",
+      "nama": "IPHONE AIR 256GB SKY BLUE",
+      "stok": 5,
+      "baris": 5,
+      "qtyKolom": 1
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG2T4ID/A",
+      "nama": "IPHONE AIR 512GB CLOUD WHITE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG2U4ID/A",
+      "nama": "IPHONE AIR 512GB LIGHT GOLD",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
+    },
+    {
+      "kategori": "iPhone",
+      "kode": "APPMG6V4ID/A",
+      "nama": "PHONE 17 512GB SAGE",
+      "stok": 1,
+      "baris": 1,
+      "qtyKolom": 0
     }
-  });
+  ]
 }
-
-/* FIXED EXPORT TO CSV */
-function exportSummaryToCSV() {
-  if (currentSummaryDataset.length === 0) {
-    alert("Tidak ada data untuk diekspor pada periode ini.");
-    return;
-  }
-
-  let csvContent = "Tanggal,Nama Staff,Jenis Aktivitas,Jumlah Eksekusi\n";
-
-  currentSummaryDataset.forEach(row => {
-    const cleanStaff = `"${row.staff.replace(/"/g, '""')}"`;
-    const cleanAct = `"${row.activity.replace(/"/g, '""')}"`;
-    csvContent += `${row.date},${cleanStaff},${cleanAct},${row.count}\n`;
-  });
-
-  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
-}
-
-/* EXPORT TO MURNI .XLSX (SESUAI DESAIN GAMBAR ATTACHMENT) */
-function exportSummaryToXLSX() {
-  if (currentSummaryDataset.length === 0) {
-    alert("Tidak ada data untuk diekspor pada periode ini.");
-    return;
-  }
-
-  currentSummaryDataset.sort((a, b) => b.date.localeCompare(a.date));
-
-  // Menyiapkan data array of arrays sesuai kolom attachment
-  const excelData = [
-    ["Tanggal", "Nama Staff", "Jenis Aktivitas", "Jumlah Eksekusi"]
-  ];
-
-  currentSummaryDataset.forEach(row => {
-    excelData.push([row.date, row.staff, row.activity, Number(row.count)]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(excelData);
-
-  // Set lebar kolom agar persis & tidak terpotong
-  ws['!cols'] = [
-    { wch: 14 }, // Tanggal
-    { wch: 28 }, // Nama Staff
-    { wch: 22 }, // Jenis Aktivitas
-    { wch: 18 }  // Jumlah Eksekusi
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Laporan Aktivitas");
-
-  // Write file .xlsx murni
-  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.xlsx`);
-}
-
-/* UNIVERSAL BLOB DOWNLOAD TRIGGER FOR MOBILE BROWSERS */
-function triggerMobileDownloadBlob(blob, fileName) {
-  if (navigator.msSaveBlob) {
-    navigator.msSaveBlob(blob, fileName);
-    return;
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.style.display = "none";
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 400);
-}
-
-
-/* ==========================================================================
-   --- SOH LOCAL ENGINE & LOGIC ---
-   ========================================================================== */
-const SOH_LS_KEY = 'digimap_stock_settings_v4';
-const SOH_LS_CACHE = 'digimap_stock_cache_v4';
-
-function sohIconPhone(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>`;}
-function sohIconTablet(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><line x1="11" y1="18.5" x2="13" y2="18.5"/></svg>`;}
-function sohIconLaptop(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="11" rx="1.5"/><path d="M2 19h20l-1.5-3h-17z"/></svg>`;}
-function sohIconWatch(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="3"/><path d="M9 7 8.3 3.5h7.4L15 7"/><path d="M9 17l-.7 3.5h7.4L15 17"/></svg>`;}
-function sohIconBuds(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5c-1.7 0-3 1.3-3 3v5.5a2.5 2.5 0 0 0 5 0V9"/><circle cx="7" cy="6.5" r="2.2"/><path d="M17 5c1.7 0 3 1.3 3 3v5.5a2.5 2.5 0 0 1-5 0V9"/><circle cx="17" cy="6.5" r="2.2"/></svg>`;}
-function sohIconGrid(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`;}
-
-const SOH_CATS = {
-  'iPhone':      { color:'var(--c-iphone)',  icon:sohIconPhone },
-  'iPad':        { color:'var(--c-ipad)',    icon:sohIconTablet },
-  'Mac':         { color:'var(--c-mac)',     icon:sohIconLaptop },
-  'Apple Watch': { color:'var(--c-watch)',   icon:sohIconWatch },
-  'AirPods':     { color:'var(--c-airpods)', icon:sohIconBuds },
-};
-const SOH_CAT_ORDER = ['iPhone','iPad','Mac','Apple Watch','AirPods'];
-
-const SOH_DATA_URL = './data.json';
-const sohSavedSettings = sohLoadJSON(SOH_LS_KEY, null);
-let sohSettings = sohSavedSettings || {
-  refreshInterval: 2,
-  lowThreshold: 3
-};
-
-let sohState = {
-  data: [],
-  activeCat: 'Semua',
-  stockFilter: 'all',
-  search: '',
-  sort: 'name-desc', /* Default Z-A */
-  lastSync: null,
-  lastCheck: null,
-  syncStatus: 'idle',
-  sourceDate: null,
-  generatedAt: null,
-  dataHash: null
-};
-
-let sohRefreshTimer = null;
-
-const SOH_SEED_DATA = [{"kategori":"iPad","kode":"APPMD3Y4PA/A","nama":"IPAD 11TH WI-FI 128GB SILVER","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4A4PA/A","nama":"IPAD 11TH WI-FI 128GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4D4PA/A","nama":"IPAD 11TH WI-FI 128GB YELLOW","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4E4PA/A","nama":"IPAD 11TH WI-FI 128GB PINK","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4G4PA/A","nama":"IPAD 11TH WI-FI 256GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4H4PA/A","nama":"IPAD 11TH WI-FI 256GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD7F4PA/A","nama":"IPAD 11TH WI-FI + CELLULAR 128GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDE14ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/16GB/1TB-IND","stok":4,"baris":4,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDE34ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/24GB/1TB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDH84ID/A","nama":"MBA 13.6 SLV/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDHF4ID/A","nama":"MBA 13.6 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDVK4ID/A","nama":"MBA 15.3 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDVQ4ID/A","nama":"MBA 15.3 SKY/M5/10C GPU/16GB/512GB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWK4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 256GB SPACE B","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWM4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 512GB SPACE B","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMDWP4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 1TB SPACE BLA","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPME7W4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 256GB SP","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPME7Y4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 512GB SP","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH34ID/A","nama":"APPLE WATCH SE 3 40 S AL S SB SM GPS-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH94ID/A","nama":"APPLE WATCH SE 3 40 M AL M SB SM GPS-IND","stok":12,"baris":12,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHJ4ID/A","nama":"APPLE WATCH SE 3 44 S AL S SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHQ4ID/A","nama":"APPLE WATCH SE 3 44 M AL M SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPLE WATCH 11 42 RG AL LB SB SM GPS-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEUX4ID/A","nama":"APPLE WATCH 11 46 JB AL BK SB ML GPS-IND","stok":4,"baris":4,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWM4ID/A","nama":"APPLE WATCH ULTRA3 49 NT TI LB ALP M-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWU4ID/A","nama":"APPLE WATCH ULTRA3 49 N T B/BB TL ML-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0J4ID/A","nama":"APPLE WATCH ULTRA3 49 BLACK TI BK OB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0V4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK ALP M-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1H4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BC TL ML-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1Q4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK TML M-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMFHP4ID/A","nama":"AIRPODS PRO 3","stok":27,"baris":1,"qtyKolom":27},{"kategori":"iPhone","kode":"APPMFYM4ID/A","nama":"IPHONE 17 PRO MAX 256GB SILVER","stok":31,"baris":31,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMFYN4ID/A","nama":"IPHONE 17 PRO MAX 256GB COSMIC ORANGE","stok":31,"baris":31,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYP4ID/A","nama":"IPHONE 17 PRO MAX 256GB DEEP BLUE","stok":16,"baris":16,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYQ4ID/A","nama":"IPHONE 17 PRO MAX 512GB SILVER","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYT4ID/A","nama":"IPHONE 17 PRO MAX 512GB COSMIC ORANGE","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYV4ID/A","nama":"IPHONE 17 PRO MAX 1TB SILVER","stok":5,"baris":5,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYX4ID/A","nama":"IPHONE 17 PRO MAX 1TB DEEP BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2L4ID/A","nama":"IPHONE AIR 256GB SPACE BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2M4ID/A","nama":"IPHONE AIR 256GB CLOUD WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2N4ID/A","nama":"IPHONE AIR 256GB LIGHT GOLD","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2P4ID/A","nama":"IPHONE AIR 256GB SKY BLUE","stok":5,"baris":5,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMG2T4ID/A","nama":"IPHONE AIR 512GB CLOUD WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2U4ID/A","nama":"IPHONE AIR 512GB LIGHT GOLD","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6J4ID/A","nama":"IPHONE 17 256GB BLACK","stok":9,"baris":9,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6K4ID/A","nama":"IPHONE 17 256GB WHITE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6L4ID/A","nama":"IPHONE 17 256GB MIST BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6M4ID/A","nama":"IPHONE 17 256GB LAVENDER","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6N4ID/A","nama":"IPHONE 17 256GB SAGE","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6Q4ID/A","nama":"IPHONE 17 512GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6V4ID/A","nama":"PHONE 17 512GB SAGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8G4ID/A","nama":"IPHONE 17 PRO 256GB SILVER","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8H4ID/A","nama":"IPHONE 17 PRO 256GB COSMIC ORANGE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8J4ID/A","nama":"IPHONE 17 PRO 256GB DEEP BLUE","stok":84,"baris":84,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8K4ID/A","nama":"IPHONE 17 PRO 512GB SILVER","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8M4ID/A","nama":"IPHONE 17 PRO 512GB COSMIC ORANGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8N4ID/A","nama":"IPHONE 17 PRO 512GB DEEP BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8P4ID/A","nama":"IPHONE 17 PRO 1TB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8Q4ID/A","nama":"IPHONE 17 PRO 1TB COSMIC ORANGE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Mac","kode":"APPMGDN4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/1T-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDP4ID/A","nama":"MBP 14 SL/M5/PRO/18C/20CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDQ4ID/A","nama":"MBP 14 SL/M5/MAX/18C/32CGPU/36GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGE44ID/A","nama":"MBP 16 SL/M5/PRO/18C/20CGPU/24GB/1T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH344PA/A","nama":"IPAD AIR 11 WIFI 128GB PUR M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH354PA/A","nama":"IPAD AIR 11 WIFI 256GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH364PA/A","nama":"IPAD AIR 11 WIFI 256GB BLU M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH3G4PA/A","nama":"IPAD AIR 11 WIFI 1TB SPG M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5N4PA/A","nama":"IPAD AIR 13 WIFI 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH5P4PA/A","nama":"IPAD AIR 13 WIFI 128GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5W4PA/A","nama":"IPAD AIR 13 WIFI 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH784PA/A","nama":"IPAD AIR 11 WF CL 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH7E4PA/A","nama":"IPAD AIR 11 WF CL 256GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH7F4PA/A","nama":"IPAD AIR 11 WF CL 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFA4ID/A","nama":"MBN 13 SLV/8GB/256GB-IND","stok":14,"baris":14,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFC4ID/A","nama":"MBN 13 SLV/8GB/512GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFD4ID/A","nama":"MBN 13 CIT/8GB/256GB-IND","stok":10,"baris":10,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFE4ID/A","nama":"MBN 13 CIT/8GB/512GB-IND","stok":10,"baris":10,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFF4ID/A","nama":"MBN 13 IND/8GB/256GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFG4ID/A","nama":"MBN 13 IND/8GB/512GB-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFH4ID/A","nama":"MBN 13 BLS/8GB/256GB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRV4ID/A","nama":"IPHONE 17E 256GB BLACK","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHRX4ID/A","nama":"IPHONE 17E 256GB SOFT PINK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRY4ID/A","nama":"IPHONE 17E 512GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHU04ID/A","nama":"IPHONE 17E 512GB WHITE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHU34ID/A","nama":"IPHONE 17E 512GB SOFT PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMHWK4ID/A","nama":"AIRPODS MAX 2 MIDNIGHT","stok":11,"baris":1,"qtyKolom":11},{"kategori":"AirPods","kode":"APPMHWL4ID/A","nama":"AIRPODS MAX 2 STARLIGHT","stok":3,"baris":1,"qtyKolom":3},{"kategori":"AirPods","kode":"APPMHWM4ID/A","nama":"AIRPODS MAX 2 BLUE","stok":4,"baris":1,"qtyKolom":4},{"kategori":"AirPods","kode":"APPMHWN4ID/A","nama":"AIRPODS MAX 2 ORANGE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMHWP4ID/A","nama":"AIRPODS MAX 2 PURPLE","stok":2,"baris":1,"qtyKolom":2},{"kategori":"Mac","kode":"APPMJLV4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":5,"baris":5,"qtyKolom":1},{"kategori":"Mac","kode":"APPMJLW4ID/A","nama":"MBP 14 SB/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMP263PA/A","nama":"IPAD PRO 12.9 WF CL 2T GRY-PAC 6TH 2022","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMPWW3ID/A","nama":"IPHONE 14 512GB MIDNIGHT","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMR962ID/A","nama":"MBP 15.4/2.2GHZ(I7)/16GB/256GB/TB/SL","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMRW63ID/A","nama":"MBP 16 SL/M3/12C/18C GP/36G/512G-ID 23","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP03ID/A","nama":"IPHONE 15 128GB BLACK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP13ID/A","nama":"IPHONE 15 128GB PINK","stok":24,"baris":24,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP43ID/A","nama":"IPHONE 15 128GB BLUE","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP63ID/A","nama":"IPHONE 15 256GB BLACK","stok":18,"baris":18,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP73ID/A","nama":"IPHONE 15 256GB PINK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP93ID/A","nama":"IPHONE 15 256GB BLUE","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMU1M3ID/A","nama":"IPHONE 15 PLUS 512GB YELLOW","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMWTY3FE/A","nama":"EARPODS WITH LIGHTNING CONNECTOR","stok":11,"baris":1,"qtyKolom":11},{"kategori":"iPad","kode":"APPMXN63PA/A","nama":"IPAD MINI 7 WIFI 128GB  SPACE GREY","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN73PA/A","nama":"IPAD MINI 7 WIFI 128GB  BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN93PA/A","nama":"IPAD MINI 7 WIFI 128GB  PURPLE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXNC3PA/A","nama":"IPAD MINI 7 WIFI 256GB  BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP63ID/A","nama":"AIRPODS 4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP93ID/A","nama":"AIRPODS 4 (ACTIVE NOISE CANCELLATION)","stok":14,"baris":1,"qtyKolom":14},{"kategori":"iPhone","kode":"APPMXVU3ID/A","nama":"IPHONE 16 PLUS 128GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVW3ID/A","nama":"IPHONE 16 PLUS 128GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVX3ID/A","nama":"IPHONE 16 PLUS 128GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVY3ID/A","nama":"IPHONE 16 PLUS 128GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXWV3ID/A","nama":"IPHONE 16 PLUS 256GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY13ID/A","nama":"IPHONE 16 PLUS 256GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY23ID/A","nama":"IPHONE 16 PLUS 256GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY53ID/A","nama":"IPHONE 16 PLUS 256GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY1P3ID/A","nama":"IPHONE 16 PLUS 512GB BLACK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY1X3ID/A","nama":"IPHONE 16 PLUS 512GB WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY253ID/A","nama":"IPHONE 16 PLUS 512GB PINK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY2D3ID/A","nama":"IPHONE 16 PLUS 512GB ULTRAMARINE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY2J3ID/A","nama":"IPHONE 16 PLUS 512GB TEAL","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE73ID/A","nama":"IPHONE 16 128GB BLACK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE93ID/A","nama":"IPHONE 16 128GB WHITE","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEA3ID/A","nama":"IPHONE 16 128GB PINK","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEC3ID/A","nama":"IPHONE 16 128GB ULTRAMARINE","stok":10,"baris":10,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYED3ID/A","nama":"IPHONE 16 128GB TEAL","stok":8,"baris":8,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYER3ID/A","nama":"IPHONE 16 512GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEU3ID/A","nama":"IPHONE 16 512GB TEAL","stok":1,"baris":1,"qtyKolom":0}];
-
-function sohLoadJSON(key, fallback){
-  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
-}
-function sohSaveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
-function sohEsc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-function sohTimeAgoLabel(){
-  if(!sohState.lastSync) return 'Belum pernah sync';
-  const diff = Math.floor((Date.now() - sohState.lastSync)/1000);
-  if(diff < 10) return 'Baru saja';
-  if(diff < 60) return diff + ' detik lalu';
-  if(diff < 3600) return Math.floor(diff/60) + ' menit lalu';
-  return Math.floor(diff/3600) + ' jam lalu';
-}
-
-function sohFormatReportDate(d){
-  if(!d) return null;
-  try{ return new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }); }
-  catch(e){ return null; }
-}
-
-function sohHashRecords(records){
-  const s = records.map(r => r.kode+':'+r.stok).sort().join('|');
-  let h = 0;
-  for(let i=0;i<s.length;i++){ h = ((h<<5)-h + s.charCodeAt(i))|0; }
-  return h + ':' + records.length;
-}
-
-async function sohDoSync(showLoadingState){
-  if(sohDoSync._inFlight) return;
-  sohDoSync._inFlight = true;
-  sohSetSyncUI('syncing');
-  if(showLoadingState) sohToggleSkeleton(true);
-  try{
-    const res = await fetch(SOH_DATA_URL + '?t=' + Date.now(), { cache:'no-store' });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const payload = await res.json();
-    const records = payload.items || [];
-    if(!records.length) throw new Error('data.json kosong');
-    sohState.lastCheck = Date.now();
-    const newHash = sohHashRecords(records);
-    const hasReportDate = !!payload.sourceDate;
-    const changed = hasReportDate
-      ? (!sohState.sourceDate || new Date(payload.sourceDate).getTime() !== new Date(sohState.sourceDate).getTime())
-      : (sohState.dataHash !== newHash);
-
-    if(changed || !sohState.lastSync){
-      sohState.data = records;
-      sohState.sourceDate = payload.sourceDate || null;
-      sohState.generatedAt = payload.generatedAt || null;
-      sohState.dataHash = newHash;
-      sohState.lastSync = Date.now();
-      sohSaveJSON(SOH_LS_CACHE, { data: records, ts: sohState.lastSync, sourceDate: sohState.sourceDate, generatedAt: sohState.generatedAt, hash: newHash });
-      sohSetSyncUI('ok');
-      if(sohState.lastSync) showToast('Stock berhasil disinkronkan');
-    } else {
-      sohSetSyncUI('ok');
-    }
-  }catch(e){
-    console.error(e);
-    const cached = sohLoadJSON(SOH_LS_CACHE, null);
-    if(cached){ sohState.data = cached.data; sohState.lastSync = cached.ts; sohState.sourceDate = cached.sourceDate || null; sohState.generatedAt = cached.generatedAt || null; sohState.dataHash = cached.hash || null; }
-    else { sohState.data = SOH_SEED_DATA; }
-    sohSetSyncUI('error');
-    showToast('Sync gagal — pakai data tersimpan terakhir');
-  }finally{
-    sohDoSync._inFlight = false;
-    sohToggleSkeleton(false);
-    sohRender();
-  }
-}
-
-function sohSetSyncUI(mode){
-  sohState.syncStatus = mode;
-  const dot = document.getElementById('sohSyncDot');
-  const label = document.getElementById('sohSyncLabel');
-  if(!dot || !label) return;
-  dot.className = 'dot';
-  const dateLabel = sohFormatReportDate(sohState.sourceDate);
-  if(mode === 'syncing'){ dot.classList.add('syncing'); label.textContent = 'Memeriksa data...'; }
-  else if(mode === 'error'){ dot.classList.add('error'); label.textContent = 'Gagal sync · ' + sohTimeAgoLabel(); }
-  else { label.textContent = dateLabel ? ('Data per ' + dateLabel) : ('Tersinkron · ' + sohTimeAgoLabel()); }
-}
-
-function sohToggleSkeleton(show){
-  const sk = document.getElementById('sohSkeleton');
-  const lst = document.getElementById('sohList');
-  if(sk) sk.style.display = show ? 'flex' : 'none';
-  if(lst) lst.style.display = show ? 'none' : 'flex';
-}
-
-function sohStatusFor(stok){
-  const low = Number(sohSettings.lowThreshold) || 3;
-  if(stok <= 0) return 'bad';
-  if(stok <= low) return 'warn';
-  return 'ok';
-}
-function sohStatusLabel(s){ return s==='bad' ? 'Habis' : s==='warn' ? 'Terbatas' : 'Tersedia'; }
-
-function sohRenderPills(){
-  const row = document.getElementById('sohPillRow');
-  if(!row) return;
-  const counts = {};
-  SOH_CAT_ORDER.forEach(c => counts[c]=0);
-  sohState.data.forEach(d => { counts[d.kategori] = (counts[d.kategori]||0)+1; });
-  const total = sohState.data.length;
-
-  let html = `<div class="pill ${sohState.activeCat==='Semua'?'active':''}" data-cat="Semua"><span class="pillicon">${sohIconGrid()}</span>Semua<span class="ct">${total}</span></div>`;
-  SOH_CAT_ORDER.forEach(cat => {
-    const c = SOH_CATS[cat];
-    html += `<div class="pill ${sohState.activeCat===cat?'active':''}" data-cat="${cat}" style="--accent:${c.color}">
-      <span class="pillicon">${c.icon()}</span>${cat}<span class="ct">${counts[cat]||0}</span>
-    </div>`;
-  });
-  row.innerHTML = html;
-  row.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
-    sohState.activeCat = p.dataset.cat; sohRender();
-  }));
-}
-
-function sohGetFiltered(){
-  let list = sohState.data.slice();
-  if(sohState.activeCat !== 'Semua') list = list.filter(d => d.kategori === sohState.activeCat);
-  if(sohState.stockFilter !== 'all') list = list.filter(d => sohStatusFor(d.stok) === sohState.stockFilter);
-  if(sohState.search.trim()){
-    const q = sohState.search.trim().toLowerCase();
-    list = list.filter(d => d.nama.toLowerCase().includes(q) || (d.kode||'').toLowerCase().includes(q));
-  }
-  const [key, dir] = sohState.sort.split('-');
-  list.sort((a,b) => {
-    let va, vb;
-    if(key==='name'){ va=a.nama.toLowerCase(); vb=b.nama.toLowerCase(); return dir==='asc'? va.localeCompare(vb) : vb.localeCompare(va); }
-    if(key==='stock'){ va=a.stok; vb=b.stok; }
-    return dir==='asc' ? va-vb : vb-va;
-  });
-  return list;
-}
-
-function sohRenderStats(){
-  const total = sohState.data.length;
-  const units = sohState.data.reduce((s,d)=>s+ (d.stok||0), 0);
-  const low = sohState.data.filter(d => sohStatusFor(d.stok)==='warn').length;
-  
-  const elSku = document.getElementById('sohStatSku');
-  const elUnit = document.getElementById('sohStatUnit');
-  const elLow = document.getElementById('sohStatLow');
-  
-  if(elSku) elSku.textContent = total;
-  if(elUnit) elUnit.textContent = units.toLocaleString('id-ID');
-  if(elLow) elLow.textContent = low;
-
-  document.getElementById('sohStatAllBtn')?.classList.toggle('active', sohState.stockFilter==='all');
-  document.getElementById('sohStatUnitBtn')?.classList.toggle('active', sohState.stockFilter==='all');
-  document.getElementById('sohStatLowBtn')?.classList.toggle('active', sohState.stockFilter==='warn');
-}
-
-function sohRenderList(){
-  const items = sohGetFiltered();
-  const list = document.getElementById('sohList');
-  const empty = document.getElementById('sohEmptyState');
-  if(!list || !empty) return;
-  if(!items.length){ list.innerHTML=''; empty.style.display='block'; list.style.display='none'; return; }
-  empty.style.display='none'; list.style.display='flex';
-
-  list.innerHTML = items.map(d => {
-    const cat = SOH_CATS[d.kategori] || { color:'#888', icon:sohIconPhone };
-    const st = sohStatusFor(d.stok);
-    const qtyNote = (d.baris!=null && d.qtyKolom!=null && d.baris !== d.qtyKolom) ? `<span class="qtycol">Baris: ${d.baris} · Qty kolom: ${d.qtyKolom}</span>` : '';
-    return `<div class="row glass" style="--accent:${cat.color}">
-      <div class="icon">${cat.icon()}</div>
-      <div class="info">
-        <div class="name">${sohEsc(d.nama)}</div>
-        <div class="meta">
-          <span class="cat">${sohEsc(d.kategori)}</span>
-          <span class="code">${sohEsc(d.kode||'')}</span>
-          ${qtyNote}
-        </div>
-      </div>
-      <div class="stockbadge ${st}">
-        <span class="n">${d.stok}</span>
-        <span class="s">${sohStatusLabel(st)}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function sohRender(){
-  sohRenderPills();
-  sohRenderStats();
-  sohRenderList();
-  sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok' : 'idle'));
-}
-
-// Events SOH Local
-document.getElementById('sohSearchInput')?.addEventListener('input', e => { sohState.search = e.target.value; sohRenderList(); });
-document.getElementById('sohSortSel')?.addEventListener('change', e => { sohState.sort = e.target.value; sohRenderList(); });
-
-document.querySelectorAll('.statchip[data-filter]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const f = btn.dataset.filter;
-    sohState.stockFilter = (sohState.stockFilter === f) ? 'all' : f;
-    sohRender();
-  });
-});
-
-document.getElementById('sohBtnResetFilter')?.addEventListener('click', () => {
-  sohState.activeCat = 'Semua'; sohState.stockFilter = 'all'; sohState.search = '';
-  const input = document.getElementById('sohSearchInput');
-  if(input) input.value = '';
-  sohRender();
-});
-
-document.getElementById('sohBtnRefresh')?.addEventListener('click', () => {
-  const btn = document.getElementById('sohBtnRefresh');
-  if(btn) btn.classList.add('spin');
-  sohDoSync(false).finally(() => { if(btn) btn.classList.remove('spin'); });
-});
-
-const sohOverlay = document.getElementById('sohOverlay');
-function sohOpenModal(){
-  document.getElementById('sohRefreshInterval').value = String(sohSettings.refreshInterval);
-  document.getElementById('sohLowThreshold').value = String(sohSettings.lowThreshold);
-  document.getElementById('sohInfoSourceDate').textContent = sohFormatReportDate(sohState.sourceDate) || '-';
-  document.getElementById('sohInfoGeneratedAt').textContent = sohState.generatedAt ? new Date(sohState.generatedAt).toLocaleString('id-ID') : '-';
-  document.getElementById('sohInfoLastCheck').textContent = sohState.lastCheck ? new Date(sohState.lastCheck).toLocaleTimeString('id-ID') : '-';
-  sohOverlay.classList.add('show');
-}
-function sohCloseModal(){ sohOverlay.classList.remove('show'); }
-
-document.getElementById('sohBtnSettings')?.addEventListener('click', sohOpenModal);
-document.getElementById('sohBtnCloseModal')?.addEventListener('click', sohCloseModal);
-document.getElementById('sohBtnCancel')?.addEventListener('click', sohCloseModal);
-sohOverlay?.addEventListener('click', e => { if(e.target === sohOverlay) sohCloseModal(); });
-
-document.querySelectorAll('#sohOverlay .tabbtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#sohOverlay .tabbtn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('#sohOverlay .tabpane').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelector(`#sohOverlay .tabpane[data-pane="${btn.dataset.tab}"]`).classList.add('active');
-  });
-});
-
-document.getElementById('sohBtnSaveSettings')?.addEventListener('click', async () => {
-  sohSettings.refreshInterval = Number(document.getElementById('sohRefreshInterval').value);
-  sohSettings.lowThreshold = Number(document.getElementById('sohLowThreshold').value);
-  sohSaveJSON(SOH_LS_KEY, sohSettings);
-  sohCloseModal();
-  sohScheduleAutoRefresh();
-  sohRender();
-});
-
-document.getElementById('sohBtnResetAll')?.addEventListener('click', () => {
-  if(!confirm('Yakin mau reset semua data & pengaturan tersimpan di perangkat ini?')) return;
-  localStorage.removeItem(SOH_LS_KEY);
-  localStorage.removeItem(SOH_LS_CACHE);
-  sohSettings = { refreshInterval:2, lowThreshold:3 };
-  sohState.data = SOH_SEED_DATA; sohState.lastSync = null; sohState.sourceDate = null; sohState.generatedAt = null; sohState.dataHash = null;
-  sohCloseModal();
-  sohRender();
-  showToast('Data & pengaturan sudah direset');
-  sohDoSync(true);
-});
-
-function sohScheduleAutoRefresh(){
-  if(sohRefreshTimer) clearInterval(sohRefreshTimer);
-  const mins = Number(sohSettings.refreshInterval) || 2;
-  sohRefreshTimer = setInterval(() => sohDoSync(false), mins * 60 * 1000);
-}
-
-document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible'){
-    const stale = !sohState.lastSync || (Date.now() - sohState.lastSync) > 60000;
-    if(stale) sohDoSync(false);
-  }
-});
-setInterval(() => { sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok':'idle')); }, 15000);
-
-// Init SOH Local
-(function initSoh(){
-  const cached = sohLoadJSON(SOH_LS_CACHE, null);
-  if(cached && cached.data && cached.data.length){
-    sohState.data = cached.data;
-    sohState.lastSync = cached.ts;
-    sohState.sourceDate = cached.sourceDate || null;
-    sohState.generatedAt = cached.generatedAt || null;
-    sohState.dataHash = cached.hash || null;
-    sohRender();
-  } else {
-    sohState.data = SOH_SEED_DATA;
-    sohRender();
-  }
-  sohScheduleAutoRefresh();
-  sohDoSync(true);
-})();
-</script>
-</body>
-</html>
