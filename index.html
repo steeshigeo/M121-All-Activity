@@ -1818,17 +1818,21 @@ async function handleLobSubmit(e) {
       recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
+      
+      // Ambil daftar terbaru staff yang sudah upload dari server/database
       const uploadedStaffs = await fetchUploadedLobStaffs();
       
+      // Pastikan staff yang baru saja submit tercatat di daftar uploaded
       if (!uploadedStaffs.includes(namaStaff)) {
         uploadedStaffs.push(namaStaff);
       }
 
+      // Filter: Hanya sisa staff yang BENAR-BENAR belum submit
       const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
 
       let missingStaffText = "";
       if (pendingStaffs.length === 0) {
-        missingStaffText = "Sudah Submit Semua Bosku";
+        missingStaffText = "Sudah Submit Semua Bosku 🔥";
       } else {
         missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
       }
@@ -2875,11 +2879,11 @@ function sohIconBuds(){return `<svg viewBox="0 0 24 24" fill="none" stroke="curr
 function sohIconGrid(){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`;}
 
 const SOH_CATS = {
-  'iPhone':      { color:'var(--c-iphone)',  icon:sohIconPhone },
-  'iPad':        { color:'var(--c-ipad)',    icon:sohIconTablet },
-  'Mac':         { color:'var(--c-mac)',     icon:sohIconLaptop },
-  'Apple Watch': { color:'var(--c-watch)',   icon:sohIconWatch },
-  'AirPods':     { color:'var(--c-airpods)', icon:sohIconBuds },
+  'iPhone':      { color:'var(--c-iphone)',   icon:sohIconPhone },
+  'iPad':        { color:'var(--c-ipad)',     icon:sohIconTablet },
+  'Mac':         { color:'var(--c-mac)',      icon:sohIconLaptop },
+  'Apple Watch': { color:'var(--c-watch)',    icon:sohIconWatch },
+  'AirPods':     { color:'var(--c-airpods)',  icon:sohIconBuds },
 };
 const SOH_CAT_ORDER = ['iPhone','iPad','Mac','Apple Watch','AirPods'];
 
