@@ -1422,7 +1422,7 @@
           <ol>
             <li>Tim edit stok/harga langsung di file Excel <code>stockpositionreportdetail.xls</code> di OneDrive, lalu simpan.</li>
             <li>GitHub Actions mengecek OneDrive tiap ±2 menit, mengunduh versi terbaru.</li>
-            <li>Data dippproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko.</li>
+            <li>Data diproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko.</li>
             <li>Kalau ada perubahan, hasilnya di-commit ke repository dan Netlify otomatis publish ulang website ini.</li>
             <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
           </ol>
@@ -1828,19 +1828,25 @@ async function handleLobSubmit(e) {
       // 1. Ambil daftar terbaru staff yang sudah upload dari server/database
       const uploadedStaffsRaw = await fetchUploadedLobStaffs();
       
-      // 2. Normalisasi daftar staff yang sudah submit ke format nama murni (lowercase)
+      // 2. Normalisasi SEMUA data yang didapat dari Apps Script ke nama murni (tanpa LOB / lowercase)
       const uploadedClean = uploadedStaffsRaw.map(s => cleanStaffName(s));
       
-      // 3. Masukkan staff yang baru saja submit jika belum tercatat di array
+      // 3. Masukkan staff yang baru saja submit ke dalam array pembanding
       const currentStaffClean = cleanStaffName(namaStaff);
       if (!uploadedClean.includes(currentStaffClean)) {
         uploadedClean.push(currentStaffClean);
       }
 
-      // 4. Filter: Cek dengan akurat staff mana yang BENAR-BENAR belum submit
+      // 4. PERBAIKAN UTAMA: Normalisasi & Pencocokan Dua Arah secara Presisi untuk Semua Staff
       const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
-        const itemClean = cleanStaffName(staffItem);
-        return !uploadedClean.includes(itemClean);
+        const itemClean = cleanStaffName(staffItem); 
+        
+        // Cek secara presisi apakah itemClean ada di dalam array uploadedClean (atau sebaliknya)
+        const isAlreadyUploaded = uploadedClean.some(uploaded => {
+          return uploaded && (uploaded.includes(itemClean) || itemClean.includes(uploaded));
+        });
+        
+        return !isAlreadyUploaded;
       });
 
       // 5. Susun teks Laporan
