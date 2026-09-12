@@ -1763,6 +1763,12 @@ function copyPhotoAndOpenWA() {
 // --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
+// Helper function untuk membersihkan & mengambil nama staff murni (tanpa tanda kurung LOB)
+function cleanStaffName(rawName) {
+  if (!rawName) return "";
+  return rawName.split('(')[0].trim().toLowerCase();
+}
+
 async function fetchUploadedLobStaffs() {
   try {
     const todayDate = getTodayString();
@@ -1819,17 +1825,25 @@ async function handleLobSubmit(e) {
 
       const waktuUpload = getFormattedPhotoDateTime();
       
-      // Ambil daftar terbaru staff yang sudah upload dari server/database
-      const uploadedStaffs = await fetchUploadedLobStaffs();
+      // 1. Ambil daftar terbaru staff yang sudah upload dari server/database
+      const uploadedStaffsRaw = await fetchUploadedLobStaffs();
       
-      // Pastikan staff yang baru saja submit tercatat di daftar uploaded
-      if (!uploadedStaffs.includes(namaStaff)) {
-        uploadedStaffs.push(namaStaff);
+      // 2. Normalisasi daftar staff yang sudah submit ke format nama murni (lowercase)
+      const uploadedClean = uploadedStaffsRaw.map(s => cleanStaffName(s));
+      
+      // 3. Masukkan staff yang baru saja submit jika belum tercatat di array
+      const currentStaffClean = cleanStaffName(namaStaff);
+      if (!uploadedClean.includes(currentStaffClean)) {
+        uploadedClean.push(currentStaffClean);
       }
 
-      // Filter: Hanya sisa staff yang BENAR-BENAR belum submit
-      const pendingStaffs = LOB_STAFF_LIST.filter(s => !uploadedStaffs.includes(s));
+      // 4. Filter: Cek dengan akurat staff mana yang BENAR-BENAR belum submit
+      const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
+        const itemClean = cleanStaffName(staffItem);
+        return !uploadedClean.includes(itemClean);
+      });
 
+      // 5. Susun teks Laporan
       let missingStaffText = "";
       if (pendingStaffs.length === 0) {
         missingStaffText = "Sudah Submit Semua Bosku 🔥";
