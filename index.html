@@ -2061,7 +2061,8 @@ function copyTrainerAndOpenWA() {
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
-const CONFIG_KEY = "digimap_checklist_config_v4";
+// PERBAIKAN: Bump versi config ke v5 untuk memaksa reset cache data lama
+const CONFIG_KEY = "digimap_checklist_config_v5";
 const DATA_PREFIX = "digimap_checklist_data_";
 
 function sanitizeConfig(cfg) {
@@ -2079,6 +2080,12 @@ function sanitizeConfig(cfg) {
     if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
     if (a.name.includes("SAMUDERA") || a.name.includes("SAMUDRA")) a.name = "SAMUDERA";
   });
+
+  // PROTEKSI AUTO-INJECT: Paksa tambahkan SAMUDERA jika belum ada di data tersimpan
+  const hasSamudera = cfg.activities.some(a => a.name.toUpperCase().includes("SAMUDERA"));
+  if (!hasSamudera) {
+    cfg.activities.splice(2, 0, {id:"a3", name:"SAMUDERA", icon:"🌊", link:""});
+  }
 
   return cfg;
 }
