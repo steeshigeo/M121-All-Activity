@@ -2061,9 +2061,10 @@ function copyTrainerAndOpenWA() {
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
-// PERBAIKAN: Bump versi config ke v5 untuk memaksa reset cache data lama
-const CONFIG_KEY = "digimap_checklist_config_v5";
+// PERBAIKAN: Bump versi config ke v6 untuk auto-inject link submit Samudera
+const CONFIG_KEY = "digimap_checklist_config_v6";
 const DATA_PREFIX = "digimap_checklist_data_";
+const SAMUDERA_SUBMIT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform";
 
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
@@ -2078,13 +2079,16 @@ function sanitizeConfig(cfg) {
   cfg.activities.forEach(a => {
     if (a.name.includes("AKSARA")) a.name = "AKSARA";
     if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
-    if (a.name.includes("SAMUDERA") || a.name.includes("SAMUDRA")) a.name = "SAMUDERA";
+    if (a.name.includes("SAMUDERA") || a.name.includes("SAMUDRA")) {
+      a.name = "SAMUDERA";
+      a.link = SAMUDERA_SUBMIT_LINK;
+    }
   });
 
-  // PROTEKSI AUTO-INJECT: Paksa tambahkan SAMUDERA jika belum ada di data tersimpan
+  // PROTEKSI AUTO-INJECT: Paksa tambahkan SAMUDERA beserta link submit jika belum ada di data tersimpan
   const hasSamudera = cfg.activities.some(a => a.name.toUpperCase().includes("SAMUDERA"));
   if (!hasSamudera) {
-    cfg.activities.splice(2, 0, {id:"a3", name:"SAMUDERA", icon:"🌊", link:""});
+    cfg.activities.splice(2, 0, {id:"a3", name:"SAMUDERA", icon:"🌊", link: SAMUDERA_SUBMIT_LINK});
   }
 
   return cfg;
@@ -2101,7 +2105,7 @@ function defaultConfig(){
     activities: [
       {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
-      {id:"a3", name:"SAMUDERA", icon:"🌊", link:""},
+      {id:"a3", name:"SAMUDERA", icon:"🌊", link: SAMUDERA_SUBMIT_LINK},
       {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
       {id:"a8", name:"CAKRAWALA", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
       {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
