@@ -872,7 +872,7 @@
           </div>
         </div>
         <div class="topbar-right">
-          <div class="sync-pill saved" id="syncPill"><span class="sync-dot"></span> Tersimpan</div>
+          <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span> Memuat...</div>
           <button class="theme-toggle-btn" id="refreshChecklist" title="Refresh Data Checklist">🔄</button>
           <button class="theme-toggle-btn" id="openSettings" title="Pengaturan">⚙️</button>
         </div>
@@ -2057,10 +2057,11 @@ function copyTrainerAndOpenWA() {
 }
 
 
-// --- VIEW: CHECKLIST HARIAN TOKO LOGIC (OPTIMIZED FOR FAST LOADING) ---
+// --- VIEW: CHECKLIST HARIAN TOKO LOGIC ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
+// PERBAIKAN: Bump versi config ke v6 untuk auto-inject link submit Samudera
 const CONFIG_KEY = "digimap_checklist_config_v6";
 const DATA_PREFIX = "digimap_checklist_data_";
 const SAMUDERA_SUBMIT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform";
@@ -2068,6 +2069,7 @@ const SAMUDERA_SUBMIT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   
+  // HAPUS TOTAL Aktivitas ROLEPLAY dan LOB CHAMPION dari default Checklist Harian Toko
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
     return !nameUpper.includes("ROLEPLAY") && 
@@ -2083,6 +2085,7 @@ function sanitizeConfig(cfg) {
     }
   });
 
+  // PROTEKSI AUTO-INJECT: Paksa tambahkan SAMUDERA beserta link submit jika belum ada di data tersimpan
   const hasSamudera = cfg.activities.some(a => a.name.toUpperCase().includes("SAMUDERA"));
   if (!hasSamudera) {
     cfg.activities.splice(2, 0, {id:"a3", name:"SAMUDERA", icon:"🌊", link: SAMUDERA_SUBMIT_LINK});
@@ -2207,65 +2210,41 @@ async function pushConfig(){
   }catch(e){ setStatus("offline"); }
 }
 
-// FAST LOADING: Synchronize Background Update tanpa menghalangi Render Tampilan
 async function loadCurrentDayData(){
   const key = dateKey(currentDate);
-  
-  // 1. Tampilkan Data Lokal Secara Instan!
-  dayData = loadDayDataLocal(key);
-  if(!dayData.counts) dayData.counts = {};
-  if(!dayData.submissions) dayData.submissions = {};
-  renderAllChecklist();
-
-  // 2. Sinkronkan dengan Server di Latar Belakang (Asinkron)
   try{
     const raw = await remoteGet(remoteDataKey(key));
-    if(raw) {
-      const remoteData = JSON.parse(raw);
-      dayData = remoteData;
-      if(!dayData.counts) dayData.counts = {};
-      if(!dayData.submissions) dayData.submissions = {};
-      saveDayDataLocal(key, dayData);
-      renderAllChecklist();
-    }
+    dayData = raw ? JSON.parse(raw) : {counts:{}, submissions:{}};
+    if(!dayData.counts) dayData.counts = {};
+    if(!dayData.submissions) dayData.submissions = {};
+    saveDayDataLocal(key, dayData);
     setStatus("saved");
   }catch(e){
+    dayData = loadDayDataLocal(key);
+    if(!dayData.counts) dayData.counts = {};
+    if(!dayData.submissions) dayData.submissions = {};
     setStatus("offline");
   }
 }
 
-// OPTIMIZED INIT: Render Lokal Langsung & Fetch API secara Paralel (Promise.all)
 async function initChecklist(){
-  // Step A: Load lokal & render SERENTAK TANPA DELAY (< 50ms)
-  config = loadConfigLocal();
-  dayData = loadDayDataLocal(dateKey(currentDate));
-  if(!dayData.counts) dayData.counts = {};
-  if(!dayData.submissions) dayData.submissions = {};
-  renderAllChecklist();
-
-  // Step B: Jalankan Fetch Config & Data Hari ini secara PARALEL (Promise.all) di Background
-  const key = dateKey(currentDate);
+  setStatus("loading");
   try{
-    const [rawConfig, rawData] = await Promise.all([
-      remoteGet(REMOTE_CONFIG_KEY).catch(() => null),
-      remoteGet(remoteDataKey(key)).catch(() => null)
-    ]);
-
-    if(rawConfig){
-      config = sanitizeConfig(JSON.parse(rawConfig));
+    const raw = await remoteGet(REMOTE_CONFIG_KEY);
+    if(raw){
+      config = sanitizeConfig(JSON.parse(raw));
       saveConfigLocal(config);
+    } else {
+      config = defaultConfig();
+      saveConfigLocal(config);
+      await remoteSet(REMOTE_CONFIG_KEY, config);
     }
-    if(rawData){
-      dayData = JSON.parse(rawData);
-      if(!dayData.counts) dayData.counts = {};
-      if(!dayData.submissions) dayData.submissions = {};
-      saveDayDataLocal(key, dayData);
-    }
-    setStatus("saved");
-    renderAllChecklist(); // Re-render jika ada update terbaru dari server
   }catch(e){
+    config = loadConfigLocal();
     setStatus("offline");
   }
+  await loadCurrentDayData();
+  renderAllChecklist();
 }
 
 function showConfirm(message, title){
@@ -2616,35 +2595,44 @@ document.getElementById("refreshChecklist")?.addEventListener("click", async () 
   btn.style.transform = "rotate(360deg)";
   setStatus("loading");
   await loadCurrentDayData();
+  renderAllChecklist();
   showToast("Data Checklist berhasil di-refresh 🔄");
   setTimeout(() => { btn.style.transform = "none"; }, 300);
 });
 
-// Event Listeners Checklist Harian (Fast Load on Date Swap)
-document.getElementById("prevDay").addEventListener("click", ()=>{
+// Event Listeners Checklist Harian
+document.getElementById("prevDay").addEventListener("click", async ()=>{
   followToday = false;
   currentDate.setDate(currentDate.getDate()-1);
-  loadCurrentDayData();
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAllChecklist();
 });
-document.getElementById("nextDay").addEventListener("click", ()=>{
+document.getElementById("nextDay").addEventListener("click", async ()=>{
   followToday = false;
   currentDate.setDate(currentDate.getDate()+1);
-  loadCurrentDayData();
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAllChecklist();
 });
 document.getElementById("dateDisplay").addEventListener("click",()=>{
   const el = document.getElementById("dateInput");
   el.showPicker ? el.showPicker() : el.click();
 });
-document.getElementById("dateInput").addEventListener("change", (e)=>{
+document.getElementById("dateInput").addEventListener("change", async (e)=>{
   const [y,m,d] = e.target.value.split("-").map(Number);
   currentDate = new Date(y, m-1, d);
   followToday = (dateKey(currentDate) === dateKey(new Date()));
-  loadCurrentDayData();
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAllChecklist();
 });
-document.getElementById("jumpToday").addEventListener("click", ()=>{
+document.getElementById("jumpToday").addEventListener("click", async ()=>{
   followToday = true;
   currentDate = new Date();
-  loadCurrentDayData();
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAllChecklist();
 });
 
 document.getElementById("addActivityBtn").addEventListener("click",()=>{
@@ -2720,7 +2708,7 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
   }
 });
 
-// Inisialisasi Checklist dengan Optimasi Kecepatan Instan
+// Inisialisasi Checklist
 initChecklist();
 
 
