@@ -1606,7 +1606,7 @@ function showToast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"), 1800);
+  setTimeout(()=>t.classList.remove("show"), 2200);
 }
 
 
@@ -2065,7 +2065,7 @@ function copyTrainerAndOpenWA() {
 }
 
 
-// --- VIEW: CHECKLIST HARIAN TOKO LOGIC (SMART MERGE & FAST FAST SYNC) ---
+// --- VIEW: CHECKLIST HARIAN TOKO LOGIC (SMART MERGE & FAST SYNC & MIDNIGHT RESET) ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
@@ -2162,8 +2162,7 @@ async function remoteSet(key, valueObj){
 }
 
 /**
- * METODE MERGE PINTAR ANTI-TIMPA:
- * Menggabungkan data lokal dan remote berdasarkan timestamp per-nama staff & per-aktivitas.
+ * METODE MERGE PINTAR ANTI-TIMPA
  */
 function mergeDayData(local, remote) {
   if (!remote) return local || { counts: {}, submissions: {}, timestamps: {} };
@@ -2178,13 +2177,11 @@ function mergeDayData(local, remote) {
   const localTs = local.timestamps || {};
   const remoteTs = remote.timestamps || {};
 
-  // 1. Merge Timestamps
   const allTsKeys = new Set([...Object.keys(localTs), ...Object.keys(remoteTs)]);
   allTsKeys.forEach(k => {
     merged.timestamps[k] = Math.max(localTs[k] || 0, remoteTs[k] || 0);
   });
 
-  // 2. Merge Counts
   const localCounts = local.counts || {};
   const remoteCounts = remote.counts || {};
   const allActIds = new Set([...Object.keys(localCounts), ...Object.keys(remoteCounts)]);
@@ -2212,7 +2209,6 @@ function mergeDayData(local, remote) {
     });
   });
 
-  // 3. Merge Submissions Link
   const localSubs = local.submissions || {};
   const remoteSubs = remote.submissions || {};
   const allSubActIds = new Set([...Object.keys(localSubs), ...Object.keys(remoteSubs)]);
@@ -2238,7 +2234,7 @@ function setStatus(state){
 }
 
 let config = defaultConfig();
-let currentDate = new Date();
+let currentDate = new Date(); // Selalu mengambil tanggal perangkat saat pertama buka
 let dayData = {counts:{}, submissions:{}, timestamps:{}};
 let followToday = true;
 let configDirty = false;
@@ -2301,14 +2297,14 @@ async function pushConfig(){
 async function loadCurrentDayData(){
   const key = dateKey(currentDate);
   
-  // Tampilkan data lokal secara instan (< 50ms)
+  // Load data lokal secara instan (< 50ms)
   dayData = loadDayDataLocal(key);
   if(!dayData.counts) dayData.counts = {};
   if(!dayData.submissions) dayData.submissions = {};
   if(!dayData.timestamps) dayData.timestamps = {};
   renderAllChecklist();
 
-  // Ambil data remote & jalankan Merge Pintar di latar belakang
+  // Sync data remote & jalankan Merge Pintar di latar belakang
   try{
     const raw = await remoteGet(remoteDataKey(key));
     if(raw) {
@@ -2353,6 +2349,30 @@ async function initChecklist(){
     setStatus("offline");
   }
 }
+
+// --- LOGIKA DETEKSI PERGANTIAN HARI OTOMATIS (AUTO-MIDNIGHT RESET) ---
+function checkAutoMidnightSwitch() {
+  if (followToday) {
+    const todayNow = new Date();
+    // Jika tanggal sistem sekarang tidak sama dengan tanggal yang sedang ditampilkan
+    if (dateKey(currentDate) !== dateKey(todayNow)) {
+      currentDate = todayNow;
+      loadCurrentDayData();
+      showToast("🔄 Hari telah berganti! Tampilan otomatis diperbarui untuk hari ini.");
+    }
+  }
+}
+
+// Cek pergantian hari saat tab aktif / dinyalakan kembali
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    checkAutoMidnightSwitch();
+  }
+});
+
+// Cek pergantian hari secara berkala setiap 30 detik
+setInterval(checkAutoMidnightSwitch, 30000);
+
 
 function showConfirm(message, title){
   return new Promise(resolve=>{
