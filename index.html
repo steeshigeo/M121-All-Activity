@@ -873,6 +873,7 @@
         </div>
         <div class="topbar-right">
           <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span> Memuat...</div>
+          <button class="theme-toggle-btn" id="refreshChecklist" title="Refresh Data Checklist">🔄</button>
           <button class="theme-toggle-btn" id="openSettings" title="Pengaturan">⚙️</button>
         </div>
       </div>
@@ -929,7 +930,6 @@
               <option value="" disabled selected>Pilih Staff...</option>
               <option value="Sulton Setiawan">Sulton Setiawan</option>
               <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
-              <option value="Hartono">Hartono</option>
               <option value="Eggy Thania A.M">Eggy Thania A.M</option>
               <option value="Frandy Putra">Frandy Putra</option>
               <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
@@ -1045,7 +1045,6 @@
               <option value="" disabled selected>Pilih Staff...</option>
               <option value="Sulton Setiawan">Sulton Setiawan</option>
               <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
-              <option value="Hartono">Hartono</option>
               <option value="Eggy Thania A.M">Eggy Thania A.M</option>
               <option value="Frandy Putra">Frandy Putra</option>
               <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
@@ -1134,9 +1133,10 @@
             <label>Nama Staff</label>
             <select id="trainerNamaStaff" required>
               <option value="" disabled selected>Pilih Staff...</option>
+              <!-- Menambahkan opsi All Staff -->
+              <option value="All Staff">All Staff</option>
               <option value="Sulton Setiawan">Sulton Setiawan</option>
               <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
-              <option value="Hartono">Hartono</option>
               <option value="Eggy Thania A.M">Eggy Thania A.M</option>
               <option value="Frandy Putra">Frandy Putra</option>
               <option value="Hilda Ainur Rosyidah">Hilda Ainur Rosyidah</option>
@@ -1346,11 +1346,12 @@
                 <th>Nama Staff</th>
                 <th>Jenis Aktivitas</th>
                 <th>Jumlah Eksekusi</th>
+                <th style="text-align: center;">Aksi</th>
               </tr>
             </thead>
             <tbody id="summaryTableBody">
               <tr>
-                <td colspan="4" style="text-align: center; color: var(--text-faint);">Memuat data...</td>
+                <td colspan="5" style="text-align: center; color: var(--text-faint);">Memuat data...</td>
               </tr>
             </tbody>
           </table>
@@ -1661,6 +1662,11 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
 
+  // BLOKIR TOTAL: Jangan catat atau tampilkan aktivitas ROLEPLAY atau SAMUDRA/LOB CHAMPION di Checklist Harian secara otomatis
+  if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("SAMUDRA") || cleanActName.includes("SAMUDERA") || cleanActName.includes("LOB CHAMPION")) {
+    return;
+  }
+
   // 1. Cari atau buat ID Aktivitas di config
   let actObj = config.activities.find(a => a.name.toUpperCase() === cleanActName);
   if (!actObj) {
@@ -1728,8 +1734,7 @@ async function handlePhotoSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto berhasil dikompres & diunggah!";
       
-      // RECORD TO ANALYTICS DATA
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
+      // CATATAN: Try On Photo Evidence (Aksara, Samudera, Cakrawala) TIDAK di-link ke Checklist Harian Toko untuk mencegah double checklist.
 
       const waktuUpload = getFormattedPhotoDateTime();
       photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
@@ -1763,7 +1768,6 @@ function copyPhotoAndOpenWA() {
 // --- VIEW: LOB CHAMPION REPORT LOGIC & ACCURATE FILTERING ---
 let lobReportTemplate = "";
 
-// Helper ekstraksi nama (menangani string murni maupun object dari sheet)
 function extractNameString(item) {
   if (!item) return "";
   if (typeof item === 'string') return item;
@@ -1773,7 +1777,6 @@ function extractNameString(item) {
   return String(item);
 }
 
-// Clean nama murni tanpa tanda baca & tanda kurung
 function cleanStaffName(rawInput) {
   const str = extractNameString(rawInput);
   return str.replace(/\s*\([^)]*\)/g, '')
@@ -1782,7 +1785,6 @@ function cleanStaffName(rawInput) {
             .trim();
 }
 
-// Logika Matching Token Kunci (Pencocokan Kata Unik)
 function isSameStaff(name1, name2) {
   const c1 = cleanStaffName(name1);
   const c2 = cleanStaffName(name2);
@@ -1790,14 +1792,12 @@ function isSameStaff(name1, name2) {
 
   if (c1 === c2 || c1.includes(c2) || c2.includes(c1)) return true;
 
-  // Cek kata kunci unik (panjang kata > 2 karakter)
   const tokens1 = c1.split(/\s+/).filter(t => t.length > 2);
   const tokens2 = c2.split(/\s+/).filter(t => t.length > 2);
 
   return tokens1.some(t1 => tokens2.includes(t1));
 }
 
-// Histori Lokal Hari Ini untuk Mencegah Delay Server
 function getLocalLobUploaded(dateStr) {
   try {
     const raw = localStorage.getItem("digimap_lob_uploaded_" + dateStr);
@@ -1863,25 +1863,19 @@ async function handleLobSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
 
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
-
-      // 1. Simpan ke storage lokal instan
       let localUploaded = getLocalLobUploaded(todayDate);
       if (!localUploaded.some(item => isSameStaff(item, namaStaff))) {
         localUploaded.push(namaStaff);
         saveLocalLobUploaded(todayDate, localUploaded);
       }
 
-      // 2. Ambil data dari server Apps Script & gabungkan
       const remoteUploaded = await fetchUploadedLobStaffs();
       const combinedUploaded = [...localUploaded, ...remoteUploaded];
 
-      // 3. Filter staff yang benar-benar belum submit
       const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
         return !combinedUploaded.some(uploadedItem => isSameStaff(staffItem, uploadedItem));
       });
 
-      // 4. Susun teks laporan
       let missingStaffText = "";
       if (pendingStaffs.length === 0) {
         missingStaffText = "Sudah Submit Semua Bosku 🔥";
@@ -1962,7 +1956,7 @@ async function handleOpsEmsSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto OPS & EMS berhasil dikompres & diunggah!";
       
-      // RECORD TO ANALYTICS DATA
+      // Catat ke Checklist Harian Toko agar tampil secara kondisional
       recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
@@ -2001,7 +1995,7 @@ async function handleTrainerSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-trainer-submit');
   const status = document.getElementById('trainerStatus');
-  const reportBox = document.getElementById('trainerReportBox');
+  const reportBox = document.getElementById('reportBox');
   const file = document.getElementById('trainerFoto').files[0];
 
   if (!file) return;
@@ -2009,7 +2003,7 @@ async function handleTrainerSubmit(e) {
   btn.disabled = true;
   btn.innerText = "Mengompres & Uploading...";
   status.innerText = "";
-  reportBox.style.display = "none";
+  if(reportBox) reportBox.style.display = "none";
 
   const namaStaff = document.getElementById('trainerNamaStaff').value;
   const tujuan = document.getElementById('trainerTujuan').value;
@@ -2036,14 +2030,14 @@ async function handleTrainerSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto Trainer berhasil dikompres & diunggah!";
       
-      // RECORD TO ANALYTICS DATA
+      // Catat ke Checklist Harian Toko agar tampil secara kondisional
       recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
       trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
       document.getElementById('trainerReportText').innerText = trainerReportTemplate;
-      reportBox.style.display = "block";
+      document.getElementById('trainerReportBox').style.display = "block";
       document.getElementById('trainer-upload-form').reset();
     } else {
       status.style.color = "var(--danger)";
@@ -2078,8 +2072,16 @@ const DATA_PREFIX = "digimap_checklist_data_";
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   
+  // HAPUS TOTAL Aktivitas ROLEPLAY, SAMUDRA, dan LOB CHAMPION dari default Checklist Harian Toko
+  cfg.activities = cfg.activities.filter(a => {
+    const nameUpper = a.name.toUpperCase();
+    return !nameUpper.includes("ROLEPLAY") && 
+           !nameUpper.includes("SAMUDRA") && 
+           !nameUpper.includes("SAMUDERA") &&
+           !nameUpper.includes("LOB CHAMPION");
+  });
+
   cfg.activities.forEach(a => {
-    if (a.name.includes("SAMUDERA")) a.name = "SAMUDERA";
     if (a.name.includes("AKSARA")) a.name = "AKSARA";
     if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
   });
@@ -2089,7 +2091,7 @@ function sanitizeConfig(cfg) {
 
 function defaultConfig(){
   const staff = [
-    "Sulton Setiawan","Muhamad Angga Jul F.","Hartono","Eggy Thania A.M","Frandy Putra",
+    "Sulton Setiawan","Muhamad Angga Jul F.","Eggy Thania A.M","Frandy Putra",
     "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
     "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S.","Reni Purwati"
   ];
@@ -2098,7 +2100,6 @@ function defaultConfig(){
     activities: [
       {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
-      {id:"a3", name:"SAMUDERA", icon:"🌊", link:"https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform"},
       {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
       {id:"a8", name:"CAKRAWALA", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
       {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
@@ -2276,10 +2277,21 @@ function renderDateBar(){
 function renderActivities(){
   const list = document.getElementById("activityList");
   list.innerHTML = "";
+  
+  // Daftar Aktivitas yang hanya tampil jika ADA STAFF UPLOAD pada hari tersebut
+  const DYNAMIC_CONDITIONAL_ACTIVITIES = ["OPEN STUDIO", "EMS", "TRAINING", "ROLEPLAY"];
+
   config.activities.forEach(act => {
+    const activeStaff = activeStaffFor(act.id);
+    const actNameUpper = act.name.toUpperCase();
+
+    // Sembunyikan Open Studio, EMS, Training, Roleplay jika tidak ada staff yang upload hari ini
+    if (DYNAMIC_CONDITIONAL_ACTIVITIES.some(d => actNameUpper.includes(d))) {
+      if (activeStaff.length === 0) return;
+    }
+
     const card = document.createElement("div");
     card.className = "activity";
-    const activeStaff = activeStaffFor(act.id);
 
     const head = document.createElement("div");
     head.className = "activity-head";
@@ -2400,8 +2412,16 @@ function buildReportText(){
   lines.push("");
   if(config.opening.trim()){ lines.push(config.opening.trim()); lines.push(""); }
 
+  const DYNAMIC_CONDITIONAL_ACTIVITIES = ["OPEN STUDIO", "EMS", "TRAINING", "ROLEPLAY"];
+
   config.activities.forEach(act=>{
     const doneStaff = activeStaffFor(act.id);
+    const actNameUpper = act.name.toUpperCase();
+
+    if (DYNAMIC_CONDITIONAL_ACTIVITIES.some(d => actNameUpper.includes(d))) {
+      if (doneStaff.length === 0) return;
+    }
+
     lines.push(`${act.icon || "📌"} ${act.name}`);
     doneStaff.forEach((s,i)=>{
       const c = getCount(act.id,s);
@@ -2564,6 +2584,17 @@ function renderAllChecklist(){
   renderSummary();
   renderSubmitSummary();
 }
+
+// Event Listener Tombol Refresh di Checklist Harian Toko
+document.getElementById("refreshChecklist")?.addEventListener("click", async () => {
+  const btn = document.getElementById("refreshChecklist");
+  btn.style.transform = "rotate(360deg)";
+  setStatus("loading");
+  await loadCurrentDayData();
+  renderAllChecklist();
+  showToast("Data Checklist berhasil di-refresh 🔄");
+  setTimeout(() => { btn.style.transform = "none"; }, 300);
+});
 
 // Event Listeners Checklist Harian
 document.getElementById("prevDay").addEventListener("click", async ()=>{
@@ -2739,7 +2770,6 @@ function renderAnalyticsSummary() {
           }
         }
 
-        if (actName.includes("SAMUDERA")) actName = "SAMUDERA";
         if (actName.includes("AKSARA")) actName = "AKSARA";
         if (actName.includes("CAKRAWALA")) actName = "CAKRAWALA";
 
@@ -2756,6 +2786,7 @@ function renderAnalyticsSummary() {
 
             currentSummaryDataset.push({
               date: dateStr,
+              actId: actId,
               staff: staffName,
               activity: actName,
               count: count
@@ -2777,20 +2808,46 @@ function renderAnalyticsSummary() {
 function renderSummaryTable(dataset) {
   const tbody = document.getElementById('summaryTableBody');
   if (dataset.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas untuk periode ini.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas untuk periode ini.</td></tr>`;
     return;
   }
 
   dataset.sort((a, b) => b.date.localeCompare(a.date));
 
-  tbody.innerHTML = dataset.map(row => `
+  tbody.innerHTML = dataset.map((row, idx) => `
     <tr>
       <td><b>${row.date}</b></td>
       <td>${escapeHtml(row.staff)}</td>
       <td>${escapeHtml(row.activity)}</td>
       <td style="font-weight: 700; text-align: right;">${row.count}</td>
+      <td style="text-align: center;">
+        <button class="icon-btn-sm" onclick="deleteSummaryRecord('${row.date}', '${escapeHtml(row.actId)}', '${escapeHtml(row.staff)}')" title="Hapus Log Aktivitas Ini" style="display:inline-flex; border-color:var(--danger-border); color:var(--danger); margin:0 auto;">🗑️</button>
+      </td>
     </tr>
   `).join('');
+}
+
+async function deleteSummaryRecord(dateStr, actId, staffName) {
+  const ok = await showConfirm(`Hapus record aktivitas "${staffName}" pada tanggal ${dateStr}?`, "Hapus Record Analytics");
+  if (!ok) return;
+
+  const data = loadDayDataLocal(dateStr);
+  if (data && data.counts && data.counts[actId]) {
+    delete data.counts[actId][staffName];
+    if (Object.keys(data.counts[actId]).length === 0) {
+      delete data.counts[actId];
+    }
+    saveDayDataLocal(dateStr, data);
+    try {
+      await remoteSet(remoteDataKey(dateStr), data);
+    } catch(e) {}
+  }
+  showToast("Record aktivitas berhasil dihapus ✓");
+  renderAnalyticsSummary();
+  if (dateKey(currentDate) === dateStr) {
+    await loadCurrentDayData();
+    renderAllChecklist();
+  }
 }
 
 function renderSummaryCharts(staffData, actData) {
@@ -2958,7 +3015,7 @@ let sohState = {
 
 let sohRefreshTimer = null;
 
-const SOH_SEED_DATA = [{"kategori":"iPad","kode":"APPMD3Y4PA/A","nama":"IPAD 11TH WI-FI 128GB SILVER","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4A4PA/A","nama":"IPAD 11TH WI-FI 128GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4D4PA/A","nama":"IPAD 11TH WI-FI 128GB YELLOW","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4E4PA/A","nama":"IPAD 11TH WI-FI 128GB PINK","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4G4PA/A","nama":"IPAD 11TH WI-FI 256GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4H4PA/A","nama":"IPAD 11TH WI-FI 256GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD7F4PA/A","nama":"IPAD 11TH WI-FI + CELLULAR 128GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDE14ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/16GB/1TB-IND","stok":4,"baris":4,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDE34ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/24GB/1TB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDH84ID/A","nama":"MBA 13.6 SLV/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDHF4ID/A","nama":"MBA 13.6 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDVK4ID/A","nama":"MBA 15.3 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDVQ4ID/A","nama":"MBA 15.3 SKY/M5/10C GPU/16GB/512GB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWK4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 256GB SPACE B","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWM4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 512GB SPACE B","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMDWP4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 1TB SPACE BLA","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPME7W4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 256GB SP","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPME7Y4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 512GB SP","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH34ID/A","nama":"APPLE WATCH SE 3 40 S AL S SB SM GPS-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH94ID/A","nama":"APPLE WATCH SE 3 40 M AL M SB SM GPS-IND","stok":12,"baris":12,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHJ4ID/A","nama":"APPLE WATCH SE 3 44 S AL S SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHQ4ID/A","nama":"APPLE WATCH SE 3 44 M AL M SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPLE WATCH 11 42 RG AL LB SB SM GPS-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEUX4ID/A","nama":"APPLE WATCH 11 46 JB AL BK SB ML GPS-IND","stok":4,"baris":4,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWM4ID/A","nama":"APPLE WATCH ULTRA3 49 NT TI LB ALP M-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWU4ID/A","nama":"APPLE WATCH ULTRA3 49 N T B/BB TL ML-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0J4ID/A","nama":"APPLE WATCH ULTRA3 49 BLACK TI BK OB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0V4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK ALP M-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1H4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BC TL ML-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1Q4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK TML M-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMFHP4ID/A","nama":"AIRPODS PRO 3","stok":27,"baris":1,"qtyKolom":27},{"kategori":"iPhone","kode":"APPMFYM4ID/A","nama":"IPHONE 17 PRO MAX 256GB SILVER","stok":31,"baris":31,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMFYN4ID/A","nama":"IPHONE 17 PRO MAX 256GB COSMIC ORANGE","stok":31,"baris":31,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYP4ID/A","nama":"IPHONE 17 PRO MAX 256GB DEEP BLUE","stok":16,"baris":16,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYQ4ID/A","nama":"IPHONE 17 PRO MAX 512GB SILVER","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYT4ID/A","nama":"IPHONE 17 PRO MAX 512GB COSMIC ORANGE","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYV4ID/A","nama":"IPHONE 17 PRO MAX 1TB SILVER","stok":5,"baris":5,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYX4ID/A","nama":"IPHONE 17 PRO MAX 1TB DEEP BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2L4ID/A","nama":"IPHONE AIR 256GB SPACE BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2M4ID/A","nama":"IPHONE AIR 256GB CLOUD WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2N4ID/A","nama":"IPHONE AIR 256GB LIGHT GOLD","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2P4ID/A","nama":"IPHONE AIR 256GB SKY BLUE","stok":5,"baris":5,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMG2T4ID/A","nama":"IPHONE AIR 512GB CLOUD WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2U4ID/A","nama":"IPHONE AIR 512GB LIGHT GOLD","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6J4ID/A","nama":"IPHONE 17 256GB BLACK","stok":9,"baris":9,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6K4ID/A","nama":"IPHONE 17 256GB WHITE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6L4ID/A","nama":"IPHONE 17 256GB MIST BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6M4ID/A","nama":"IPHONE 17 256GB LAVENDER","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6N4ID/A","nama":"IPHONE 17 256GB SAGE","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6Q4ID/A","nama":"IPHONE 17 512GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6V4ID/A","nama":"PHONE 17 512GB SAGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8G4ID/A","nama":"IPHONE 17 PRO 256GB SILVER","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8H4ID/A","nama":"IPHONE 17 PRO 256GB COSMIC ORANGE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8J4ID/A","nama":"IPHONE 17 PRO 256GB DEEP BLUE","stok":84,"baris":84,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8K4ID/A","nama":"IPHONE 17 PRO 512GB SILVER","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8M4ID/A","nama":"IPHONE 17 PRO 512GB COSMIC ORANGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8N4ID/A","nama":"IPHONE 17 PRO 512GB DEEP BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8P4ID/A","nama":"IPHONE 17 PRO 1TB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8Q4ID/A","nama":"IPHONE 17 PRO 1TB COSMIC ORANGE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Mac","kode":"APPMGDN4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/1T-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDP4ID/A","nama":"MBP 14 SL/M5/PRO/18C/20CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDQ4ID/A","nama":"MBP 14 SL/M5/MAX/18C/32CGPU/36GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGE44ID/A","nama":"MBP 16 SL/M5/PRO/18C/20CGPU/24GB/1T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH344PA/A","nama":"IPAD AIR 11 WIFI 128GB PUR M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH354PA/A","nama":"IPAD AIR 11 WIFI 256GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH364PA/A","nama":"IPAD AIR 11 WIFI 256GB BLU M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH3G4PA/A","nama":"IPAD AIR 11 WIFI 1TB SPG M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5N4PA/A","nama":"IPAD AIR 13 WIFI 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH5P4PA/A","nama":"IPAD AIR 13 WIFI 128GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5W4PA/A","nama":"IPAD AIR 13 WIFI 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH784PA/A","nama":"IPAD AIR 11 WF CL 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH7E4PA/A","nama":"IPAD AIR 11 WF CL 256GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH7F4PA/A","nama":"IPAD AIR 11 WF CL 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFA4ID/A","nama":"MBN 13 SLV/8GB/256GB-IND","stok":14,"baris":14,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFC4ID/A","nama":"MBN 13 SLV/8GB/512GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFD4ID/A","nama":"MBN 13 CIT/8GB/256GB-IND","stok":10,"baris":10,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFE4ID/A","nama":"MBN 13 CIT/8GB/512GB-IND","stok":10,"baris":10,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFF4ID/A","nama":"MBN 13 IND/8GB/256GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFG4ID/A","nama":"MBN 13 IND/8GB/512GB-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFH4ID/A","nama":"MBN 13 BLS/8GB/256GB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRV4ID/A","nama":"IPHONE 17E 256GB BLACK","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHRX4ID/A","nama":"IPHONE 17E 256GB SOFT PINK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRY4ID/A","nama":"IPHONE 17E 512GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHU04ID/A","nama":"IPHONE 17E 512GB WHITE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHU34ID/A","nama":"IPHONE 17E 512GB SOFT PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMHWK4ID/A","nama":"AIRPODS MAX 2 MIDNIGHT","stok":11,"baris":1,"qtyKolom":11},{"kategori":"AirPods","kode":"APPMHWL4ID/A","nama":"AIRPODS MAX 2 STARLIGHT","stok":3,"baris":1,"qtyKolom":3},{"kategori":"AirPods","kode":"APPMHWM4ID/A","nama":"AIRPODS MAX 2 BLUE","stok":4,"baris":1,"qtyKolom":4},{"kategori":"AirPods","kode":"APPMHWN4ID/A","nama":"AIRPODS MAX 2 ORANGE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMHWP4ID/A","nama":"AIRPODS MAX 2 PURPLE","stok":2,"baris":1,"qtyKolom":2},{"kategori":"Mac","kode":"APPMJLV4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":5,"baris":5,"qtyKolom":1},{"kategori":"Mac","kode":"APPMJLW4ID/A","nama":"MBP 14 SB/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMP263PA/A","nama":"IPAD PRO 12.9 WF CL 2T GRY-PAC 6TH 2022","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMPWW3ID/A","nama":"IPHONE 14 512GB MIDNIGHT","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMR962ID/A","nama":"MBP 15.4/2.2GHZ(I7)/16GB/256GB/TB/SL","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMRW63ID/A","nama":"MBP 16 SL/M3/12C/18C GP/36G/512G-ID 23","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP03ID/A","nama":"IPHONE 15 128GB BLACK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP13ID/A","nama":"IPHONE 15 128GB PINK","stok":24,"baris":24,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP43ID/A","nama":"IPHONE 15 128GB BLUE","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP63ID/A","nama":"IPHONE 15 256GB BLACK","stok":18,"baris":18,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP73ID/A","nama":"IPHONE 15 256GB PINK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP93ID/A","nama":"IPHONE 15 256GB BLUE","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMU1M3ID/A","nama":"IPHONE 15 PLUS 512GB YELLOW","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMWTY3FE/A","nama":"EARPODS WITH LIGHTNING CONNECTOR","stok":11,"baris":1,"qtyKolom":11},{"kategori":"iPad","kode":"APPMXN63PA/A","nama":"IPAD MINI 7 WIFI 128GB  SPACE GREY","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN73PA/A","nama":"IPAD MINI 7 WIFI 128GB  BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN93PA/A","nama":"IPAD MINI 7 WIFI 128GB  PURPLE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXNC3PA/A","nama":"IPAD MINI 7 WIFI 256GB  BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP63ID/A","nama":"AIRPODS 4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP93ID/A","nama":"AIRPODS 4 (ACTIVE NOISE CANCELLATION)","stok":14,"baris":1,"qtyKolom":14},{"kategori":"iPhone","kode":"APPMXVU3ID/A","nama":"IPHONE 16 PLUS 128GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVW3ID/A","nama":"IPHONE 16 PLUS 128GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVX3ID/A","nama":"IPHONE 16 PLUS 128GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVY3ID/A","nama":"IPHONE 16 PLUS 128GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXWV3ID/A","nama":"IPHONE 16 PLUS 256GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY13ID/A","nama":"IPHONE 16 PLUS 256GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY23ID/A","nama":"IPHONE 16 PLUS 256GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY53ID/A","nama":"IPHONE 16 PLUS 256GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY1P3ID/A","nama":"IPHONE 16 PLUS 512GB BLACK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY1X3ID/A","nama":"IPHONE 16 PLUS 512GB WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY253ID/A","nama":"IPHONE 16 PLUS 512GB PINK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY2D3ID/A","nama":"IPHONE 16 PLUS 512GB ULTRAMARINE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY2J3ID/A","nama":"IPHONE 16 PLUS 512GB TEAL","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE73ID/A","nama":"IPHONE 16 128GB BLACK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE93ID/A","nama":"IPHONE 16 128GB WHITE","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEA3ID/A","nama":"IPHONE 16 128GB PINK","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEC3ID/A","nama":"IPHONE 16 128GB ULTRAMARINE","stok":10,"baris":10,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYED3ID/A","nama":"IPHONE 16 128GB TEAL","stok":8,"baris":8,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYER3ID/A","nama":"IPHONE 16 512GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEU3ID/A","nama":"IPHONE 16 512GB TEAL","stok":1,"baris":1,"qtyKolom":0}];
+const SOH_SEED_DATA = [{"kategori":"iPad","kode":"APPMD3Y4PA/A","nama":"IPAD 11TH WI-FI 128GB SILVER","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4A4PA/A","nama":"IPAD 11TH WI-FI 128GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4D4PA/A","nama":"IPAD 11TH WI-FI 128GB YELLOW","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4E4PA/A","nama":"IPAD 11TH WI-FI 128GB PINK","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4G4PA/A","nama":"IPAD 11TH WI-FI 256GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4H4PA/A","nama":"IPAD 11TH WI-FI 256GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD7F4PA/A","nama":"IPAD 11TH WI-FI + CELLULAR 128GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDE14ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/16GB/1TB-IND","stok":4,"baris":4,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDE34ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/24GB/1TB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDH84ID/A","nama":"MBA 13.6 SLV/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDHF4ID/A","nama":"MBA 13.6 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDVK4ID/A","nama":"MBA 15.3 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDVQ4ID/A","nama":"MBA 15.3 SKY/M5/10C GPU/16GB/512GB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWK4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 256GB SPACE B","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWM4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 512GB SPACE B","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMDWP4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 1TB SPACE BLA","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPME7W4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 256GB SP","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPME7Y4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 512GB SP","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH34ID/A","nama":"APPLE WATCH SE 3 40 S AL S SB SM GPS-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH94ID/A","nama":"APPLE WATCH SE 3 40 M AL M SB SM GPS-IND","stok":12,"baris":12,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHJ4ID/A","nama":"APPLE WATCH SE 3 44 S AL S SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHQ4ID/A","nama":"APPLE WATCH SE 3 44 M AL M SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPLE WATCH 11 42 RG AL LB SB SM GPS-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEUX4ID/A","nama":"APPLE WATCH 11 46 JB AL BK SB ML GPS-IND","stok":4,"baris":4,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWM4ID/A","nama":"APPLE WATCH ULTRA3 49 NT TI LB ALP M-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWU4ID/A","nama":"APPLE WATCH ULTRA3 49 N T B/BB TL ML-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0J4ID/A","nama":"APPLE WATCH ULTRA3 49 BLACK TI BK OB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0V4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK ALP M-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1H4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BC TL ML-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1Q4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK TML M-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMFHP4ID/A","nama":"AIRPODS PRO 3","stok":27,"baris":1,"qtyKolom":27},{"kategori":"iPhone","kode":"APPMFYM4ID/A","nama":"IPHONE 17 PRO MAX 256GB SILVER","stok":31,"baris":31,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMFYN4ID/A","nama":"IPHONE 17 PRO MAX 256GB COSMIC ORANGE","stok":31,"baris":31,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYP4ID/A","nama":"IPHONE 17 PRO MAX 256GB DEEP BLUE","stok":16,"baris":16,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYQ4ID/A","nama":"IPHONE 17 PRO MAX 512GB SILVER","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYT4ID/A","nama":"IPHONE 17 PRO MAX 512GB COSMIC ORANGE","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYV4ID/A","nama":"IPHONE 17 PRO MAX 1TB SILVER","stok":5,"baris":5,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYX4ID/A","nama":"IPHONE 17 PRO MAX 1TB DEEP BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2L4ID/A","nama":"IPHONE AIR 256GB SPACE BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2M4ID/A","nama":"IPHONE AIR 256GB CLOUD WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2N4ID/A","nama":"IPHONE AIR 256GB LIGHT GOLD","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2P4ID/A","nama":"IPHONE AIR 256GB SKY BLUE","stok":5,"baris":5,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMG2T4ID/A","nama":"IPHONE AIR 512GB CLOUD WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2U4ID/A","nama":"IPHONE AIR 512GB LIGHT GOLD","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6J4ID/A","nama":"IPHONE 17 256GB BLACK","stok":9,"baris":9,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6K4ID/A","nama":"IPHONE 17 256GB WHITE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6L4ID/A","nama":"IPHONE 17 256GB MIST BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6M4ID/A","nama":"IPHONE 17 256GB LAVENDER","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6N4ID/A","nama":"IPHONE 17 256GB SAGE","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6Q4ID/A","nama":"IPHONE 17 512GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6V4ID/A","nama":"PHONE 17 512GB SAGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8G4ID/A","nama":"IPHONE 17 PRO 256GB SILVER","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8H4ID/A","nama":"IPHONE 17 PRO 256GB COSMIC ORANGE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8J4ID/A","nama":"IPHONE 17 PRO 256GB DEEP BLUE","stok":84,"baris":84,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8K4ID/A","nama":"IPHONE 17 PRO 512GB SILVER","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8M4ID/A","nama":"IPHONE 17 PRO 512GB COSMIC ORANGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8N4ID/A","nama":"IPHONE 17 PRO 512GB DEEP BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8P4ID/A","nama":"IPHONE 17 PRO 1TB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8Q4ID/A","nama":"IPHONE 17 PRO 1TB COSMIC ORANGE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Mac","kode":"APPMGDN4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/1T-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDP4ID/A","nama":"MBP 14 SL/M5/PRO/18C/20CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDQ4ID/A","nama":"MBP 14 SL/M5/MAX/18C/32CGPU/36GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGE44ID/A","nama":"MBP 16 SL/M5/PRO/18C/20CGPU/24GB/1T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH344PA/A","nama":"IPAD AIR 11 WIFI 128GB PUR M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH354PA/A","nama":"IPAD AIR 11 WIFI 256GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH364PA/A","nama":"IPAD AIR 11 WIFI 256GB BLU M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH3G4PA/A","nama":"IPAD AIR 11 WIFI 1TB SPG M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5N4PA/A","nama":"IPAD AIR 13 WIFI 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH5P4PA/A","nama":"IPAD AIR 13 WIFI 128GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5W4PA/A","nama":"IPAD AIR 13 WIFI 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH784PA/A","nama":"IPAD AIR 11 WF CL 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH7E4PA/A","nama":"IPAD AIR 11 WF CL 256GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH7F4PA/A","nama":"IPAD AIR 11 WF CL 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFA4ID/A","nama":"MBN 13 SLV/8GB/256GB-IND","stok":14,"baris":14,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFC4ID/A","nama":"MBN 13 SLV/8GB/512GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFD4ID/A","nama":"MBN 13 CIT/8GB/256GB-IND","stok":10,"baris":10,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFE4ID/A","nama":"MBN 13 CIT/8GB/512GB-IND","stok":10,"baris":10,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFF4ID/A","nama":"MBN 13 IND/8GB/256GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFG4ID/A","nama":"MBN 13 IND/8GB/512GB-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFH4ID/A","nama":"MBN 13 BLS/8GB/256GB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRV4ID/A","nama":"IPHONE 17E 256GB BLACK","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHRX4ID/A","nama":"IPHONE 17E 256GB SOFT PINK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRY4ID/A","nama":"IPHONE 17E 512GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHU04ID/A","nama":"IPHONE 17E 512GB WHITE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHU34ID/A","nama":"IPHONE 17E 512GB SOFT PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMHWK4ID/A","nama":"AIRPODS MAX 2 MIDNIGHT","stok":11,"baris":1,"qtyKolom":11},{"kategori":"AirPods","kode":"APPMHWL4ID/A","nama":"AIRPODS MAX 2 STARLIGHT","stok":3,"baris":1,"qtyKolom":3},{"kategori":"AirPods","kode":"APPMHWM4ID/A","nama":"AIRPODS MAX 2 BLUE","stok":4,"baris":1,"qtyKolom":4},{"kategori":"AirPods","kode":"APPMHWN4ID/A","nama":"AIRPODS MAX 2 ORANGE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMHWP4ID/A","nama":"AIRPODS MAX 2 PURPLE","stok":2,"baris":1,"qtyKolom":2},{"kategori":"Mac","kode":"APPMJLV4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":5,"baris":5,"qtyKolom":1},{"kategori":"Mac","kode":"APPMJLW4ID/A","nama":"MBP 14 SB/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMP263PA/A","nama":"IPAD PRO 12.9 WF CL 2T GRY-PAC 6TH 2022","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMPWW3ID/A","nama":"IPHONE 14 512GB MIDNIGHT","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMR962ID/A","nama":"MBP 15.4/2.2GHZ(I7)/16GB/256GB/TB/SL","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMRW63ID/A","nama":"MBP 16 SL/M3/12C/18C GP/36G/512G-ID 23","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP03ID/A","nama":"IPHONE 15 128GB BLACK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP13ID/A","nama":"IPHONE 15 128GB PINK","stok":24,"baris":24,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP43ID/A","nama":"IPHONE 15 128GB BLUE","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP63ID/A","nama":"IPHONE 15 256GB BLACK","stok":18,"baris":18,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP73ID/A","nama":"IPHONE 15 256GB PINK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP93ID/A","nama":"IPHONE 15 256GB BLUE","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMU1M3ID/A","nama":"IPHONE 15 PLUS 512GB YELLOW","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMWTY3FE/A","nama":"EARPODS WITH LIGHTNING CONNECTOR","stok":11,"baris":1,"qtyKolom":11},{"kategori":"iPad","kode":"APPMXN63PA/A","nama":"IPAD MINI 7 WIFI 128GB  SPACE GREY","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN73PA/A","nama":"IPAD MINI 7 WIFI 128GB  BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN93PA/A","nama":"IPAD MINI 7 WIFI 128GB  PURPLE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXNC3PA/A","nama":"IPAD MINI 7 WIFI 256GB  BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP63ID/A","nama":"AIRPODS 4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP93ID/A","nama":"AIRPODS 4 (ACTIVE NOISE CANCELLATION)","stok":14,"baris":1,"qtyKolom":14},{"kategori":"iPhone","kode":"APPMXVU3ID/A","nama":"IPHONE 16 PLUS 128GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVW3ID/A","nama":"IPHONE 16 PLUS 128GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVX3ID/A","nama":"IPHONE 16 PLUS 128GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVY3ID/A","nama":"IPHONE 16 PLUS 128GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXWV3ID/A","nama":"IPHONE 16 PLUS 256GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY13ID/A","nama":"IPHONE 16 PLUS 256GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY23ID/A","nama":"IPHONE 16 PLUS 256GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY53ID/A","nama":"IPHONE 16 PLUS 256GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY1P3ID/A","nama":"IPHONE 16 PLUS 512GB BLACK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY1X3ID/A","nama":"IPHONE 16 PLUS 512GB WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY253ID/A","nama":"IPHONE 16 PLUS 512GB PINK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY2D3ID/A","nama":"IPHONE 16 PLUS 512GB ULTRAMARINE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY2J3ID/A","nama":"IPHONE 16 PLUS 512GB TEAL","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE73ID/A","nama":"IPHONE 16 128GB BLACK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE93ID/A","nama":"IPHONE 16 128GB WHITE","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEA3ID/A","nama":"IPHONE 16 128GB PINK","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEC3ID/A","nama":"IPHONE 16 128GB ULTRAMARINE","stok":10,"baris":10,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYED3ID/A","nama":"IPHONE 16 128GB TEAL","stok":8,"baris":8,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYER3ID/A","nama":"IPHONE 16 512GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEU3ID/A","nama":"IPHONE 16 512GB SAGE","stok":1,"baris":1,"qtyKolom":0}];
 
 function sohLoadJSON(key, fallback){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
