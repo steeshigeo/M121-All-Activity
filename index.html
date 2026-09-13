@@ -471,6 +471,7 @@
   .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
   .sync-pill.saved .sync-dot { background: var(--mint); }
   .sync-pill.saving .sync-dot { background: #ffb020; animation: pulse 1s infinite; }
+  .sync-pill.loading .sync-dot { background: #007aff; animation: pulse 0.6s infinite; }
   .sync-pill.offline .sync-dot { background: var(--danger); }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
 
@@ -872,7 +873,7 @@
           </div>
         </div>
         <div class="topbar-right">
-          <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span> Memuat...</div>
+          <div class="sync-pill saved" id="syncPill"><span class="sync-dot"></span> Tersimpan</div>
           <button class="theme-toggle-btn" id="refreshChecklist" title="Refresh Data Checklist">🔄</button>
           <button class="theme-toggle-btn" id="openSettings" title="Pengaturan">⚙️</button>
         </div>
@@ -1681,13 +1682,20 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
   const currentDayData = loadDayDataLocal(tKey);
   if (!currentDayData.counts) currentDayData.counts = {};
   if (!currentDayData.counts[actObj.id]) currentDayData.counts[actObj.id] = {};
+  if (!currentDayData.timestamps) currentDayData.timestamps = {};
 
   // 3. Tambahkan count eksekusi
   currentDayData.counts[actObj.id][staffName] = (currentDayData.counts[actObj.id][staffName] || 0) + 1;
+  currentDayData.timestamps[`${actObj.id}_${staffName}`] = Date.now();
   saveDayDataLocal(tKey, currentDayData);
 
-  // Synchronize remote
-  remoteSet(remoteDataKey(tKey), currentDayData).catch(() => {});
+  // Synchronize remote dengan Merge Pintar
+  remoteGet(remoteDataKey(tKey)).then(raw => {
+    let remote = raw ? JSON.parse(raw) : null;
+    let merged = mergeDayData(currentDayData, remote);
+    saveDayDataLocal(tKey, merged);
+    return remoteSet(remoteDataKey(tKey), merged);
+  }).catch(() => {});
 }
 
 
@@ -2057,11 +2065,10 @@ function copyTrainerAndOpenWA() {
 }
 
 
-// --- VIEW: CHECKLIST HARIAN TOKO LOGIC ---
+// --- VIEW: CHECKLIST HARIAN TOKO LOGIC (SMART MERGE & FAST FAST SYNC) ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
-// PERBAIKAN: Bump versi config ke v6 untuk auto-inject link submit Samudera
 const CONFIG_KEY = "digimap_checklist_config_v6";
 const DATA_PREFIX = "digimap_checklist_data_";
 const SAMUDERA_SUBMIT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform";
@@ -2069,7 +2076,6 @@ const SAMUDERA_SUBMIT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   
-  // HAPUS TOTAL Aktivitas ROLEPLAY dan LOB CHAMPION dari default Checklist Harian Toko
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
     return !nameUpper.includes("ROLEPLAY") && 
@@ -2085,7 +2091,6 @@ function sanitizeConfig(cfg) {
     }
   });
 
-  // PROTEKSI AUTO-INJECT: Paksa tambahkan SAMUDERA beserta link submit jika belum ada di data tersimpan
   const hasSamudera = cfg.activities.some(a => a.name.toUpperCase().includes("SAMUDERA"));
   if (!hasSamudera) {
     cfg.activities.splice(2, 0, {id:"a3", name:"SAMUDERA", icon:"🌊", link: SAMUDERA_SUBMIT_LINK});
@@ -2134,7 +2139,7 @@ function loadDayDataLocal(key){
     const raw = localStorage.getItem(DATA_PREFIX+key);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return {counts:{}, submissions:{}};
+  return {counts:{}, submissions:{}, timestamps:{}};
 }
 function saveDayDataLocal(key, data){
   localStorage.setItem(DATA_PREFIX+key, JSON.stringify(data));
@@ -2156,6 +2161,72 @@ async function remoteSet(key, valueObj){
   return res.json();
 }
 
+/**
+ * METODE MERGE PINTAR ANTI-TIMPA:
+ * Menggabungkan data lokal dan remote berdasarkan timestamp per-nama staff & per-aktivitas.
+ */
+function mergeDayData(local, remote) {
+  if (!remote) return local || { counts: {}, submissions: {}, timestamps: {} };
+  if (!local) return remote || { counts: {}, submissions: {}, timestamps: {} };
+
+  const merged = {
+    counts: {},
+    submissions: {},
+    timestamps: {}
+  };
+
+  const localTs = local.timestamps || {};
+  const remoteTs = remote.timestamps || {};
+
+  // 1. Merge Timestamps
+  const allTsKeys = new Set([...Object.keys(localTs), ...Object.keys(remoteTs)]);
+  allTsKeys.forEach(k => {
+    merged.timestamps[k] = Math.max(localTs[k] || 0, remoteTs[k] || 0);
+  });
+
+  // 2. Merge Counts
+  const localCounts = local.counts || {};
+  const remoteCounts = remote.counts || {};
+  const allActIds = new Set([...Object.keys(localCounts), ...Object.keys(remoteCounts)]);
+
+  allActIds.forEach(actId => {
+    merged.counts[actId] = {};
+    const localStaff = localCounts[actId] || {};
+    const remoteStaff = remoteCounts[actId] || {};
+    const allStaffNames = new Set([...Object.keys(localStaff), ...Object.keys(remoteStaff)]);
+
+    allStaffNames.forEach(staffName => {
+      const tsKey = `${actId}_${staffName}`;
+      const lTime = localTs[tsKey] || 0;
+      const rTime = remoteTs[tsKey] || 0;
+
+      if (lTime > rTime) {
+        merged.counts[actId][staffName] = localStaff[staffName];
+      } else if (rTime > lTime) {
+        merged.counts[actId][staffName] = remoteStaff[staffName];
+      } else {
+        const lVal = localStaff[staffName] ?? 0;
+        const rVal = remoteStaff[staffName] ?? 0;
+        merged.counts[actId][staffName] = Math.max(lVal, rVal);
+      }
+    });
+  });
+
+  // 3. Merge Submissions Link
+  const localSubs = local.submissions || {};
+  const remoteSubs = remote.submissions || {};
+  const allSubActIds = new Set([...Object.keys(localSubs), ...Object.keys(remoteSubs)]);
+
+  allSubActIds.forEach(actId => {
+    merged.submissions[actId] = {
+      ...(remoteSubs[actId] || {}),
+      ...(localSubs[actId] || {})
+    };
+  });
+
+  return merged;
+}
+
 function setStatus(state){
   const el = document.getElementById("syncPill");
   if(!el) return;
@@ -2168,7 +2239,7 @@ function setStatus(state){
 
 let config = defaultConfig();
 let currentDate = new Date();
-let dayData = {counts:{}, submissions:{}};
+let dayData = {counts:{}, submissions:{}, timestamps:{}};
 let followToday = true;
 let configDirty = false;
 let countsDebounceTimer = null;
@@ -2176,10 +2247,14 @@ let countsDebounceTimer = null;
 function getCount(activityId, staffName){
   return (dayData.counts[activityId] && dayData.counts[activityId][staffName]) || 0;
 }
+
 function setCount(activityId, staffName, val){
   if(val < 0) val = 0;
   if(!dayData.counts[activityId]) dayData.counts[activityId] = {};
   dayData.counts[activityId][staffName] = val;
+  if(!dayData.timestamps) dayData.timestamps = {};
+  dayData.timestamps[`${activityId}_${staffName}`] = Date.now();
+  
   saveDayDataLocal(dateKey(currentDate), dayData);
   scheduleCountsPush();
 }
@@ -2189,14 +2264,27 @@ function scheduleCountsPush(){
   if(countsDebounceTimer) clearTimeout(countsDebounceTimer);
   countsDebounceTimer = setTimeout(flushCounts, 900);
 }
+
 async function flushCounts(){
   countsDebounceTimer = null;
   const key = dateKey(currentDate);
-  saveDayDataLocal(key, dayData);
+  setStatus("saving");
   try{
+    let remoteData = null;
+    try {
+      const raw = await remoteGet(remoteDataKey(key));
+      if(raw) remoteData = JSON.parse(raw);
+    } catch(err){}
+
+    dayData = mergeDayData(dayData, remoteData);
+    saveDayDataLocal(key, dayData);
+
     await remoteSet(remoteDataKey(key), dayData);
     setStatus("saved");
-  }catch(e){ setStatus("offline"); }
+    renderAllChecklist();
+  }catch(e){ 
+    setStatus("offline"); 
+  }
 }
 
 async function pushConfig(){
@@ -2212,39 +2300,58 @@ async function pushConfig(){
 
 async function loadCurrentDayData(){
   const key = dateKey(currentDate);
+  
+  // Tampilkan data lokal secara instan (< 50ms)
+  dayData = loadDayDataLocal(key);
+  if(!dayData.counts) dayData.counts = {};
+  if(!dayData.submissions) dayData.submissions = {};
+  if(!dayData.timestamps) dayData.timestamps = {};
+  renderAllChecklist();
+
+  // Ambil data remote & jalankan Merge Pintar di latar belakang
   try{
     const raw = await remoteGet(remoteDataKey(key));
-    dayData = raw ? JSON.parse(raw) : {counts:{}, submissions:{}};
-    if(!dayData.counts) dayData.counts = {};
-    if(!dayData.submissions) dayData.submissions = {};
-    saveDayDataLocal(key, dayData);
+    if(raw) {
+      const remoteData = JSON.parse(raw);
+      dayData = mergeDayData(dayData, remoteData);
+      saveDayDataLocal(key, dayData);
+      renderAllChecklist();
+    }
     setStatus("saved");
   }catch(e){
-    dayData = loadDayDataLocal(key);
-    if(!dayData.counts) dayData.counts = {};
-    if(!dayData.submissions) dayData.submissions = {};
     setStatus("offline");
   }
 }
 
 async function initChecklist(){
-  setStatus("loading");
+  config = loadConfigLocal();
+  dayData = loadDayDataLocal(dateKey(currentDate));
+  if(!dayData.counts) dayData.counts = {};
+  if(!dayData.submissions) dayData.submissions = {};
+  if(!dayData.timestamps) dayData.timestamps = {};
+  renderAllChecklist();
+
+  const key = dateKey(currentDate);
   try{
-    const raw = await remoteGet(REMOTE_CONFIG_KEY);
-    if(raw){
-      config = sanitizeConfig(JSON.parse(raw));
+    const [rawConfig, rawData] = await Promise.all([
+      remoteGet(REMOTE_CONFIG_KEY).catch(() => null),
+      remoteGet(remoteDataKey(key)).catch(() => null)
+    ]);
+
+    if(rawConfig){
+      config = sanitizeConfig(JSON.parse(rawConfig));
       saveConfigLocal(config);
-    } else {
-      config = defaultConfig();
-      saveConfigLocal(config);
-      await remoteSet(REMOTE_CONFIG_KEY, config);
     }
+    if(rawData){
+      const remoteData = JSON.parse(rawData);
+      dayData = mergeDayData(dayData, remoteData);
+      saveDayDataLocal(key, dayData);
+    }
+    setStatus("saved");
+    renderAllChecklist();
   }catch(e){
-    config = loadConfigLocal();
     setStatus("offline");
   }
-  await loadCurrentDayData();
-  renderAllChecklist();
 }
 
 function showConfirm(message, title){
@@ -2595,44 +2702,35 @@ document.getElementById("refreshChecklist")?.addEventListener("click", async () 
   btn.style.transform = "rotate(360deg)";
   setStatus("loading");
   await loadCurrentDayData();
-  renderAllChecklist();
   showToast("Data Checklist berhasil di-refresh 🔄");
   setTimeout(() => { btn.style.transform = "none"; }, 300);
 });
 
 // Event Listeners Checklist Harian
-document.getElementById("prevDay").addEventListener("click", async ()=>{
+document.getElementById("prevDay").addEventListener("click", ()=>{
   followToday = false;
   currentDate.setDate(currentDate.getDate()-1);
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
+  loadCurrentDayData();
 });
-document.getElementById("nextDay").addEventListener("click", async ()=>{
+document.getElementById("nextDay").addEventListener("click", ()=>{
   followToday = false;
   currentDate.setDate(currentDate.getDate()+1);
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
+  loadCurrentDayData();
 });
 document.getElementById("dateDisplay").addEventListener("click",()=>{
   const el = document.getElementById("dateInput");
   el.showPicker ? el.showPicker() : el.click();
 });
-document.getElementById("dateInput").addEventListener("change", async (e)=>{
+document.getElementById("dateInput").addEventListener("change", (e)=>{
   const [y,m,d] = e.target.value.split("-").map(Number);
   currentDate = new Date(y, m-1, d);
   followToday = (dateKey(currentDate) === dateKey(new Date()));
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
+  loadCurrentDayData();
 });
-document.getElementById("jumpToday").addEventListener("click", async ()=>{
+document.getElementById("jumpToday").addEventListener("click", ()=>{
   followToday = true;
   currentDate = new Date();
-  setStatus("loading");
-  await loadCurrentDayData();
-  renderAllChecklist();
+  loadCurrentDayData();
 });
 
 document.getElementById("addActivityBtn").addEventListener("click",()=>{
@@ -2683,7 +2781,7 @@ document.getElementById("newStaffName").addEventListener("keydown",(e)=>{
 document.getElementById("resetDayBtn").addEventListener("click", async ()=>{
   const ok = await showConfirm("Reset semua centang untuk tanggal ini?", "Reset Centang Hari Ini");
   if(ok){
-    dayData = {counts:{}, submissions:{}};
+    dayData = {counts:{}, submissions:{}, timestamps:{}};
     const key = dateKey(currentDate);
     saveDayDataLocal(key, dayData);
     renderAllChecklist();
@@ -2707,6 +2805,25 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
     catch(e){ setStatus("offline"); }
   }
 });
+
+// Auto Background Refresh setiap 15 Detik
+setInterval(() => {
+  const isChecklistActive = document.getElementById("viewChecklist")?.classList.contains("active");
+  if (isChecklistActive && !countsDebounceTimer) {
+    const key = dateKey(currentDate);
+    remoteGet(remoteDataKey(key)).then(raw => {
+      if (raw) {
+        const remoteData = JSON.parse(raw);
+        const merged = mergeDayData(dayData, remoteData);
+        if (JSON.stringify(merged) !== JSON.stringify(dayData)) {
+          dayData = merged;
+          saveDayDataLocal(key, dayData);
+          renderAllChecklist();
+        }
+      }
+    }).catch(() => {});
+  }
+}, 15000);
 
 // Inisialisasi Checklist
 initChecklist();
@@ -2842,9 +2959,21 @@ async function deleteSummaryRecord(dateStr, actId, staffName) {
     if (Object.keys(data.counts[actId]).length === 0) {
       delete data.counts[actId];
     }
+    if (!data.timestamps) data.timestamps = {};
+    data.timestamps[`${actId}_${staffName}`] = Date.now();
     saveDayDataLocal(dateStr, data);
+
     try {
-      await remoteSet(remoteDataKey(dateStr), data);
+      let remoteData = null;
+      try {
+        const raw = await remoteGet(remoteDataKey(dateStr));
+        if (raw) remoteData = JSON.parse(raw);
+      } catch(err){}
+      const merged = mergeDayData(data, remoteData);
+      delete merged.counts[actId]?.[staffName];
+      merged.timestamps[`${actId}_${staffName}`] = Date.now();
+      saveDayDataLocal(dateStr, merged);
+      await remoteSet(remoteDataKey(dateStr), merged);
     } catch(e) {}
   }
   showToast("Record aktivitas berhasil dihapus ✓");
