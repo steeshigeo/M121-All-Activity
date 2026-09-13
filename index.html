@@ -1133,7 +1133,6 @@
             <label>Nama Staff</label>
             <select id="trainerNamaStaff" required>
               <option value="" disabled selected>Pilih Staff...</option>
-              <!-- Menambahkan opsi All Staff -->
               <option value="All Staff">All Staff</option>
               <option value="Sulton Setiawan">Sulton Setiawan</option>
               <option value="Muhamad Angga Jul F.">Muhamad Angga Jul F.</option>
@@ -1662,8 +1661,8 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
 
-  // BLOKIR TOTAL: Jangan catat atau tampilkan aktivitas ROLEPLAY atau SAMUDRA/LOB CHAMPION di Checklist Harian secara otomatis
-  if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("SAMUDRA") || cleanActName.includes("SAMUDERA") || cleanActName.includes("LOB CHAMPION")) {
+  // BLOKIR TOTAL: Jangan catat atau tampilkan aktivitas ROLEPLAY atau LOB CHAMPION di Checklist Harian secara otomatis
+  if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("LOB CHAMPION")) {
     return;
   }
 
@@ -1733,8 +1732,6 @@ async function handlePhotoSubmit(e) {
     if(res.success) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto berhasil dikompres & diunggah!";
-      
-      // CATATAN: Try On Photo Evidence (Aksara, Samudera, Cakrawala) TIDAK di-link ke Checklist Harian Toko untuk mencegah double checklist.
 
       const waktuUpload = getFormattedPhotoDateTime();
       photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
@@ -1956,7 +1953,6 @@ async function handleOpsEmsSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto OPS & EMS berhasil dikompres & diunggah!";
       
-      // Catat ke Checklist Harian Toko agar tampil secara kondisional
       recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
@@ -2030,7 +2026,6 @@ async function handleTrainerSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto Trainer berhasil dikompres & diunggah!";
       
-      // Catat ke Checklist Harian Toko agar tampil secara kondisional
       recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
@@ -2072,18 +2067,17 @@ const DATA_PREFIX = "digimap_checklist_data_";
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   
-  // HAPUS TOTAL Aktivitas ROLEPLAY, SAMUDRA, dan LOB CHAMPION dari default Checklist Harian Toko
+  // HAPUS TOTAL Aktivitas ROLEPLAY dan LOB CHAMPION dari default Checklist Harian Toko
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
     return !nameUpper.includes("ROLEPLAY") && 
-           !nameUpper.includes("SAMUDRA") && 
-           !nameUpper.includes("SAMUDERA") &&
            !nameUpper.includes("LOB CHAMPION");
   });
 
   cfg.activities.forEach(a => {
     if (a.name.includes("AKSARA")) a.name = "AKSARA";
     if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
+    if (a.name.includes("SAMUDERA") || a.name.includes("SAMUDRA")) a.name = "SAMUDERA";
   });
 
   return cfg;
@@ -2100,6 +2094,7 @@ function defaultConfig(){
     activities: [
       {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
+      {id:"a3", name:"SAMUDERA", icon:"🌊", link:""},
       {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
       {id:"a8", name:"CAKRAWALA", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
       {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
@@ -2278,14 +2273,12 @@ function renderActivities(){
   const list = document.getElementById("activityList");
   list.innerHTML = "";
   
-  // Daftar Aktivitas yang hanya tampil jika ADA STAFF UPLOAD pada hari tersebut
   const DYNAMIC_CONDITIONAL_ACTIVITIES = ["OPEN STUDIO", "EMS", "TRAINING", "ROLEPLAY"];
 
   config.activities.forEach(act => {
     const activeStaff = activeStaffFor(act.id);
     const actNameUpper = act.name.toUpperCase();
 
-    // Sembunyikan Open Studio, EMS, Training, Roleplay jika tidak ada staff yang upload hari ini
     if (DYNAMIC_CONDITIONAL_ACTIVITIES.some(d => actNameUpper.includes(d))) {
       if (activeStaff.length === 0) return;
     }
@@ -2772,6 +2765,7 @@ function renderAnalyticsSummary() {
 
         if (actName.includes("AKSARA")) actName = "AKSARA";
         if (actName.includes("CAKRAWALA")) actName = "CAKRAWALA";
+        if (actName.includes("SAMUDERA") || actName.includes("SAMUDRA")) actName = "SAMUDERA";
 
         Object.keys(data.counts[actId]).forEach(staffName => {
           const count = data.counts[actId][staffName];
