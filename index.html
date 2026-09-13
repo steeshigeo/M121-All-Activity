@@ -303,7 +303,7 @@
     font-size: 12px;
     font-weight: 700;
     padding: 6px 14px;
-    border-radius: 9px;
+    border-radius: 99px;
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -1760,13 +1760,55 @@ function copyPhotoAndOpenWA() {
 }
 
 
-// --- VIEW: LOB CHAMPION REPORT LOGIC ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC & ACCURATE FILTERING ---
 let lobReportTemplate = "";
 
-// Helper untuk membersihkan nama secara konsisten (menghapus tanda kurung & spasi ganda)
-function cleanStaffName(rawName) {
-  if (!rawName) return "";
-  return rawName.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+// Helper ekstraksi nama (menangani string murni maupun object dari sheet)
+function extractNameString(item) {
+  if (!item) return "";
+  if (typeof item === 'string') return item;
+  if (typeof item === 'object') {
+    return item.namaStaff || item.nama_staff || item.nama || item.staff || item.name || JSON.stringify(item);
+  }
+  return String(item);
+}
+
+// Clean nama murni tanpa tanda baca & tanda kurung
+function cleanStaffName(rawInput) {
+  const str = extractNameString(rawInput);
+  return str.replace(/\s*\([^)]*\)/g, '')
+            .replace(/[^a-zA-Z0-9\s]/g, '')
+            .toLowerCase()
+            .trim();
+}
+
+// Logika Matching Token Kunci (Pencocokan Kata Unik)
+function isSameStaff(name1, name2) {
+  const c1 = cleanStaffName(name1);
+  const c2 = cleanStaffName(name2);
+  if (!c1 || !c2) return false;
+
+  if (c1 === c2 || c1.includes(c2) || c2.includes(c1)) return true;
+
+  // Cek kata kunci unik (panjang kata > 2 karakter)
+  const tokens1 = c1.split(/\s+/).filter(t => t.length > 2);
+  const tokens2 = c2.split(/\s+/).filter(t => t.length > 2);
+
+  return tokens1.some(t1 => tokens2.includes(t1));
+}
+
+// Histori Lokal Hari Ini untuk Mencegah Delay Server
+function getLocalLobUploaded(dateStr) {
+  try {
+    const raw = localStorage.getItem("digimap_lob_uploaded_" + dateStr);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveLocalLobUploaded(dateStr, list) {
+  try {
+    localStorage.setItem("digimap_lob_uploaded_" + dateStr, JSON.stringify(list));
+  } catch(e) {}
 }
 
 async function fetchUploadedLobStaffs() {
@@ -1797,6 +1839,7 @@ async function handleLobSubmit(e) {
 
   const namaStaff = document.getElementById('lobNamaStaff').value;
   const tujuan = "LOB Champion";
+  const todayDate = getTodayString();
 
   try {
     const compressedBase64 = await compressImage(file, 1280, 0.75);
@@ -1822,34 +1865,23 @@ async function handleLobSubmit(e) {
 
       recordExternalActivityToAnalytics(tujuan, namaStaff);
 
-      const waktuUpload = getFormattedPhotoDateTime();
-      
-      // 1. Ambil daftar staff yang sudah upload dari Apps Script
-      const uploadedStaffsRaw = await fetchUploadedLobStaffs();
-      
-      // 2. Normalisasi semua nama staff yang sudah upload menjadi lowercase murni
-      const uploadedCleanList = uploadedStaffsRaw.map(s => cleanStaffName(s));
-      
-      // 3. Tambahkan staff yang baru saja submit jika belum tercatat di array
-      const currentStaffClean = cleanStaffName(namaStaff);
-      if (!uploadedCleanList.includes(currentStaffClean)) {
-        uploadedCleanList.push(currentStaffClean);
+      // 1. Simpan ke storage lokal instan
+      let localUploaded = getLocalLobUploaded(todayDate);
+      if (!localUploaded.some(item => isSameStaff(item, namaStaff))) {
+        localUploaded.push(namaStaff);
+        saveLocalLobUploaded(todayDate, localUploaded);
       }
 
-      // 4. PERBAIKAN PERSISI PENCARIAN STAFF:
-      // Bandingkan secara murni nama staff di LOB_STAFF_LIST dengan uploadedCleanList
-      const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
-        const targetClean = cleanStaffName(staffItem);
-        
-        // Pencocokan eksak dan fleksibel dua arah
-        const isUploaded = uploadedCleanList.some(uploadedName => {
-          return uploadedName === targetClean || uploadedName.includes(targetClean) || targetClean.includes(uploadedName);
-        });
+      // 2. Ambil data dari server Apps Script & gabungkan
+      const remoteUploaded = await fetchUploadedLobStaffs();
+      const combinedUploaded = [...localUploaded, ...remoteUploaded];
 
-        return !isUploaded;
+      // 3. Filter staff yang benar-benar belum submit
+      const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
+        return !combinedUploaded.some(uploadedItem => isSameStaff(staffItem, uploadedItem));
       });
 
-      // 5. Susun teks laporan
+      // 4. Susun teks laporan
       let missingStaffText = "";
       if (pendingStaffs.length === 0) {
         missingStaffText = "Sudah Submit Semua Bosku 🔥";
@@ -1857,6 +1889,7 @@ async function handleLobSubmit(e) {
         missingStaffText = pendingStaffs.map((s, i) => `\n   ${i + 1}. ${s}`).join("");
       }
 
+      const waktuUpload = getFormattedPhotoDateTime();
       status.innerText = "✅ Foto LOB Champion berhasil dikompres & diunggah!";
 
       lobReportTemplate = `📌 LAPORAN LOB CHAMPION M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}\n👀 Staff Yang Belum Submit (Abaikan kalo Offday): ${missingStaffText}`;
