@@ -256,6 +256,49 @@
   .btn-copy { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
   .btn-wa { background: #25d366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
 
+  /* Staff Email List Component Styling */
+  .staff-email-list {
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;
+  }
+  .staff-email-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--surface-soft); border: 1px solid var(--border);
+    border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+  .staff-email-item:hover {
+    background: var(--surface-solid);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .staff-detail {
+    min-width: 0; flex: 1;
+  }
+  .staff-name-text {
+    font-size: 13.5px; font-weight: 700; color: var(--text); line-height: 1.35;
+  }
+  .staff-email-text {
+    font-size: 11.5px; color: var(--text-dim); font-weight: 500; margin-top: 2px;
+    word-break: break-all;
+  }
+  .staff-actions {
+    display: flex; gap: 6px; flex-shrink: 0; align-items: center;
+  }
+  .btn-copy-mini {
+    padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface-solid); color: var(--text); font-size: 11.5px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .btn-copy-mini:hover {
+    background: var(--mint-soft); color: var(--mint); border-color: var(--mint);
+  }
+  .btn-copy-mini:active { transform: scale(0.94); }
+  @media (max-width: 520px) {
+    .staff-email-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .staff-actions { width: 100%; justify-content: flex-end; }
+  }
+
   /* Summary Table & Modern Analytics UI */
   .summary-hero-card {
     background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%);
@@ -1126,6 +1169,136 @@
         <!-- Garis Pemisah -->
         <hr style="border:none; border-top:1px solid var(--border); margin: 24px 0;">
 
+        <!-- Sub-Judul Email Staff -->
+        <div class="section-label">Daftar Email Staff Toko</div>
+
+        <!-- List Nama Staff & Email dengan Tombol Copy -->
+        <div class="staff-email-list">
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Nur Indah Oktaviani Saputri</div>
+              <div class="staff-email-text">nurindah.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Nur Indah Oktaviani Saputri', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('nurindah.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Eggy Thania Aurelia Mardianto</div>
+              <div class="staff-email-text">eggythania.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Eggy Thania Aurelia Mardianto', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('eggythania.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Muhamad Angga Jul F</div>
+              <div class="staff-email-text">muhamadangga.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Muhamad Angga Jul F', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('muhamadangga.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Achmad Rafi Kurnia Tsany</div>
+              <div class="staff-email-text">rafi.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Achmad Rafi Kurnia Tsany', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('rafi.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Hilda Ainur Rosyidah</div>
+              <div class="staff-email-text">hilda.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Hilda Ainur Rosyidah', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('hilda.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Moh Asfiyak Kamida</div>
+              <div class="staff-email-text">mohasfiyak.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Moh Asfiyak Kamida', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('mohasfiyak.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Dewi Andansari</div>
+              <div class="staff-email-text">dewiandan.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Dewi Andansari', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('dewiandan.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Hyskia Indra Aphista</div>
+              <div class="staff-email-text">hyskiaindra.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Hyskia Indra Aphista', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('hyskiaindra.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Linda Indi Kusumaningrum</div>
+              <div class="staff-email-text">linda.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Linda Indi Kusumaningrum', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('linda.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Sulton Setiawan</div>
+              <div class="staff-email-text">sultons.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Sulton Setiawan', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('sultons.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Frandy Putra</div>
+              <div class="staff-email-text">frandy.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Frandy Putra', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('frandy.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Garis Pemisah -->
+        <hr style="border:none; border-top:1px solid var(--border); margin: 24px 0;">
+
         <!-- Sub-Judul Photo Evidence -->
         <div class="section-label">Try On Photo Evidence</div>
 
@@ -1482,6 +1655,13 @@
 <div class="toast" id="toast">Tersalin ✓</div>
 
 <script>
+// --- UTILITY HELPER COPY TO CLIPBOARD ---
+function copyToClipboard(text, msg) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(msg || "Tersalin ✓");
+  });
+}
+
 // --- VANTA.JS NET ANIMATION INIT ---
 let vantaEffect = null;
 function initVanta() {
@@ -1662,12 +1842,10 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
 
-  // BLOKIR TOTAL: Jangan catat atau tampilkan aktivitas ROLEPLAY atau LOB CHAMPION di Checklist Harian secara otomatis
   if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("LOB CHAMPION")) {
     return;
   }
 
-  // 1. Cari atau buat ID Aktivitas di config
   let actObj = config.activities.find(a => a.name.toUpperCase() === cleanActName);
   if (!actObj) {
     actObj = { id: "a_ext_" + Date.now(), name: cleanActName, icon: "📁", link: "" };
@@ -1677,19 +1855,16 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     saveConfigLocal(config);
   }
 
-  // 2. Load data hari ini
   const tKey = getTodayString();
   const currentDayData = loadDayDataLocal(tKey);
   if (!currentDayData.counts) currentDayData.counts = {};
   if (!currentDayData.counts[actObj.id]) currentDayData.counts[actObj.id] = {};
   if (!currentDayData.timestamps) currentDayData.timestamps = {};
 
-  // 3. Tambahkan count eksekusi
   currentDayData.counts[actObj.id][staffName] = (currentDayData.counts[actObj.id][staffName] || 0) + 1;
   currentDayData.timestamps[`${actObj.id}_${staffName}`] = Date.now();
   saveDayDataLocal(tKey, currentDayData);
 
-  // Synchronize remote dengan Merge Pintar
   remoteGet(remoteDataKey(tKey)).then(raw => {
     let remote = raw ? JSON.parse(raw) : null;
     let merged = mergeDayData(currentDayData, remote);
@@ -2065,7 +2240,7 @@ function copyTrainerAndOpenWA() {
 }
 
 
-// --- VIEW: CHECKLIST HARIAN TOKO LOGIC (SMART MERGE & FAST SYNC & MIDNIGHT RESET) ---
+// --- VIEW: CHECKLIST HARIAN TOKO LOGIC ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 const DAYS = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
@@ -2161,9 +2336,6 @@ async function remoteSet(key, valueObj){
   return res.json();
 }
 
-/**
- * METODE MERGE PINTAR ANTI-TIMPA
- */
 function mergeDayData(local, remote) {
   if (!remote) return local || { counts: {}, submissions: {}, timestamps: {} };
   if (!local) return remote || { counts: {}, submissions: {}, timestamps: {} };
@@ -2234,7 +2406,7 @@ function setStatus(state){
 }
 
 let config = defaultConfig();
-let currentDate = new Date(); // Selalu mengambil tanggal perangkat saat pertama buka
+let currentDate = new Date();
 let dayData = {counts:{}, submissions:{}, timestamps:{}};
 let followToday = true;
 let configDirty = false;
@@ -2297,14 +2469,12 @@ async function pushConfig(){
 async function loadCurrentDayData(){
   const key = dateKey(currentDate);
   
-  // Load data lokal secara instan (< 50ms)
   dayData = loadDayDataLocal(key);
   if(!dayData.counts) dayData.counts = {};
   if(!dayData.submissions) dayData.submissions = {};
   if(!dayData.timestamps) dayData.timestamps = {};
   renderAllChecklist();
 
-  // Sync data remote & jalankan Merge Pintar di latar belakang
   try{
     const raw = await remoteGet(remoteDataKey(key));
     if(raw) {
@@ -2350,11 +2520,10 @@ async function initChecklist(){
   }
 }
 
-// --- LOGIKA DETEKSI PERGANTIAN HARI OTOMATIS (AUTO-MIDNIGHT RESET) ---
+// LOGIKA DETEKSI PERGANTIAN HARI OTOMATIS
 function checkAutoMidnightSwitch() {
   if (followToday) {
     const todayNow = new Date();
-    // Jika tanggal sistem sekarang tidak sama dengan tanggal yang sedang ditampilkan
     if (dateKey(currentDate) !== dateKey(todayNow)) {
       currentDate = todayNow;
       loadCurrentDayData();
@@ -2363,16 +2532,13 @@ function checkAutoMidnightSwitch() {
   }
 }
 
-// Cek pergantian hari saat tab aktif / dinyalakan kembali
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     checkAutoMidnightSwitch();
   }
 });
 
-// Cek pergantian hari secara berkala setiap 30 detik
 setInterval(checkAutoMidnightSwitch, 30000);
-
 
 function showConfirm(message, title){
   return new Promise(resolve=>{
@@ -2716,7 +2882,6 @@ function renderAllChecklist(){
   renderSubmitSummary();
 }
 
-// Event Listener Tombol Refresh di Checklist Harian Toko
 document.getElementById("refreshChecklist")?.addEventListener("click", async () => {
   const btn = document.getElementById("refreshChecklist");
   btn.style.transform = "rotate(360deg)";
@@ -2726,7 +2891,6 @@ document.getElementById("refreshChecklist")?.addEventListener("click", async () 
   setTimeout(() => { btn.style.transform = "none"; }, 300);
 });
 
-// Event Listeners Checklist Harian
 document.getElementById("prevDay").addEventListener("click", ()=>{
   followToday = false;
   currentDate.setDate(currentDate.getDate()-1);
@@ -2826,7 +2990,6 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
   }
 });
 
-// Auto Background Refresh setiap 15 Detik
 setInterval(() => {
   const isChecklistActive = document.getElementById("viewChecklist")?.classList.contains("active");
   if (isChecklistActive && !countsDebounceTimer) {
@@ -2845,7 +3008,6 @@ setInterval(() => {
   }
 }, 15000);
 
-// Inisialisasi Checklist
 initChecklist();
 
 
@@ -3364,7 +3526,6 @@ function sohRender(){
   sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok' : 'idle'));
 }
 
-// Events SOH Local
 document.getElementById('sohSearchInput')?.addEventListener('input', e => { sohState.search = e.target.value; sohRenderList(); });
 document.getElementById('sohSortSel')?.addEventListener('change', e => { sohState.sort = e.target.value; sohRenderList(); });
 
@@ -3449,7 +3610,6 @@ document.addEventListener('visibilitychange', () => {
 });
 setInterval(() => { sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok':'idle')); }, 15000);
 
-// Init SOH Local
 (function initSoh(){
   const cached = sohLoadJSON(SOH_LS_CACHE, null);
   if(cached && cached.data && cached.data.length){
