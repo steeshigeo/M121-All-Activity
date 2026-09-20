@@ -337,6 +337,8 @@
     border-radius: 12px;
     border: 1px solid var(--border);
     width: auto;
+    flex-wrap: wrap;
+    gap: 2px;
   }
 
   .segmented-btn {
@@ -610,7 +612,7 @@
 
   .toast {
     position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(8px); opacity: 0;
-    background: #1f2937; color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+    background: #1f2937; color: #fff; padding: 99px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
     transition: .25s; pointer-events: none; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -1451,16 +1453,23 @@
           </div>
         </div>
 
-        <!-- NEW FRESH LOOK & RESPONSIVE FILTER CARD -->
+        <!-- NEW FRESH LOOK & RESPONSIVE FILTER CARD WITH DATE RANGE -->
         <div class="fresh-filter-card">
           <div class="filter-segmented-control">
-            <button id="btnFilterMonth" class="segmented-btn active" onclick="setSummaryFilterMode('month')">Per Bulan</button>
+            <button id="btnFilterMonth" class="segmented-btn" onclick="setSummaryFilterMode('month')">Per Bulan</button>
             <button id="btnFilterDay" class="segmented-btn" onclick="setSummaryFilterMode('day')">Per Tanggal</button>
+            <button id="btnFilterRange" class="segmented-btn active" onclick="setSummaryFilterMode('range')">Rentang Tanggal</button>
           </div>
 
           <div class="filter-picker-group">
-            <input type="month" id="summaryMonthInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
+            <input type="month" id="summaryMonthInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
             <input type="date" id="summaryDayInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
+            
+            <div id="summaryRangeGroup" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; justify-content: flex-end;">
+              <input type="date" id="summaryStartInput" class="fresh-filter-input" style="max-width: 135px;" onchange="renderAnalyticsSummary()">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-dim);">s/d</span>
+              <input type="date" id="summaryEndInput" class="fresh-filter-input" style="max-width: 135px;" onchange="renderAnalyticsSummary()">
+            </div>
           </div>
         </div>
 
@@ -1810,10 +1819,16 @@ document.getElementById('lobDateDisplay').innerText = dateStrFormatted;
 document.getElementById('opsEmsDateDisplay').innerText = dateStrFormatted;
 document.getElementById('trainerDateDisplay').innerText = dateStrFormatted;
 
-// Default Set Picker Month/Day pada Summary View
+// Default Set Picker Month/Day/Range pada Summary View
 const todayObj = new Date();
-document.getElementById('summaryMonthInput').value = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}`;
-document.getElementById('summaryDayInput').value = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+const yearStr = todayObj.getFullYear();
+const monthStr = String(todayObj.getMonth() + 1).padStart(2, '0');
+const dateTodayStr = String(todayObj.getDate()).padStart(2, '0');
+
+document.getElementById('summaryMonthInput').value = `${yearStr}-${monthStr}`;
+document.getElementById('summaryDayInput').value = `${yearStr}-${monthStr}-${dateTodayStr}`;
+document.getElementById('summaryStartInput').value = `${yearStr}-${monthStr}-01`;
+document.getElementById('summaryEndInput').value = `${yearStr}-${monthStr}-${dateTodayStr}`;
 
 function getFormattedPhotoDateTime() {
   const d = new Date();
@@ -1947,7 +1962,7 @@ function copyPhotoAndOpenWA() {
 }
 
 
-// --- VIEW: LOB CHAMPION REPORT LOGIC & ACCURATE FILTERING ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
 function extractNameString(item) {
@@ -3049,19 +3064,23 @@ initChecklist();
 
 
 /* ==========================================================================
-   --- SUMMARY & ANALYTICS OVERVIEW LOGIC ---
+   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH RENTANG TANGGAL EXPORT ---
    ========================================================================== */
 let staffChartInstance = null;
 let actChartInstance = null;
 let currentSummaryDataset = [];
-let summaryFilterMode = 'month';
+let summaryFilterMode = 'range'; // Default Rentang Tanggal
 
 function setSummaryFilterMode(mode) {
   summaryFilterMode = mode;
   document.getElementById('btnFilterMonth').classList.toggle('active', mode === 'month');
   document.getElementById('btnFilterDay').classList.toggle('active', mode === 'day');
+  document.getElementById('btnFilterRange').classList.toggle('active', mode === 'range');
+
   document.getElementById('summaryMonthInput').style.display = mode === 'month' ? 'block' : 'none';
   document.getElementById('summaryDayInput').style.display = mode === 'day' ? 'block' : 'none';
+  document.getElementById('summaryRangeGroup').style.display = mode === 'range' ? 'flex' : 'none';
+
   renderAnalyticsSummary();
 }
 
@@ -3079,6 +3098,8 @@ function getAllChecklistDataKeys() {
 function renderAnalyticsSummary() {
   const monthVal = document.getElementById('summaryMonthInput').value;
   const dayVal = document.getElementById('summaryDayInput').value;
+  const startVal = document.getElementById('summaryStartInput').value;
+  const endVal = document.getElementById('summaryEndInput').value;
 
   const availableDates = getAllChecklistDataKeys();
   let filteredDates = [];
@@ -3087,6 +3108,8 @@ function renderAnalyticsSummary() {
     filteredDates = availableDates.filter(d => d.startsWith(monthVal));
   } else if (summaryFilterMode === 'day' && dayVal) {
     filteredDates = availableDates.filter(d => d === dayVal);
+  } else if (summaryFilterMode === 'range' && startVal && endVal) {
+    filteredDates = availableDates.filter(d => d >= startVal && d <= endVal);
   }
 
   currentSummaryDataset = [];
@@ -3149,7 +3172,7 @@ function renderAnalyticsSummary() {
 function renderSummaryTable(dataset) {
   const tbody = document.getElementById('summaryTableBody');
   if (dataset.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas untuk periode ini.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas untuk rentang periode ini.</td></tr>`;
     return;
   }
 
@@ -3252,9 +3275,24 @@ function renderSummaryCharts(staffData, actData) {
   });
 }
 
+function getExportFileName(ext) {
+  if (summaryFilterMode === 'month') {
+    const m = document.getElementById('summaryMonthInput').value || 'Month';
+    return `Laporan_Aktivitas_Digimap_TP3_${m}.${ext}`;
+  } else if (summaryFilterMode === 'day') {
+    const d = document.getElementById('summaryDayInput').value || getTodayString();
+    return `Laporan_Aktivitas_Digimap_TP3_${d}.${ext}`;
+  } else if (summaryFilterMode === 'range') {
+    const s = document.getElementById('summaryStartInput').value || 'start';
+    const e = document.getElementById('summaryEndInput').value || 'end';
+    return `Laporan_Aktivitas_Digimap_TP3_${s}_sd_${e}.${ext}`;
+  }
+  return `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.${ext}`;
+}
+
 function exportSummaryToCSV() {
   if (currentSummaryDataset.length === 0) {
-    alert("Tidak ada data untuk diekspor pada periode ini.");
+    alert("Tidak ada data untuk diekspor pada rentang tanggal ini.");
     return;
   }
 
@@ -3267,12 +3305,12 @@ function exportSummaryToCSV() {
   });
 
   const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.csv`);
+  triggerMobileDownloadBlob(blob, getExportFileName("csv"));
 }
 
 function exportSummaryToXLSX() {
   if (currentSummaryDataset.length === 0) {
-    alert("Tidak ada data untuk diekspor pada periode ini.");
+    alert("Tidak ada data untuk diekspor pada rentang tanggal ini.");
     return;
   }
 
@@ -3301,7 +3339,7 @@ function exportSummaryToXLSX() {
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-  triggerMobileDownloadBlob(blob, `Laporan_Aktivitas_Digimap_TP3_${getTodayString()}.xlsx`);
+  triggerMobileDownloadBlob(blob, getExportFileName("xlsx"));
 }
 
 function triggerMobileDownloadBlob(blob, fileName) {
