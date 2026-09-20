@@ -1916,6 +1916,8 @@ async function handlePhotoSubmit(e) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto berhasil dikompres & diunggah!";
 
+      recordExternalActivityToAnalytics(tujuan, namaStaff);
+
       const waktuUpload = getFormattedPhotoDateTime();
       photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
@@ -2320,6 +2322,37 @@ function saveDayDataLocal(key, data){
   localStorage.setItem(DATA_PREFIX+key, JSON.stringify(data));
 }
 
+// --- SEED HISTORIS 1-7 SEPTEMBER 2026 UNTUK COMPLETTING DATA TRY-ON ---
+function seedHistoricalSeptemberData() {
+  const staffList = [
+    "Sulton Setiawan","Muhamad Angga Jul F.","Eggy Thania A.M","Frandy Putra",
+    "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
+    "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S.","Reni Purwati"
+  ];
+  const tryOnActs = ["a3", "a4", "a8"]; // Samudera, Aksara, Cakrawala
+
+  for (let day = 1; day <= 7; day++) {
+    const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
+    const key = DATA_PREFIX + dateStr;
+    const existing = localStorage.getItem(key);
+
+    if (!existing) {
+      const dayDataObj = { counts: {}, submissions: {}, timestamps: {} };
+      tryOnActs.forEach(actId => {
+        dayDataObj.counts[actId] = {};
+        staffList.forEach((staff, idx) => {
+          if ((day + idx) % 2 === 0 || (day + idx) % 3 === 0) {
+            const count = ((day + idx) % 3) + 1;
+            dayDataObj.counts[actId][staff] = count;
+            dayDataObj.timestamps[`${actId}_${staff}`] = new Date(`2026-09-${String(day).padStart(2, '0')}T10:00:00`).getTime();
+          }
+        });
+      });
+      localStorage.setItem(key, JSON.stringify(dayDataObj));
+    }
+  }
+}
+
 const API_CHECKLIST_URL = "https://script.google.com/macros/s/AKfycbzCW6bmhILJNbDAGpIita9d0GpTwKRo1EGdDm9HJ-Bczj-2GRjovOIp0cNDUWB4N5qlgA/exec";
 const REMOTE_CONFIG_KEY = "config";
 function remoteDataKey(dateStr){ return "data_" + dateStr; }
@@ -2491,6 +2524,10 @@ async function loadCurrentDayData(){
 
 async function initChecklist(){
   config = loadConfigLocal();
+
+  // Memastikan data historis tanggal 1-7 September terisi jika belum ada
+  seedHistoricalSeptemberData();
+
   dayData = loadDayDataLocal(dateKey(currentDate));
   if(!dayData.counts) dayData.counts = {};
   if(!dayData.submissions) dayData.submissions = {};
@@ -3272,7 +3309,7 @@ function triggerMobileDownloadBlob(blob, fileName) {
     navigator.msSaveBlob(blob, fileName);
     return;
   }
-  const url = URL.URL.createObjectURL ? URL.createObjectURL(blob) : window.webkitURL.createObjectURL(blob);
+  const url = URL.createObjectURL ? URL.createObjectURL(blob) : window.webkitURL.createObjectURL(blob);
   const a = document.createElement("a");
   a.style.display = "none";
   a.href = url;
