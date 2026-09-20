@@ -314,31 +314,31 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
+  /* ULTRA ELEGAN CAPSULE DATE PICKER FILTER UI */
   .fresh-filter-card {
-    background: var(--surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--surface-soft);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 12px 14px;
-    margin-bottom: 20px;
+    border-radius: 99px;
+    padding: 6px 10px;
+    margin-bottom: 22px;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
   }
 
   .filter-segmented-control {
-    display: flex;
-    background: var(--surface-soft);
+    display: inline-flex;
+    align-items: center;
+    background: var(--surface-2);
     padding: 3px;
-    border-radius: 12px;
+    border-radius: 99px;
     border: 1px solid var(--border);
-    width: auto;
-    flex-wrap: wrap;
     gap: 2px;
+    flex-shrink: 0;
   }
 
   .segmented-btn {
@@ -347,25 +347,29 @@
     color: var(--text-dim);
     font-size: 12px;
     font-weight: 700;
-    padding: 6px 14px;
+    padding: 7px 16px;
     border-radius: 99px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .segmented-btn:hover {
+    color: var(--text);
   }
 
   .segmented-btn.active {
     background: var(--surface-solid);
-    color: var(--brand);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    color: var(--mint);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
   .filter-picker-group {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1;
-    min-width: 200px;
     justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .fresh-filter-input {
@@ -374,32 +378,61 @@
     color: var(--text);
     font-size: 12.5px;
     font-weight: 700;
+    font-family: inherit;
     outline: none;
     cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 220px;
+    padding: 0 14px;
+    height: 38px;
+    border-radius: 99px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    margin: 0;
   }
 
-  @media (max-width: 520px) {
+  .fresh-filter-input:focus {
+    border-color: var(--mint);
+    box-shadow: 0 0 0 3px var(--mint-soft);
+  }
+
+  .date-range-sep {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-dim);
+    background: var(--surface-soft);
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 640px) {
     .fresh-filter-card {
+      border-radius: 20px;
       flex-direction: column;
       align-items: stretch;
+      padding: 10px;
     }
     .filter-segmented-control {
       width: 100%;
+      justify-content: space-between;
     }
     .segmented-btn {
       flex: 1;
       text-align: center;
+      padding: 7px 8px;
     }
     .filter-picker-group {
       width: 100%;
-      min-width: 0;
+      justify-content: center;
+    }
+    #summaryRangeGroup {
+      width: 100%;
+      justify-content: center;
     }
     .fresh-filter-input {
-      max-width: 100%;
+      flex: 1;
+      min-width: 120px;
     }
   }
 
@@ -994,7 +1027,6 @@
             <select id="tujuan" required>
               <option value="" disabled selected>Pilih Tujuan...</option>
               <option value="Try On Aksara">📁 Try On Aksara</option>
-              <option value="Try On Cakrawala">📁 Try On Cakrawala</option>
               <option value="Try On Samudra">📁 Try On Samudra</option>
             </select>
           </div>
@@ -1453,7 +1485,7 @@
           </div>
         </div>
 
-        <!-- NEW FRESH LOOK & RESPONSIVE FILTER CARD WITH DATE RANGE -->
+        <!-- NEW ULTRA-ELEGAN CAPSULE DATE PICKER FILTER CARD -->
         <div class="fresh-filter-card">
           <div class="filter-segmented-control">
             <button id="btnFilterMonth" class="segmented-btn" onclick="setSummaryFilterMode('month')">Per Bulan</button>
@@ -1465,10 +1497,10 @@
             <input type="month" id="summaryMonthInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
             <input type="date" id="summaryDayInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
             
-            <div id="summaryRangeGroup" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; justify-content: flex-end;">
-              <input type="date" id="summaryStartInput" class="fresh-filter-input" style="max-width: 135px;" onchange="renderAnalyticsSummary()">
-              <span style="font-size: 12px; font-weight: 700; color: var(--text-dim);">s/d</span>
-              <input type="date" id="summaryEndInput" class="fresh-filter-input" style="max-width: 135px;" onchange="renderAnalyticsSummary()">
+            <div id="summaryRangeGroup" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <input type="date" id="summaryStartInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
+              <span class="date-range-sep">S/D</span>
+              <input type="date" id="summaryEndInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
             </div>
           </div>
         </div>
@@ -1857,7 +1889,7 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
 
-  if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("LOB CHAMPION")) {
+  if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("LOB CHAMPION") || cleanActName.includes("CAKRAWALA")) {
     return;
   }
 
@@ -2271,12 +2303,12 @@ function sanitizeConfig(cfg) {
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
     return !nameUpper.includes("ROLEPLAY") && 
-           !nameUpper.includes("LOB CHAMPION");
+           !nameUpper.includes("LOB CHAMPION") &&
+           !nameUpper.includes("CAKRAWALA");
   });
 
   cfg.activities.forEach(a => {
     if (a.name.includes("AKSARA")) a.name = "AKSARA";
-    if (a.name.includes("CAKRAWALA")) a.name = "CAKRAWALA";
     if (a.name.includes("SAMUDERA") || a.name.includes("SAMUDRA")) {
       a.name = "SAMUDERA";
       a.link = SAMUDERA_SUBMIT_LINK;
@@ -2304,7 +2336,6 @@ function defaultConfig(){
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a3", name:"SAMUDERA", icon:"🌊", link: SAMUDERA_SUBMIT_LINK},
       {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
-      {id:"a8", name:"CAKRAWALA", icon:"🌅", link:"https://forms.gle/MKYKoYuzZ9jHqtPZA"},
       {id:"a5", name:"GOOGLE REVIEW", icon:"⭐", link:""},
       {id:"a6", name:"SUBMIT FEEDBACK", icon:"📝", link:"https://forms.cloud.microsoft/r/v0jzUN3ieX?origin=lprLink"},
       {id:"a7", name:"ICLOUD+", icon:"☁️", link:"https://www.menti.com/blwrxg7sct7n"}
@@ -2337,14 +2368,31 @@ function saveDayDataLocal(key, data){
   localStorage.setItem(DATA_PREFIX+key, JSON.stringify(data));
 }
 
-// --- SEED HISTORIS 1-7 SEPTEMBER 2026 UNTUK COMPLETTING DATA TRY-ON ---
+// --- SEED HISTORIS TANPA CAKRAWALA & CLEANUP SISA DUMMY ---
 function seedHistoricalSeptemberData() {
   const staffList = [
     "Sulton Setiawan","Muhamad Angga Jul F.","Eggy Thania A.M","Frandy Putra",
     "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
     "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S.","Reni Purwati"
   ];
-  const tryOnActs = ["a3", "a4", "a8"]; // Samudera, Aksara, Cakrawala
+  // PERBAIKAN: Hanya Samudera (a3) & Aksara (a4) - Cakrawala (a8) Dihapus
+  const tryOnActs = ["a3", "a4"]; 
+
+  // PEMBERSIHAN OTOMATIS: Hapus sisa log Cakrawala (a8) dari LocalStorage
+  for (let day = 1; day <= 31; day++) {
+    const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
+    const key = DATA_PREFIX + dateStr;
+    const existing = localStorage.getItem(key);
+    if (existing) {
+      try {
+        const parsed = JSON.parse(existing);
+        if (parsed.counts && parsed.counts["a8"]) {
+          delete parsed.counts["a8"];
+          localStorage.setItem(key, JSON.stringify(parsed));
+        }
+      } catch(e){}
+    }
+  }
 
   for (let day = 1; day <= 7; day++) {
     const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
@@ -2407,6 +2455,9 @@ function mergeDayData(local, remote) {
   const allActIds = new Set([...Object.keys(localCounts), ...Object.keys(remoteCounts)]);
 
   allActIds.forEach(actId => {
+    // Purge ID Cakrawala (a8) jika terbawa
+    if (actId === "a8") return;
+
     merged.counts[actId] = {};
     const localStaff = localCounts[actId] || {};
     const remoteStaff = remoteCounts[actId] || {};
@@ -2434,6 +2485,7 @@ function mergeDayData(local, remote) {
   const allSubActIds = new Set([...Object.keys(localSubs), ...Object.keys(remoteSubs)]);
 
   allSubActIds.forEach(actId => {
+    if (actId === "a8") return;
     merged.submissions[actId] = {
       ...(remoteSubs[actId] || {}),
       ...(localSubs[actId] || {})
@@ -2540,7 +2592,7 @@ async function loadCurrentDayData(){
 async function initChecklist(){
   config = loadConfigLocal();
 
-  // Memastikan data historis tanggal 1-7 September terisi jika belum ada
+  // Memastikan data historis terisi dengan bersih dari Cakrawala
   seedHistoricalSeptemberData();
 
   dayData = loadDayDataLocal(dateKey(currentDate));
@@ -3122,6 +3174,9 @@ function renderAnalyticsSummary() {
     const data = loadDayDataLocal(dateStr);
     if (data && data.counts) {
       Object.keys(data.counts).forEach(actId => {
+        // Filter keras untuk abaikan ID Cakrawala (a8) jika ada
+        if (actId === "a8") return;
+
         const actObj = config.activities.find(a => a.id === actId);
         let actName = actObj ? actObj.name : "";
 
@@ -3133,8 +3188,8 @@ function renderAnalyticsSummary() {
           }
         }
 
+        if (actName.includes("CAKRAWALA")) return; // Skip Cakrawala dari ringkasan
         if (actName.includes("AKSARA")) actName = "AKSARA";
-        if (actName.includes("CAKRAWALA")) actName = "CAKRAWALA";
         if (actName.includes("SAMUDERA") || actName.includes("SAMUDRA")) actName = "SAMUDERA";
 
         Object.keys(data.counts[actId]).forEach(staffName => {
