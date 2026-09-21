@@ -314,7 +314,7 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   }
 
-  /* ULTRA ELEGAN CAPSULE DATE PICKER FILTER UI */
+  /* CAPSULE DATE PICKER FILTER UI */
   .fresh-filter-card {
     background: var(--surface-soft);
     backdrop-filter: blur(20px) saturate(180%);
@@ -354,10 +354,7 @@
     white-space: nowrap;
   }
 
-  .segmented-btn:hover {
-    color: var(--text);
-  }
-
+  .segmented-btn:hover { color: var(--text); }
   .segmented-btn.active {
     background: var(--surface-solid);
     color: var(--mint);
@@ -413,27 +410,11 @@
       align-items: stretch;
       padding: 10px;
     }
-    .filter-segmented-control {
-      width: 100%;
-      justify-content: space-between;
-    }
-    .segmented-btn {
-      flex: 1;
-      text-align: center;
-      padding: 7px 8px;
-    }
-    .filter-picker-group {
-      width: 100%;
-      justify-content: center;
-    }
-    #summaryRangeGroup {
-      width: 100%;
-      justify-content: center;
-    }
-    .fresh-filter-input {
-      flex: 1;
-      min-width: 120px;
-    }
+    .filter-segmented-control { width: 100%; justify-content: space-between; }
+    .segmented-btn { flex: 1; text-align: center; padding: 7px 8px; }
+    .filter-picker-group { width: 100%; justify-content: center; }
+    #summaryRangeGroup { width: 100%; justify-content: center; }
+    .fresh-filter-input { flex: 1; min-width: 120px; }
   }
 
   .stat-grid-modern {
@@ -477,17 +458,10 @@
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-  .btn-export-csv {
-    background: var(--surface-solid);
-    color: var(--text);
-  }
+  .btn-export-csv { background: var(--surface-solid); color: var(--text); }
   .btn-export-csv:hover { background: var(--surface-soft); transform: translateY(-1px); }
   
-  .btn-export-excel {
-    background: #107c41;
-    color: #ffffff;
-    border-color: #0e6b37;
-  }
+  .btn-export-excel { background: #107c41; color: #ffffff; border-color: #0e6b37; }
   .btn-export-excel:hover { background: #0e6e39; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
 
   .chart-grid {
@@ -1485,7 +1459,7 @@
           </div>
         </div>
 
-        <!-- NEW ULTRA-ELEGAN CAPSULE DATE PICKER FILTER CARD -->
+        <!-- CAPSULE DATE PICKER FILTER CARD -->
         <div class="fresh-filter-card">
           <div class="filter-segmented-control">
             <button id="btnFilterMonth" class="segmented-btn" onclick="setSummaryFilterMode('month')">Per Bulan</button>
@@ -1550,7 +1524,28 @@
           </div>
         </div>
 
-        <!-- Detail Data Table -->
+        <!-- TABEL FITUR BARU: RINGKASAN PER STAFF & AKTIVITAS -->
+        <div class="section-label" style="margin-top: 24px; margin-bottom: 8px;">
+          👥 Ringkasan Per Staff & Aktivitas (<span id="summaryPeriodLabel">Rentang Tanggal</span>)
+        </div>
+        <div class="data-table-wrap" style="margin-bottom: 24px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nama Staff</th>
+                <th>Rincian Aktivitas Ditangani</th>
+                <th style="text-align: right;">Total Eksekusi</th>
+              </tr>
+            </thead>
+            <tbody id="staffSummaryTableBody">
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-faint);">Memuat ringkasan staff...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Detail Log Data Table -->
         <div class="section-label" style="margin-top: 24px; margin-bottom: 8px;">Rincian Log Aktivitas</div>
         <div class="data-table-wrap">
           <table class="data-table">
@@ -1994,7 +1989,7 @@ function copyPhotoAndOpenWA() {
 }
 
 
-// --- VIEW: LOB CHAMPION REPORT LOGIC ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC WITH REAL-TIME CLOUD SYNC ---
 let lobReportTemplate = "";
 
 function extractNameString(item) {
@@ -2041,15 +2036,32 @@ function saveLocalLobUploaded(dateStr, list) {
 }
 
 async function fetchUploadedLobStaffs() {
+  const todayDate = getTodayString();
+  let combined = [];
+
+  // 1. Ambil dari Cloud Remote KV
   try {
-    const todayDate = getTodayString();
+    const raw = await remoteGet("lob_uploaded_" + todayDate);
+    if (raw) {
+      const remoteList = JSON.parse(raw);
+      if (Array.isArray(remoteList)) combined = combined.concat(remoteList);
+    }
+  } catch (err) {}
+
+  // 2. Ambil dari Apps Script getLobProgress
+  try {
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getLobProgress&date=${todayDate}&t=${Date.now()}`);
     const json = await res.json();
-    if (json.success && Array.isArray(json.uploadedStaffs)) return json.uploadedStaffs;
-  } catch (err) {
-    console.error("Gagal menarik progress upload LOB:", err);
-  }
-  return [];
+    if (json.success && Array.isArray(json.uploadedStaffs)) {
+      combined = combined.concat(json.uploadedStaffs);
+    }
+  } catch (err) {}
+
+  // 3. Ambil dari LocalStorage
+  const localList = getLocalLobUploaded(todayDate);
+  if (Array.isArray(localList)) combined = combined.concat(localList);
+
+  return combined;
 }
 
 async function handleLobSubmit(e) {
@@ -2090,7 +2102,7 @@ async function handleLobSubmit(e) {
 
     if (res.success) {
       status.style.color = "var(--mint)";
-      status.innerText = "⏳ Memutakhirkan list progress staff hari ini...";
+      status.innerText = "⏳ Memutakhirkan progress upload cloud lintas device...";
 
       let localUploaded = getLocalLobUploaded(todayDate);
       if (!localUploaded.some(item => isSameStaff(item, namaStaff))) {
@@ -2098,11 +2110,21 @@ async function handleLobSubmit(e) {
         saveLocalLobUploaded(todayDate, localUploaded);
       }
 
-      const remoteUploaded = await fetchUploadedLobStaffs();
-      const combinedUploaded = [...localUploaded, ...remoteUploaded];
+      // Simpan ke Remote Cloud Storage agar HP staff lain langsung sync
+      try {
+        let remoteList = [];
+        const rawRemote = await remoteGet("lob_uploaded_" + todayDate);
+        if (rawRemote) remoteList = JSON.parse(rawRemote);
+        if (!remoteList.some(item => isSameStaff(item, namaStaff))) {
+          remoteList.push(namaStaff);
+          await remoteSet("lob_uploaded_" + todayDate, remoteList);
+        }
+      } catch (e) {}
+
+      const allUploaded = await fetchUploadedLobStaffs();
 
       const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
-        return !combinedUploaded.some(uploadedItem => isSameStaff(staffItem, uploadedItem));
+        return !allUploaded.some(uploadedItem => isSameStaff(staffItem, uploadedItem));
       });
 
       let missingStaffText = "";
@@ -2375,10 +2397,8 @@ function seedHistoricalSeptemberData() {
     "Hilda Ainur Rosyidah","Achmad Rafi Kurnia T.","Dewi Andansari","Moh Asfiyak Kamida",
     "Hyskia Indra Aphista","Linda Indi Kusumanigrum","Nur Indah Oktaviani S.","Reni Purwati"
   ];
-  // PERBAIKAN: Hanya Samudera (a3) & Aksara (a4) - Cakrawala (a8) Dihapus
   const tryOnActs = ["a3", "a4"]; 
 
-  // PEMBERSIHAN OTOMATIS: Hapus sisa log Cakrawala (a8) dari LocalStorage
   for (let day = 1; day <= 31; day++) {
     const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
     const key = DATA_PREFIX + dateStr;
@@ -2455,7 +2475,6 @@ function mergeDayData(local, remote) {
   const allActIds = new Set([...Object.keys(localCounts), ...Object.keys(remoteCounts)]);
 
   allActIds.forEach(actId => {
-    // Purge ID Cakrawala (a8) jika terbawa
     if (actId === "a8") return;
 
     merged.counts[actId] = {};
@@ -2592,7 +2611,6 @@ async function loadCurrentDayData(){
 async function initChecklist(){
   config = loadConfigLocal();
 
-  // Memastikan data historis terisi dengan bersih dari Cakrawala
   seedHistoricalSeptemberData();
 
   dayData = loadDayDataLocal(dateKey(currentDate));
@@ -3116,7 +3134,7 @@ initChecklist();
 
 
 /* ==========================================================================
-   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH RENTANG TANGGAL EXPORT ---
+   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH STAFF BREAKDOWN ---
    ========================================================================== */
 let staffChartInstance = null;
 let actChartInstance = null;
@@ -3156,17 +3174,23 @@ function renderAnalyticsSummary() {
   const availableDates = getAllChecklistDataKeys();
   let filteredDates = [];
 
+  const labelEl = document.getElementById('summaryPeriodLabel');
+
   if (summaryFilterMode === 'month' && monthVal) {
     filteredDates = availableDates.filter(d => d.startsWith(monthVal));
+    if (labelEl) labelEl.innerText = `Bulan ${monthVal}`;
   } else if (summaryFilterMode === 'day' && dayVal) {
     filteredDates = availableDates.filter(d => d === dayVal);
+    if (labelEl) labelEl.innerText = `Tanggal ${dayVal}`;
   } else if (summaryFilterMode === 'range' && startVal && endVal) {
     filteredDates = availableDates.filter(d => d >= startVal && d <= endVal);
+    if (labelEl) labelEl.innerText = `${startVal} s/d ${endVal}`;
   }
 
   currentSummaryDataset = [];
   const staffSummary = {};
   const actSummary = {};
+  const staffBreakdown = {}; // Objek untuk merekap rincian per staff
   let totalExecutions = 0;
   let opsEmsTotal = 0;
 
@@ -3174,7 +3198,6 @@ function renderAnalyticsSummary() {
     const data = loadDayDataLocal(dateStr);
     if (data && data.counts) {
       Object.keys(data.counts).forEach(actId => {
-        // Filter keras untuk abaikan ID Cakrawala (a8) jika ada
         if (actId === "a8") return;
 
         const actObj = config.activities.find(a => a.id === actId);
@@ -3188,7 +3211,7 @@ function renderAnalyticsSummary() {
           }
         }
 
-        if (actName.includes("CAKRAWALA")) return; // Skip Cakrawala dari ringkasan
+        if (actName.includes("CAKRAWALA")) return;
         if (actName.includes("AKSARA")) actName = "AKSARA";
         if (actName.includes("SAMUDERA") || actName.includes("SAMUDRA")) actName = "SAMUDERA";
 
@@ -3198,6 +3221,12 @@ function renderAnalyticsSummary() {
             totalExecutions += count;
             staffSummary[staffName] = (staffSummary[staffName] || 0) + count;
             actSummary[actName] = (actSummary[actName] || 0) + count;
+
+            if (!staffBreakdown[staffName]) {
+              staffBreakdown[staffName] = { activities: {}, total: 0 };
+            }
+            staffBreakdown[staffName].activities[actName] = (staffBreakdown[staffName].activities[actName] || 0) + count;
+            staffBreakdown[staffName].total += count;
 
             if (actName.toLowerCase().includes("ops") || actName.toLowerCase().includes("ems") || actName.toLowerCase().includes("open studio") || actName.toLowerCase().includes("external")) {
               opsEmsTotal += count;
@@ -3220,8 +3249,38 @@ function renderAnalyticsSummary() {
   document.getElementById('activeStaffCount').innerText = Object.keys(staffSummary).length;
   document.getElementById('opsEmsSummaryCount').innerText = opsEmsTotal;
 
+  renderStaffSummaryTable(staffBreakdown);
   renderSummaryTable(currentSummaryDataset);
   renderSummaryCharts(staffSummary, actSummary);
+}
+
+function renderStaffSummaryTable(staffBreakdown) {
+  const tbody = document.getElementById('staffSummaryTableBody');
+  if (!tbody) return;
+
+  const staffNames = Object.keys(staffBreakdown);
+  if (staffNames.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-faint);">Tidak ada data aktivitas staff untuk periode ini.</td></tr>`;
+    return;
+  }
+
+  // Sort staff berdasarkan total eksekusi terbanyak
+  staffNames.sort((a, b) => staffBreakdown[b].total - staffBreakdown[a].total);
+
+  tbody.innerHTML = staffNames.map(staff => {
+    const data = staffBreakdown[staff];
+    const actChips = Object.keys(data.activities).map(actName => {
+      return `<span class="submit-chip" style="margin-right:4px; margin-bottom:4px; display:inline-block;">${escapeHtml(actName)}: <b>${data.activities[actName]}x</b></span>`;
+    }).join('');
+
+    return `
+      <tr>
+        <td><b>${escapeHtml(staff)}</b></td>
+        <td><div style="display:flex; flex-wrap:wrap; gap:4px;">${actChips}</div></td>
+        <td style="font-weight: 800; text-align: right; color: var(--mint); font-size: 14px;">${data.total}x</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function renderSummaryTable(dataset) {
