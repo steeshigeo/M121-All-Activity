@@ -617,9 +617,7 @@
     padding: 14px 8px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center;
   }
 
-  /* ==========================================
-     CSS TOAST NOTIFICATION (ELEGAN & FLOATING)
-     ========================================== */
+  /* CSS TOAST NOTIFICATION */
   #toast-container {
     position: fixed;
     top: 20px;
@@ -635,7 +633,6 @@
     max-width: 380px;
   }
 
-  /* Kapsul Toast Glassmorphism Minimalis */
   .toast-card {
     pointer-events: auto;
     display: inline-flex;
@@ -653,17 +650,13 @@
     font-weight: 500;
     line-height: 1.4;
     white-space: nowrap;
-    
-    /* Animasi Masuk */
     animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  /* Animasi Keluar */
   .toast-card.toast-exit {
     animation: toastOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  /* Spinner Animasi Loading */
   .toast-spinner {
     width: 14px;
     height: 14px;
@@ -1764,7 +1757,7 @@
   </div>
 </div>
 
-<!-- Container Toast Notifikasi Floating Baru -->
+<!-- Container Toast Notifikasi Floating -->
 <div id="toast-container"></div>
 
 <script>
@@ -1841,7 +1834,6 @@ function initVanta() {
 }
 window.addEventListener('DOMContentLoaded', initVanta);
 
-
 // --- IMAGE COMPRESSION UTILITY FUNCTION ---
 function compressImage(file, maxWidth = 1280, quality = 0.75) {
   return new Promise((resolve, reject) => {
@@ -1876,7 +1868,6 @@ function compressImage(file, maxWidth = 1280, quality = 0.75) {
     reader.onerror = (err) => reject(err);
   });
 }
-
 
 // --- NAVIGATION SIDEBAR LOGIC ---
 function switchTab(tab) {
@@ -1918,7 +1909,6 @@ function closeSidebar() {
   document.body.classList.remove('sidebar-open');
 }
 
-
 // --- GLOBAL THEME LOGIC ---
 const THEME_KEY = "digimap_theme_pref";
 function applyTheme(pref) {
@@ -1938,9 +1928,8 @@ function toggleGlobalTheme() {
   applyTheme(themePref);
 }
 
-
-// --- SHARED BACKEND URL BARU & DATE LOGIC ---
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMgdviIzEIsvv3SdHrmMgTHEqSF9uTcsdMaHif8y1ChnaJdrDJWa7TBBCNsIoqnGC9-g/exec";
+// --- SHARED BACKEND URL & DATE LOGIC ---
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRPnMN_HYnvEttG9s160UEi0Qkco-M9NZe_SRJ1ph-qe8XydPCXdE_KO4H09ycY_P7/exec";
 const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i&mlu=4&ilr=4";
 
 const LOB_STAFF_LIST = [
@@ -1987,7 +1976,6 @@ function getTodayString() {
   return `${year}-${month}-${day}`;
 }
 
-
 // --- HELPER UNTUK PENCATATAN OTOMATIS AKTIVITAS FORM KELUAR KE ANALYTICS ---
 function recordExternalActivityToAnalytics(actName, rawStaffName) {
   let staffName = rawStaffName.replace(/\s*\([^)]*\)/g, '').trim();
@@ -2028,7 +2016,6 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
   }).catch(() => {});
 }
 
-
 // --- VIEW: TRY ON PHOTO EVIDENCE LOGIC ---
 let photoReportTemplate = "";
 
@@ -2053,6 +2040,8 @@ async function handlePhotoSubmit(e) {
     const compressedBase64 = await compressImage(file, 1280, 0.75);
 
     const payload = {
+      action: "uploadPhoto",
+      key: "uploadPhoto",
       namaStaff: namaStaff,
       tujuan: tujuan,
       fileData: compressedBase64,
@@ -2081,7 +2070,7 @@ async function handlePhotoSubmit(e) {
       document.getElementById('upload-form').reset();
     } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
+      status.innerText = "❌ Gagal: " + (res.error || "Terjadi kesalahan.");
     }
   } catch (err) {
     btn.disabled = false;
@@ -2101,8 +2090,7 @@ function copyPhotoAndOpenWA() {
   navigator.clipboard.writeText(photoReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
 }
 
-
-// --- VIEW: LOB CHAMPION REPORT LOGIC WITH REAL-TIME CLOUD SYNC ---
+// --- VIEW: LOB CHAMPION REPORT LOGIC ---
 let lobReportTemplate = "";
 
 function extractNameString(item) {
@@ -2152,7 +2140,6 @@ async function fetchUploadedLobStaffs() {
   const todayDate = getTodayString();
   let combined = [];
 
-  // 1. Ambil dari Cloud Remote KV
   try {
     const raw = await remoteGet("lob_uploaded_" + todayDate);
     if (raw) {
@@ -2161,7 +2148,6 @@ async function fetchUploadedLobStaffs() {
     }
   } catch (err) {}
 
-  // 2. Ambil dari Apps Script getLobProgress
   try {
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getLobProgress&date=${todayDate}&t=${Date.now()}`);
     const json = await res.json();
@@ -2170,7 +2156,6 @@ async function fetchUploadedLobStaffs() {
     }
   } catch (err) {}
 
-  // 3. Ambil dari LocalStorage
   const localList = getLocalLobUploaded(todayDate);
   if (Array.isArray(localList)) combined = combined.concat(localList);
 
@@ -2199,6 +2184,8 @@ async function handleLobSubmit(e) {
     const compressedBase64 = await compressImage(file, 1280, 0.75);
 
     const payload = {
+      action: "uploadPhoto",
+      key: "uploadPhoto",
       namaStaff: namaStaff,
       tujuan: tujuan,
       fileData: compressedBase64,
@@ -2223,7 +2210,6 @@ async function handleLobSubmit(e) {
         saveLocalLobUploaded(todayDate, localUploaded);
       }
 
-      // Simpan ke Remote Cloud Storage agar HP staff lain langsung sync
       try {
         let remoteList = [];
         const rawRemote = await remoteGet("lob_uploaded_" + todayDate);
@@ -2257,7 +2243,7 @@ async function handleLobSubmit(e) {
       document.getElementById('lob-upload-form').reset();
     } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
+      status.innerText = "❌ Gagal: " + (res.error || "Terjadi kesalahan.");
     }
   } catch (err) {
     btn.disabled = false;
@@ -2276,7 +2262,6 @@ function copyLobAndOpenWA() {
   if (!lobReportTemplate) return;
   navigator.clipboard.writeText(lobReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
 }
-
 
 // --- VIEW: OPS & EMS REPORT LOGIC ---
 let opsEmsReportTemplate = "";
@@ -2302,6 +2287,8 @@ async function handleOpsEmsSubmit(e) {
     const compressedBase64 = await compressImage(file, 1280, 0.75);
 
     const payload = {
+      action: "uploadPhoto",
+      key: "uploadPhoto",
       namaStaff: namaStaff,
       tujuan: tujuan,
       fileData: compressedBase64,
@@ -2330,7 +2317,7 @@ async function handleOpsEmsSubmit(e) {
       document.getElementById('opsems-upload-form').reset();
     } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
+      status.innerText = "❌ Gagal: " + (res.error || "Terjadi kesalahan.");
     }
   } catch (err) {
     btn.disabled = false;
@@ -2350,7 +2337,6 @@ function copyOpsEmsAndOpenWA() {
   navigator.clipboard.writeText(opsEmsReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
 }
 
-
 // --- VIEW: TRAINER REPORT LOGIC ---
 let trainerReportTemplate = "";
 
@@ -2358,7 +2344,7 @@ async function handleTrainerSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-trainer-submit');
   const status = document.getElementById('trainerStatus');
-  const reportBox = document.getElementById('reportBox');
+  const reportBox = document.getElementById('trainerReportBox');
   const file = document.getElementById('trainerFoto').files[0];
 
   if (!file) return;
@@ -2375,6 +2361,8 @@ async function handleTrainerSubmit(e) {
     const compressedBase64 = await compressImage(file, 1280, 0.75);
 
     const payload = {
+      action: "uploadPhoto",
+      key: "uploadPhoto",
       namaStaff: namaStaff,
       tujuan: tujuan,
       fileData: compressedBase64,
@@ -2403,7 +2391,7 @@ async function handleTrainerSubmit(e) {
       document.getElementById('trainer-upload-form').reset();
     } else {
       status.style.color = "var(--danger)";
-      status.innerText = "❌ Gagal: " + res.error;
+      status.innerText = "❌ Gagal: " + (res.error || "Terjadi kesalahan.");
     }
   } catch (err) {
     btn.disabled = false;
@@ -2422,7 +2410,6 @@ function copyTrainerAndOpenWA() {
   if (!trainerReportTemplate) return;
   navigator.clipboard.writeText(trainerReportTemplate).then(() => window.open(WA_GROUP_LINK, '_blank'));
 }
-
 
 // --- VIEW: CHECKLIST HARIAN TOKO LOGIC ---
 const MONTHS = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
@@ -2503,7 +2490,6 @@ function saveDayDataLocal(key, data){
   localStorage.setItem(DATA_PREFIX+key, JSON.stringify(data));
 }
 
-// --- SEED HISTORIS TANPA CAKRAWALA & CLEANUP SISA DUMMY ---
 function seedHistoricalSeptemberData() {
   const staffList = [
     "Sulton Setiawan","Muhamad Angga Jul F.","Eggy Thania A.M","Frandy Putra",
@@ -2755,7 +2741,6 @@ async function initChecklist(){
   }
 }
 
-// LOGIKA DETEKSI PERGANTIAN HARI OTOMATIS
 function checkAutoMidnightSwitch() {
   if (followToday) {
     const todayNow = new Date();
@@ -3245,14 +3230,13 @@ setInterval(() => {
 
 initChecklist();
 
-
 /* ==========================================================================
    --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH STAFF BREAKDOWN ---
    ========================================================================== */
 let staffChartInstance = null;
 let actChartInstance = null;
 let currentSummaryDataset = [];
-let summaryFilterMode = 'range'; // Default Rentang Tanggal
+let summaryFilterMode = 'range';
 
 function setSummaryFilterMode(mode) {
   summaryFilterMode = mode;
@@ -3404,7 +3388,7 @@ function renderSummaryTable(dataset) {
 
   dataset.sort((a, b) => b.date.localeCompare(a.date));
 
-  tbody.innerHTML = dataset.map((row, idx) => `
+  tbody.innerHTML = dataset.map((row) => `
     <tr>
       <td><b>${row.date}</b></td>
       <td>${escapeHtml(row.staff)}</td>
@@ -3585,7 +3569,6 @@ function triggerMobileDownloadBlob(blob, fileName) {
     URL.revokeObjectURL(url);
   }, 400);
 }
-
 
 /* ==========================================================================
    --- SOH LOCAL ENGINE & LOGIC WITH GITHUB ACTION TRIGGER ---
@@ -3850,7 +3833,6 @@ document.getElementById('sohBtnRefresh')?.addEventListener('click', async () => 
   const btn = document.getElementById('sohBtnRefresh');
   if (btn) btn.classList.add('spin');
   
-  // Menampilkan Notifikasi Floating Toast Loading
   const toast = showToast("Menjalankan Automation GitHub...", "loading");
 
   const GITHUB_OWNER = "steeshigeo";
