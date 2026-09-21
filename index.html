@@ -617,12 +617,88 @@
     padding: 14px 8px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center;
   }
 
-  .toast {
-    position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(8px); opacity: 0;
-    background: #1f2937; color: #fff; padding: 99px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
-    transition: .25s; pointer-events: none; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  /* ==========================================
+     CSS TOAST NOTIFICATION (ELEGAN & FLOATING)
+     ========================================== */
+  #toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    width: calc(100% - 32px);
+    max-width: 380px;
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Kapsul Toast Glassmorphism Minimalis */
+  .toast-card {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    
+    /* Animasi Masuk */
+    animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Animasi Keluar */
+  .toast-card.toast-exit {
+    animation: toastOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Spinner Animasi Loading */
+  .toast-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: toastSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes toastSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes toastIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes toastOut {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.92);
+    }
+  }
 
   .modal-bg {
     position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -795,7 +871,7 @@
     max-height:88vh; overflow-y:auto; box-shadow:var(--shadow);
   }
   .soh-modal-head {
-    display:flex; align-items:center; justify-style:space-between;
+    display:flex; align-items:center; justify-content:space-between;
     padding:18px 20px; border-bottom:1px solid var(--border); position:sticky; top:0;
     background:var(--surface); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); z-index:10;
   }
@@ -1688,13 +1764,57 @@
   </div>
 </div>
 
-<div class="toast" id="toast">Tersalin ✓</div>
+<!-- Container Toast Notifikasi Floating Baru -->
+<div id="toast-container"></div>
 
 <script>
-// --- UTILITY HELPER COPY TO CLIPBOARD ---
+// --- UTILITY HELPER TOAST FLOATING NOTIFICATION ---
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast-card toast-${type}`;
+
+  const renderContent = (msg, t) => {
+    let iconHtml = '';
+    if (t === 'loading') iconHtml = '<div class="toast-spinner"></div>';
+    else if (t === 'success') iconHtml = '<span>✅</span>';
+    else if (t === 'error') iconHtml = '<span>❌</span>';
+    else iconHtml = '<span>⚡</span>';
+    return `${iconHtml}<span>${msg}</span>`;
+  };
+
+  toast.innerHTML = renderContent(message, type);
+  container.appendChild(toast);
+
+  let timer = null;
+
+  const dismiss = () => {
+    if (toast.classList.contains('toast-exit')) return;
+    toast.classList.add('toast-exit');
+    toast.addEventListener('animationend', () => toast.remove());
+  };
+
+  if (type !== 'loading' && duration > 0) {
+    timer = setTimeout(dismiss, duration);
+  }
+
+  return {
+    update: (newMessage, newType = 'success', newDuration = 3000) => {
+      if (timer) clearTimeout(timer);
+      toast.innerHTML = renderContent(newMessage, newType);
+      if (newType !== 'loading' && newDuration > 0) {
+        timer = setTimeout(dismiss, newDuration);
+      }
+    },
+    close: dismiss
+  };
+}
+
 function copyToClipboard(text, msg) {
   navigator.clipboard.writeText(text).then(() => {
-    showToast(msg || "Tersalin ✓");
+    showToast(msg || "Tersalin ✓", "success");
   });
 }
 
@@ -1816,13 +1936,6 @@ function toggleGlobalTheme() {
   themePref = themePref === "auto" ? "light" : themePref === "light" ? "dark" : "auto";
   localStorage.setItem(THEME_KEY, themePref);
   applyTheme(themePref);
-}
-
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"), 2200);
 }
 
 
@@ -1980,7 +2093,7 @@ async function handlePhotoSubmit(e) {
 
 function copyPhotoReportOnly() {
   if (!photoReportTemplate) return;
-  navigator.clipboard.writeText(photoReportTemplate).then(() => showToast("✅ Teks laporan berhasil disalin!"));
+  navigator.clipboard.writeText(photoReportTemplate).then(() => showToast("✅ Teks laporan berhasil disalin!", "success"));
 }
 
 function copyPhotoAndOpenWA() {
@@ -2156,7 +2269,7 @@ async function handleLobSubmit(e) {
 
 function copyLobReportOnly() {
   if (!lobReportTemplate) return;
-  navigator.clipboard.writeText(lobReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
+  navigator.clipboard.writeText(lobReportTemplate).then(() => showToast("✅ Teks laporan disalin!", "success"));
 }
 
 function copyLobAndOpenWA() {
@@ -2229,7 +2342,7 @@ async function handleOpsEmsSubmit(e) {
 
 function copyOpsEmsReportOnly() {
   if (!opsEmsReportTemplate) return;
-  navigator.clipboard.writeText(opsEmsReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
+  navigator.clipboard.writeText(opsEmsReportTemplate).then(() => showToast("✅ Teks laporan disalin!", "success"));
 }
 
 function copyOpsEmsAndOpenWA() {
@@ -2302,7 +2415,7 @@ async function handleTrainerSubmit(e) {
 
 function copyTrainerReportOnly() {
   if (!trainerReportTemplate) return;
-  navigator.clipboard.writeText(trainerReportTemplate).then(() => showToast("✅ Teks laporan disalin!"));
+  navigator.clipboard.writeText(trainerReportTemplate).then(() => showToast("✅ Teks laporan disalin!", "success"));
 }
 
 function copyTrainerAndOpenWA() {
@@ -2649,7 +2762,7 @@ function checkAutoMidnightSwitch() {
     if (dateKey(currentDate) !== dateKey(todayNow)) {
       currentDate = todayNow;
       loadCurrentDayData();
-      showToast("🔄 Hari telah berganti! Tampilan otomatis diperbarui untuk hari ini.");
+      showToast("🔄 Hari telah berganti! Tampilan otomatis diperbarui untuk hari ini.", "info");
     }
   }
 }
@@ -3009,7 +3122,7 @@ document.getElementById("refreshChecklist")?.addEventListener("click", async () 
   btn.style.transform = "rotate(360deg)";
   setStatus("loading");
   await loadCurrentDayData();
-  showToast("Data Checklist berhasil di-refresh 🔄");
+  showToast("Data Checklist berhasil di-refresh 🔄", "success");
   setTimeout(() => { btn.style.transform = "none"; }, 300);
 });
 
@@ -3051,12 +3164,12 @@ document.getElementById("addActivityBtn").addEventListener("click",()=>{
 
 document.getElementById("manualBtn").addEventListener("click", async ()=>{
   await navigator.clipboard.writeText(buildReportText());
-  showToast("Disalin ✓ — Buka WA lalu paste");
+  showToast("Disalin ✓ — Buka WA lalu paste", "success");
 });
 
 document.getElementById("autoBtn").addEventListener("click", async ()=>{
   await navigator.clipboard.writeText(buildReportText());
-  showToast("Disalin ✓ — Membuka WA...");
+  showToast("Disalin ✓ — Membuka WA...", "success");
   window.open(WA_GROUP_LINK, "_blank");
 });
 
@@ -3331,7 +3444,7 @@ async function deleteSummaryRecord(dateStr, actId, staffName) {
       await remoteSet(remoteDataKey(dateStr), merged);
     } catch(e) {}
   }
-  showToast("Record aktivitas berhasil dihapus ✓");
+  showToast("Record aktivitas berhasil dihapus ✓", "success");
   renderAnalyticsSummary();
   if (dateKey(currentDate) === dateStr) {
     await loadCurrentDayData();
@@ -3575,7 +3688,7 @@ async function sohDoSync(showLoadingState){
       sohState.lastSync = Date.now();
       sohSaveJSON(SOH_LS_CACHE, { data: records, ts: sohState.lastSync, sourceDate: sohState.sourceDate, generatedAt: sohState.generatedAt, hash: newHash });
       sohSetSyncUI('ok');
-      if(sohState.lastSync) showToast('Stock berhasil disinkronkan');
+      if(sohState.lastSync) showToast('Stock berhasil disinkronkan', 'success');
     } else {
       sohSetSyncUI('ok');
     }
@@ -3585,7 +3698,7 @@ async function sohDoSync(showLoadingState){
     if(cached){ sohState.data = cached.data; sohState.lastSync = cached.ts; sohState.sourceDate = cached.sourceDate || null; sohState.generatedAt = cached.generatedAt || null; sohState.dataHash = cached.hash || null; }
     else { sohState.data = SOH_SEED_DATA; }
     sohSetSyncUI('error');
-    showToast('Sync gagal — pakai data tersimpan terakhir');
+    showToast('Sync gagal — pakai data tersimpan terakhir', 'error');
   }finally{
     sohDoSync._inFlight = false;
     sohToggleSkeleton(false);
@@ -3736,7 +3849,9 @@ document.getElementById('sohBtnResetFilter')?.addEventListener('click', () => {
 document.getElementById('sohBtnRefresh')?.addEventListener('click', async () => {
   const btn = document.getElementById('sohBtnRefresh');
   if (btn) btn.classList.add('spin');
-  showToast("⚡ Menjalankan Automation GitHub...");
+  
+  // Menampilkan Notifikasi Floating Toast Loading
+  const toast = showToast("Menjalankan Automation GitHub...", "loading");
 
   const GITHUB_OWNER = "steeshigeo";
   const GITHUB_REPO = "M121-All-Activity";
@@ -3759,14 +3874,14 @@ document.getElementById('sohBtnRefresh')?.addEventListener('click', async () => 
     const res = await response.json();
 
     if (res.success) {
-      showToast("🚀 Sync OneDrive GitHub berhasil dipicu!");
+      toast.update("Sync OneDrive GitHub berhasil dipicu!", "success", 3000);
       setTimeout(() => sohDoSync(false), 2500);
     } else {
-      showToast("❌ Gagal memicu GitHub: " + (res.error || "Error " + res.code));
+      toast.update("Gagal memicu GitHub: " + (res.error || "Error " + res.code), "error", 4000);
     }
   } catch (err) {
     console.error(err);
-    showToast("❌ Terjadi kesalahan koneksi.");
+    toast.update("Terjadi kesalahan koneksi.", "error", 4000);
   } finally {
     if (btn) btn.classList.remove('spin');
   }
@@ -3814,7 +3929,7 @@ document.getElementById('sohBtnResetAll')?.addEventListener('click', () => {
   sohState.data = SOH_SEED_DATA; sohState.lastSync = null; sohState.sourceDate = null; sohState.generatedAt = null; sohState.dataHash = null;
   sohCloseModal();
   sohRender();
-  showToast('Data & pengaturan sudah direset');
+  showToast('Data & pengaturan sudah direset', 'info');
   sohDoSync(true);
 });
 
