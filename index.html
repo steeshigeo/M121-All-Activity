@@ -460,7 +460,7 @@
   }
   .btn-export-csv { background: var(--surface-solid); color: var(--text); }
   .btn-export-csv:hover { background: var(--surface-soft); transform: translateY(-1px); }
-  
+
   .btn-export-excel { background: #107c41; color: #ffffff; border-color: #0e6b37; }
   .btn-export-excel:hover { background: #0e6e39; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
 
@@ -617,12 +617,36 @@
     padding: 14px 8px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center;
   }
 
+  /* --- POPUP TOAST ELEGAN & KECIL (FIXED CSS) --- */
   .toast {
-    position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(8px); opacity: 0;
-    background: #1f2937; color: #fff; padding: 99px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
-    transition: .25s; pointer-events: none; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px) scale(0.92);
+    opacity: 0;
+    visibility: hidden;
+    background: rgba(24, 24, 27, 0.88);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 300;
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 
   .modal-bg {
     position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -1632,7 +1656,7 @@
           <ol>
             <li>Tim edit stok/harga langsung di file Excel <code>stockpositionreportdetail.xls</code> di OneDrive, lalu simpan.</li>
             <li>GitHub Actions mengecek OneDrive tiap ±2 menit, mengunduh versi terbaru.</li>
-            <li>Data diproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko.</li>
+            <li>Data dipproses jadi <code>data.json</code> mengikuti mekanisme yang sama dengan sheet <b>SOH</b> di Sales Dashboard toko.</li>
             <li>Kalau ada perubahan, hasilnya di-commit ke repository dan Netlify otomatis publish ulang website ini.</li>
             <li>Halaman ini sendiri mengecek <code>data.json</code> secara berkala dan hanya me-refresh tampilan kalau memang ada perubahan.</li>
           </ol>
@@ -1937,19 +1961,28 @@ async function handlePhotoSubmit(e) {
   const tujuan = document.getElementById('tujuan').value;
 
   try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
+    const rawCompressed = await compressImage(file, 1280, 0.75);
+    const pureBase64 = rawCompressed.replace(/^data:image\/\w+;base64,/, "");
 
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: compressedBase64,
+      fileData: pureBase64,
       mimeType: "image/jpeg"
     };
 
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const resRaw = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    }).then(r => r.json());
+    });
+
+    const resText = await resRaw.text();
+    let res;
+    try {
+      res = JSON.parse(resText);
+    } catch(err) {
+      throw new Error("Respon server bukan JSON valid.");
+    }
 
     btn.disabled = false;
     btn.innerText = "Submit";
@@ -2083,19 +2116,23 @@ async function handleLobSubmit(e) {
   const todayDate = getTodayString();
 
   try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
+    const rawCompressed = await compressImage(file, 1280, 0.75);
+    const pureBase64 = rawCompressed.replace(/^data:image\/\w+;base64,/, "");
 
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: compressedBase64,
+      fileData: pureBase64,
       mimeType: "image/jpeg"
     };
 
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const resRaw = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    }).then(r => r.json());
+    });
+
+    const resText = await resRaw.text();
+    let res = JSON.parse(resText);
 
     btn.disabled = false;
     btn.innerText = "Upload ke Google Drive";
@@ -2110,7 +2147,7 @@ async function handleLobSubmit(e) {
         saveLocalLobUploaded(todayDate, localUploaded);
       }
 
-      // Simpan ke Remote Cloud Storage agar HP staff lain langsung sync
+      // Simpan ke Remote Cloud Storage
       try {
         let remoteList = [];
         const rawRemote = await remoteGet("lob_uploaded_" + todayDate);
@@ -2186,19 +2223,23 @@ async function handleOpsEmsSubmit(e) {
   const tujuan = document.getElementById('opsEmsTujuan').value;
 
   try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
+    const rawCompressed = await compressImage(file, 1280, 0.75);
+    const pureBase64 = rawCompressed.replace(/^data:image\/\w+;base64,/, "");
 
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: compressedBase64,
+      fileData: pureBase64,
       mimeType: "image/jpeg"
     };
 
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const resRaw = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    }).then(r => r.json());
+    });
+
+    const resText = await resRaw.text();
+    let res = JSON.parse(resText);
 
     btn.disabled = false;
     btn.innerText = "Upload ke Google Drive";
@@ -2245,7 +2286,7 @@ async function handleTrainerSubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-trainer-submit');
   const status = document.getElementById('trainerStatus');
-  const reportBox = document.getElementById('reportBox');
+  const reportBox = document.getElementById('trainerReportBox');
   const file = document.getElementById('trainerFoto').files[0];
 
   if (!file) return;
@@ -2259,19 +2300,23 @@ async function handleTrainerSubmit(e) {
   const tujuan = document.getElementById('trainerTujuan').value;
 
   try {
-    const compressedBase64 = await compressImage(file, 1280, 0.75);
+    const rawCompressed = await compressImage(file, 1280, 0.75);
+    const pureBase64 = rawCompressed.replace(/^data:image\/\w+;base64,/, "");
 
     const payload = {
       namaStaff: namaStaff,
       tujuan: tujuan,
-      fileData: compressedBase64,
+      fileData: pureBase64,
       mimeType: "image/jpeg"
     };
 
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const resRaw = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
-    }).then(r => r.json());
+    });
+
+    const resText = await resRaw.text();
+    let res = JSON.parse(resText);
 
     btn.disabled = false;
     btn.innerText = "Upload ke Google Drive";
@@ -2286,7 +2331,7 @@ async function handleTrainerSubmit(e) {
       trainerReportTemplate = `📌 LAPORAN TRAINER M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
 
       document.getElementById('trainerReportText').innerText = trainerReportTemplate;
-      document.getElementById('trainerReportBox').style.display = "block";
+      reportBox.style.display = "block";
       document.getElementById('trainer-upload-form').reset();
     } else {
       status.style.color = "var(--danger)";
@@ -3190,7 +3235,7 @@ function renderAnalyticsSummary() {
   currentSummaryDataset = [];
   const staffSummary = {};
   const actSummary = {};
-  const staffBreakdown = {}; // Objek untuk merekap rincian per staff
+  const staffBreakdown = {};
   let totalExecutions = 0;
   let opsEmsTotal = 0;
 
@@ -3264,7 +3309,6 @@ function renderStaffSummaryTable(staffBreakdown) {
     return;
   }
 
-  // Sort staff berdasarkan total eksekusi terbanyak
   staffNames.sort((a, b) => staffBreakdown[b].total - staffBreakdown[a].total);
 
   tbody.innerHTML = staffNames.map(staff => {
@@ -3292,7 +3336,7 @@ function renderSummaryTable(dataset) {
 
   dataset.sort((a, b) => b.date.localeCompare(a.date));
 
-  tbody.innerHTML = dataset.map((row, idx) => `
+  tbody.innerHTML = dataset.map((row) => `
     <tr>
       <td><b>${row.date}</b></td>
       <td>${escapeHtml(row.staff)}</td>
