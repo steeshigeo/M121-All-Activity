@@ -617,7 +617,7 @@
     padding: 14px 8px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center;
   }
 
-  /* --- PERBAIKAN TOAST POPUP (KECIL & ELEGAN LIQUID GLASS) --- */
+  /* --- TOAST POPUP (KECIL & ELEGAN LIQUID GLASS) --- */
   .toast {
     position: fixed; 
     bottom: 92px; 
@@ -1055,10 +1055,13 @@
 
         <div class="date-display" style="text-align:left; margin-bottom:18px;" id="lobDateDisplay">--</div>
 
-        <div style="margin-bottom: 20px;">
-          <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn" style="margin-top:0;">
+        <div style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="https://forms.gle/dYHhPCdASt99wWueA" target="_blank" class="link-btn" style="margin-top:0; flex:1;">
             🔗 Buka Form Submit LOB Champion
           </a>
+          <button type="button" class="link-btn" onclick="resetLobUploaded()" style="margin-top:0; background:var(--danger-bg); border-color:var(--danger-border); color:var(--danger); flex:0 0 auto; width:auto; padding:0 16px;">
+            ↺ Reset Staff Upload
+          </button>
         </div>
 
         <form id="lob-upload-form" onsubmit="handleLobSubmit(event)">
@@ -1323,6 +1326,17 @@
               <button class="btn-copy-mini" onclick="copyToClipboard('frandy.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
             </div>
           </div>
+
+          <div class="staff-email-item">
+            <div class="staff-detail">
+              <div class="staff-name-text">Reni Purwati</div>
+              <div class="staff-email-text">reni.digimap@gmail.com</div>
+            </div>
+            <div class="staff-actions">
+              <button class="btn-copy-mini" onclick="copyToClipboard('Reni Purwati', '📋 Nama disalin!')">📋 Nama</button>
+              <button class="btn-copy-mini" onclick="copyToClipboard('reni.digimap@gmail.com', '✉️ Email disalin!')">✉️ Email</button>
+            </div>
+          </div>
         </div>
 
         <!-- Garis Pemisah -->
@@ -1483,16 +1497,16 @@
         <!-- CAPSULE DATE PICKER FILTER CARD -->
         <div class="fresh-filter-card">
           <div class="filter-segmented-control">
-            <button id="btnFilterMonth" class="segmented-btn" onclick="setSummaryFilterMode('month')">Per Bulan</button>
+            <button id="btnFilterMonth" class="segmented-btn active" onclick="setSummaryFilterMode('month')">Per Bulan</button>
             <button id="btnFilterDay" class="segmented-btn" onclick="setSummaryFilterMode('day')">Per Tanggal</button>
-            <button id="btnFilterRange" class="segmented-btn active" onclick="setSummaryFilterMode('range')">Rentang Tanggal</button>
+            <button id="btnFilterRange" class="segmented-btn" onclick="setSummaryFilterMode('range')">Rentang Tanggal</button>
           </div>
 
           <div class="filter-picker-group">
-            <input type="month" id="summaryMonthInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
+            <input type="month" id="summaryMonthInput" class="fresh-filter-input" style="display: block;" onchange="renderAnalyticsSummary()">
             <input type="date" id="summaryDayInput" class="fresh-filter-input" style="display: none;" onchange="renderAnalyticsSummary()">
             
-            <div id="summaryRangeGroup" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div id="summaryRangeGroup" style="display: none; gap: 8px; align-items: center; flex-wrap: wrap;">
               <input type="date" id="summaryStartInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
               <span class="date-range-sep">S/D</span>
               <input type="date" id="summaryEndInput" class="fresh-filter-input" onchange="renderAnalyticsSummary()">
@@ -1545,9 +1559,9 @@
           </div>
         </div>
 
-        <!-- TABEL FITUR BARU: RINGKASAN PER STAFF & AKTIVITAS -->
+        <!-- TABEL RINGKASAN PER STAFF & AKTIVITAS -->
         <div class="section-label" style="margin-top: 24px; margin-bottom: 8px;">
-          👥 Ringkasan Per Staff & Aktivitas (<span id="summaryPeriodLabel">Rentang Tanggal</span>)
+          👥 Ringkasan Per Staff & Aktivitas (<span id="summaryPeriodLabel">Per Bulan</span>)
         </div>
         <div class="data-table-wrap" style="margin-bottom: 24px;">
           <table class="data-table">
@@ -1905,7 +1919,7 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
 
-  if (cleanActName.includes("ROLEPLAY") || cleanActName.includes("LOB CHAMPION") || cleanActName.includes("CAKRAWALA")) {
+  if (cleanActName.includes("LOB CHAMPION") || cleanActName.includes("CAKRAWALA")) {
     return;
   }
 
@@ -1978,8 +1992,6 @@ async function handlePhotoSubmit(e) {
     if(res.success) {
       status.style.color = "var(--mint)";
       status.innerText = "✅ Foto berhasil dikompres & diunggah!";
-
-      recordExternalActivityToAnalytics(tujuan, namaStaff);
 
       const waktuUpload = getFormattedPhotoDateTime();
       photoReportTemplate = `📌 LAPORAN FOTO TRY ON M121\n👤 Nama Staff: ${namaStaff}\n📁 Tujuan Aktivitas: ${tujuan}\n🕒 Waktu Upload: ${waktuUpload}\n🔗 Link Foto: ${res.url}`;
@@ -2054,6 +2066,20 @@ function saveLocalLobUploaded(dateStr, list) {
   try {
     localStorage.setItem("digimap_lob_uploaded_" + dateStr, JSON.stringify(list));
   } catch(e) {}
+}
+
+async function resetLobUploaded() {
+  const ok = await showConfirm("Reset daftar staff LOB Champion yang sudah upload hari ini kembali ke awal?", "Reset LOB Upload");
+  if (!ok) return;
+
+  const todayDate = getTodayString();
+  localStorage.removeItem("digimap_lob_uploaded_" + todayDate);
+
+  try {
+    await remoteSet("lob_uploaded_" + todayDate, []);
+  } catch(e) {}
+
+  showToast("Daftar upload LOB Champion berhasil direset ke awal ✓");
 }
 
 async function fetchUploadedLobStaffs() {
@@ -2345,8 +2371,7 @@ function sanitizeConfig(cfg) {
   
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
-    return !nameUpper.includes("ROLEPLAY") && 
-           !nameUpper.includes("LOB CHAMPION") &&
+    return !nameUpper.includes("LOB CHAMPION") &&
            !nameUpper.includes("CAKRAWALA");
   });
 
@@ -2375,7 +2400,7 @@ function defaultConfig(){
   return {
     staff,
     activities: [
-      {id:"a1", name:"NPS", icon:"📊", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
+      {id:"a1", name:"NPS", icon:"💫", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a3", name:"SAMUDERA", icon:"🌊", link: SAMUDERA_SUBMIT_LINK},
       {id:"a4", name:"AKSARA", icon:"⏱️", link:"https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform"},
@@ -3160,7 +3185,7 @@ initChecklist();
 let staffChartInstance = null;
 let actChartInstance = null;
 let currentSummaryDataset = [];
-let summaryFilterMode = 'range'; // Default Rentang Tanggal
+let summaryFilterMode = 'month'; // Default Per Bulan
 let isFetchingSummaryRemote = false;
 
 function setSummaryFilterMode(mode) {
