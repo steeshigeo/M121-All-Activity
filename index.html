@@ -3838,7 +3838,7 @@ document.getElementById('sohBtnRefresh')?.addEventListener('click', () => {
   sohDoSync(false).finally(() => { if(btn) btn.classList.remove('spin'); });
 });
 
-/* EVENT LISTENER TOMBOL PLAY AUTOMATION GITHUB ACTION */
+/* EVENT LISTENER TOMBOL PLAY AUTOMATION GITHUB ACTION (PERBAIKAN MISSING KEY) */
 document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
   const btn = document.getElementById('sohBtnPlay');
   if (!btn) return;
@@ -3848,6 +3848,7 @@ document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
 
   try {
     const payload = {
+      key: "triggerWorkflow",
       action: "triggerWorkflow",
       owner: "steeshigeo",
       repo: "M121-All-Activity",
