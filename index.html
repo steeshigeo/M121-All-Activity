@@ -3155,12 +3155,13 @@ initChecklist();
 
 
 /* ==========================================================================
-   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH STAFF BREAKDOWN ---
+   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH STAFF BREAKDOWN & CLOUD SYNC ---
    ========================================================================== */
 let staffChartInstance = null;
 let actChartInstance = null;
 let currentSummaryDataset = [];
 let summaryFilterMode = 'range'; // Default Rentang Tanggal
+let isFetchingSummaryRemote = false;
 
 function setSummaryFilterMode(mode) {
   summaryFilterMode = mode;
@@ -3175,47 +3176,95 @@ function setSummaryFilterMode(mode) {
   renderAnalyticsSummary();
 }
 
-function getAllChecklistDataKeys() {
-  const keys = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k.startsWith(DATA_PREFIX)) {
-      keys.push(k.replace(DATA_PREFIX, ''));
-    }
+// Helper untuk membuat array rentang tanggal [YYYY-MM-DD]
+function getDateRangeArray(startStr, endStr) {
+  const dates = [];
+  if (!startStr || !endStr) return dates;
+  let current = new Date(startStr);
+  const end = new Date(endStr);
+  while (current <= end) {
+    const y = current.getFullYear();
+    const m = String(current.getMonth() + 1).padStart(2, '0');
+    const d = String(current.getDate()).padStart(2, '0');
+    dates.push(`${y}-${m}-${d}`);
+    current.setDate(current.getDate() + 1);
   }
-  return keys;
+  return dates;
 }
 
-function renderAnalyticsSummary() {
+// Helper untuk membuat array seluruh tanggal dalam 1 bulan
+function getMonthDatesArray(monthStr) {
+  if (!monthStr) return [];
+  const [year, month] = monthStr.split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const startStr = `${monthStr}-01`;
+  const endStr = `${monthStr}-${String(lastDay).padStart(2, '0')}`;
+  return getDateRangeArray(startStr, endStr);
+}
+
+async function renderAnalyticsSummary() {
   const monthVal = document.getElementById('summaryMonthInput').value;
   const dayVal = document.getElementById('summaryDayInput').value;
   const startVal = document.getElementById('summaryStartInput').value;
   const endVal = document.getElementById('summaryEndInput').value;
 
-  const availableDates = getAllChecklistDataKeys();
-  let filteredDates = [];
-
+  let targetDates = [];
   const labelEl = document.getElementById('summaryPeriodLabel');
 
   if (summaryFilterMode === 'month' && monthVal) {
-    filteredDates = availableDates.filter(d => d.startsWith(monthVal));
+    targetDates = getMonthDatesArray(monthVal);
     if (labelEl) labelEl.innerText = `Bulan ${monthVal}`;
   } else if (summaryFilterMode === 'day' && dayVal) {
-    filteredDates = availableDates.filter(d => d === dayVal);
+    targetDates = [dayVal];
     if (labelEl) labelEl.innerText = `Tanggal ${dayVal}`;
   } else if (summaryFilterMode === 'range' && startVal && endVal) {
-    filteredDates = availableDates.filter(d => d >= startVal && d <= endVal);
+    targetDates = getDateRangeArray(startVal, endVal);
     if (labelEl) labelEl.innerText = `${startVal} s/d ${endVal}`;
   }
 
+  // 1. Tampilkan data lokal secara langsung agar UI tetap instan
+  processAndRenderSummaryData(targetDates);
+
+  // 2. Tarik & sinkronkan data historis dari Cloud (Google Sheet API) untuk tanggal yang dipilih
+  if (!isFetchingSummaryRemote && targetDates.length > 0) {
+    isFetchingSummaryRemote = true;
+    
+    try {
+      // Ambil data remote secara paralel untuk rentang tanggal tersebut
+      const fetchPromises = targetDates.map(async (dateStr) => {
+        try {
+          const raw = await remoteGet(remoteDataKey(dateStr));
+          if (raw) {
+            const remoteData = JSON.parse(raw);
+            const localData = loadDayDataLocal(dateStr);
+            const merged = mergeDayData(localData, remoteData);
+            saveDayDataLocal(dateStr, merged);
+          }
+        } catch (e) {
+          // Abaikan jika tanggal tertentu tidak memiliki data di cloud
+        }
+      });
+
+      await Promise.all(fetchPromises);
+    } catch (err) {
+      console.error("Gagal mengambil data historis dari cloud:", err);
+    } finally {
+      isFetchingSummaryRemote = false;
+      // Re-render tampilan setelah seluruh data cloud tersinkronisasi
+      processAndRenderSummaryData(targetDates);
+    }
+  }
+}
+
+function processAndRenderSummaryData(targetDates) {
   currentSummaryDataset = [];
   const staffSummary = {};
   const actSummary = {};
-  const staffBreakdown = {}; // Objek untuk merekap rincian per staff
+  const staffBreakdown = {};
   let totalExecutions = 0;
   let opsEmsTotal = 0;
 
-  filteredDates.forEach(dateStr => {
+  targetDates.forEach(dateStr => {
     const data = loadDayDataLocal(dateStr);
     if (data && data.counts) {
       Object.keys(data.counts).forEach(actId => {
@@ -3313,7 +3362,7 @@ function renderSummaryTable(dataset) {
 
   dataset.sort((a, b) => b.date.localeCompare(a.date));
 
-  tbody.innerHTML = dataset.map((row, idx) => `
+  tbody.innerHTML = dataset.map((row) => `
     <tr>
       <td><b>${row.date}</b></td>
       <td>${escapeHtml(row.staff)}</td>
