@@ -3155,12 +3155,14 @@ initChecklist();
 
 
 /* ==========================================================================
-   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH STAFF BREAKDOWN ---
+   --- SUMMARY & ANALYTICS OVERVIEW LOGIC WITH STAFF BREAKDOWN & AUTO SYNC ---
    ========================================================================== */
 let staffChartInstance = null;
 let actChartInstance = null;
 let currentSummaryDataset = [];
 let summaryFilterMode = 'range'; // Default Rentang Tanggal
+let syncedDatesInSession = new Set();
+let isAnalyticsSyncing = false;
 
 function setSummaryFilterMode(mode) {
   summaryFilterMode = mode;
@@ -3186,28 +3188,94 @@ function getAllChecklistDataKeys() {
   return keys;
 }
 
+function getDatesInRange(startStr, endStr) {
+  const dates = [];
+  if (!startStr || !endStr) return dates;
+  let curr = new Date(startStr + "T00:00:00");
+  const end = new Date(endStr + "T00:00:00");
+  while (curr <= end) {
+    const y = curr.getFullYear();
+    const m = String(curr.getMonth() + 1).padStart(2, '0');
+    const d = String(curr.getDate()).padStart(2, '0');
+    dates.push(`${y}-${m}-${d}`);
+    curr.setDate(curr.getDate() + 1);
+  }
+  return dates;
+}
+
+function getDatesInMonth(monthStr) {
+  if (!monthStr) return [];
+  const [y, m] = monthStr.split('-').map(Number);
+  if (!y || !m) return [];
+  const lastDay = new Date(y, m, 0).getDate();
+  const dates = [];
+  for (let d = 1; d <= lastDay; d++) {
+    dates.push(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+  }
+  return dates;
+}
+
 function renderAnalyticsSummary() {
   const monthVal = document.getElementById('summaryMonthInput').value;
   const dayVal = document.getElementById('summaryDayInput').value;
   const startVal = document.getElementById('summaryStartInput').value;
   const endVal = document.getElementById('summaryEndInput').value;
 
-  const availableDates = getAllChecklistDataKeys();
-  let filteredDates = [];
-
+  let targetDates = [];
   const labelEl = document.getElementById('summaryPeriodLabel');
 
   if (summaryFilterMode === 'month' && monthVal) {
-    filteredDates = availableDates.filter(d => d.startsWith(monthVal));
+    targetDates = getDatesInMonth(monthVal);
     if (labelEl) labelEl.innerText = `Bulan ${monthVal}`;
   } else if (summaryFilterMode === 'day' && dayVal) {
-    filteredDates = availableDates.filter(d => d === dayVal);
+    targetDates = dayVal ? [dayVal] : [];
     if (labelEl) labelEl.innerText = `Tanggal ${dayVal}`;
   } else if (summaryFilterMode === 'range' && startVal && endVal) {
-    filteredDates = availableDates.filter(d => d >= startVal && d <= endVal);
+    targetDates = getDatesInRange(startVal, endVal);
     if (labelEl) labelEl.innerText = `${startVal} s/d ${endVal}`;
   }
 
+  // Gabungkan dengan key local storage yang tersedia jika ada
+  const localKeys = getAllChecklistDataKeys();
+  localKeys.forEach(k => {
+    if (!targetDates.includes(k)) {
+      if (summaryFilterMode === 'month' && monthVal && k.startsWith(monthVal)) targetDates.push(k);
+      else if (summaryFilterMode === 'day' && dayVal && k === dayVal) targetDates.push(k);
+      else if (summaryFilterMode === 'range' && startVal && endVal && k >= startVal && k <= endVal) targetDates.push(k);
+    }
+  });
+
+  // Render cepat dengan data lokal yang ada terlebih dahulu
+  renderAnalyticsSummaryUI(targetDates);
+
+  // Ambil data remote cloud secara bertahap (chunking/batching) untuk menghindari rate limiting Google Apps Script
+  const datesToSync = targetDates.filter(d => !syncedDatesInSession.has(d));
+  if (datesToSync.length > 0 && !isAnalyticsSyncing) {
+    isAnalyticsSyncing = true;
+    const chunkSize = 3;
+    (async () => {
+      for (let i = 0; i < datesToSync.length; i += chunkSize) {
+        const chunk = datesToSync.slice(i, i + chunkSize);
+        await Promise.allSettled(chunk.map(async (dateStr) => {
+          try {
+            const raw = await remoteGet(remoteDataKey(dateStr));
+            if (raw) {
+              const remoteData = JSON.parse(raw);
+              const localData = loadDayDataLocal(dateStr);
+              const merged = mergeDayData(localData, remoteData);
+              saveDayDataLocal(dateStr, merged);
+              syncedDatesInSession.add(dateStr);
+            }
+          } catch(e) {}
+        }));
+      }
+      isAnalyticsSyncing = false;
+      renderAnalyticsSummaryUI(targetDates);
+    })();
+  }
+}
+
+function renderAnalyticsSummaryUI(filteredDates) {
   currentSummaryDataset = [];
   const staffSummary = {};
   const actSummary = {};
@@ -3541,301 +3609,349 @@ let sohState = {
 
 let sohRefreshTimer = null;
 
-const SOH_SEED_DATA = [{"kategori":"iPad","kode":"APPMD3Y4PA/A","nama":"IPAD 11TH WI-FI 128GB SILVER","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4A4PA/A","nama":"IPAD 11TH WI-FI 128GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4D4PA/A","nama":"IPAD 11TH WI-FI 128GB YELLOW","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4E4PA/A","nama":"IPAD 11TH WI-FI 128GB PINK","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4G4PA/A","nama":"IPAD 11TH WI-FI 256GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4H4PA/A","nama":"IPAD 11TH WI-FI 256GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD7F4PA/A","nama":"IPAD 11TH WI-FI + CELLULAR 128GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDE14ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/16GB/1TB-IND","stok":4,"baris":4,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDE34ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/24GB/1TB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDH84ID/A","nama":"MBA 13.6 SLV/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDHF4ID/A","nama":"MBA 13.6 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDVK4ID/A","nama":"MBA 15.3 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDVQ4ID/A","nama":"MBA 15.3 SKY/M5/10C GPU/16GB/512GB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWK4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 256GB SPACE B","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWM4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 512GB SPACE B","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMDWP4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 1TB SPACE BLA","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPME7W4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 256GB SP","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPME7Y4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 512GB SP","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH34ID/A","nama":"APPLE WATCH SE 3 40 S AL S SB SM GPS-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH94ID/A","nama":"APPLE WATCH SE 3 40 M AL M SB SM GPS-IND","stok":12,"baris":12,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHJ4ID/A","nama":"APPLE WATCH SE 3 44 S AL S SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHQ4ID/A","nama":"APPLE WATCH SE 3 44 M AL M SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPLE WATCH 11 42 RG AL LB SB SM GPS-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEUX4ID/A","nama":"APPLE WATCH 11 46 JB AL BK SB ML GPS-IND","stok":4,"baris":4,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWM4ID/A","nama":"APPLE WATCH ULTRA3 49 NT TI LB ALP M-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWU4ID/A","nama":"APPLE WATCH ULTRA3 49 N T B/BB TL ML-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0J4ID/A","nama":"APPLE WATCH ULTRA3 49 BLACK TI BK OB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0V4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK ALP M-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1H4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BC TL ML-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1Q4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK TML M-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMFHP4ID/A","nama":"AIRPODS PRO 3","stok":27,"baris":1,"qtyKolom":27},{"kategori":"iPhone","kode":"APPMFYM4ID/A","nama":"IPHONE 17 PRO MAX 256GB SILVER","stok":31,"baris":31,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMFYN4ID/A","nama":"IPHONE 17 PRO MAX 256GB COSMIC ORANGE","stok":31,"baris":31,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYP4ID/A","nama":"IPHONE 17 PRO MAX 256GB DEEP BLUE","stok":16,"baris":16,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYQ4ID/A","nama":"IPHONE 17 PRO MAX 512GB SILVER","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYT4ID/A","nama":"IPHONE 17 PRO MAX 512GB COSMIC ORANGE","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYV4ID/A","nama":"IPHONE 17 PRO MAX 1TB SILVER","stok":5,"baris":5,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYX4ID/A","nama":"IPHONE 17 PRO MAX 1TB DEEP BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2L4ID/A","nama":"IPHONE AIR 256GB SPACE BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2M4ID/A","nama":"IPHONE AIR 256GB CLOUD WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2N4ID/A","nama":"IPHONE AIR 256GB LIGHT GOLD","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2P4ID/A","nama":"IPHONE AIR 256GB SKY BLUE","stok":5,"baris":5,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMG2T4ID/A","nama":"IPHONE AIR 512GB CLOUD WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2U4ID/A","nama":"IPHONE AIR 512GB LIGHT GOLD","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6J4ID/A","nama":"IPHONE 17 256GB BLACK","stok":9,"baris":9,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6K4ID/A","nama":"IPHONE 17 256GB WHITE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6L4ID/A","nama":"IPHONE 17 256GB MIST BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6M4ID/A","nama":"IPHONE 17 256GB LAVENDER","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6N4ID/A","nama":"IPHONE 17 256GB SAGE","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6Q4ID/A","nama":"IPHONE 17 512GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6V4ID/A","nama":"PHONE 17 512GB SAGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8G4ID/A","nama":"IPHONE 17 PRO 256GB SILVER","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8H4ID/A","nama":"IPHONE 17 PRO 256GB COSMIC ORANGE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8J4ID/A","nama":"IPHONE 17 PRO 256GB DEEP BLUE","stok":84,"baris":84,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8K4ID/A","nama":"IPHONE 17 PRO 512GB SILVER","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8M4ID/A","nama":"IPHONE 17 PRO 512GB COSMIC ORANGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8N4ID/A","nama":"IPHONE 17 PRO 512GB DEEP BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8P4ID/A","nama":"IPHONE 17 PRO 1TB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8Q4ID/A","nama":"IPHONE 17 PRO 1TB COSMIC ORANGE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Mac","kode":"APPMGDN4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/1T-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDP4ID/A","nama":"MBP 14 SL/M5/PRO/18C/20CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDQ4ID/A","nama":"MBP 14 SL/M5/MAX/18C/32CGPU/36GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGE44ID/A","nama":"MBP 16 SL/M5/PRO/18C/20CGPU/24GB/1T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH344PA/A","nama":"IPAD AIR 11 WIFI 128GB PUR M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH354PA/A","nama":"IPAD AIR 11 WIFI 256GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH364PA/A","nama":"IPAD AIR 11 WIFI 256GB BLU M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH3G4PA/A","nama":"IPAD AIR 11 WIFI 1TB SPG M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5N4PA/A","nama":"IPAD AIR 13 WIFI 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH5P4PA/A","nama":"IPAD AIR 13 WIFI 128GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5W4PA/A","nama":"IPAD AIR 13 WIFI 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH784PA/A","nama":"IPAD AIR 11 WF CL 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH7E4PA/A","nama":"IPAD AIR 11 WF CL 256GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH7F4PA/A","nama":"IPAD AIR 11 WF CL 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFA4ID/A","nama":"MBN 13 SLV/8GB/256GB-IND","stok":14,"baris":14,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFC4ID/A","nama":"MBN 13 SLV/8GB/512GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFD4ID/A","nama":"MBN 13 CIT/8GB/256GB-IND","stok":10,"baris":10,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFE4ID/A","nama":"MBN 13 CIT/8GB/512GB-IND","stok":10,"baris":10,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFF4ID/A","nama":"MBN 13 IND/8GB/256GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFG4ID/A","nama":"MBN 13 IND/8GB/512GB-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFH4ID/A","nama":"MBN 13 BLS/8GB/256GB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRV4ID/A","nama":"IPHONE 17E 256GB BLACK","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHRX4ID/A","nama":"IPHONE 17E 256GB SOFT PINK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRY4ID/A","nama":"IPHONE 17E 512GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHU04ID/A","nama":"IPHONE 17E 512GB WHITE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHU34ID/A","nama":"IPHONE 17E 512GB SOFT PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMHWK4ID/A","nama":"AIRPODS MAX 2 MIDNIGHT","stok":11,"baris":1,"qtyKolom":11},{"kategori":"AirPods","kode":"APPMHWL4ID/A","nama":"AIRPODS MAX 2 STARLIGHT","stok":3,"baris":1,"qtyKolom":3},{"kategori":"AirPods","kode":"APPMHWM4ID/A","nama":"AIRPODS MAX 2 BLUE","stok":4,"baris":1,"qtyKolom":4},{"kategori":"AirPods","kode":"APPMHWN4ID/A","nama":"AIRPODS MAX 2 ORANGE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMHWP4ID/A","nama":"AIRPODS MAX 2 PURPLE","stok":2,"baris":1,"qtyKolom":2},{"kategori":"Mac","kode":"APPMJLV4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":5,"baris":5,"qtyKolom":1},{"kategori":"Mac","kode":"APPMJLW4ID/A","nama":"MBP 14 SB/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMP263PA/A","nama":"IPAD PRO 12.9 WF CL 2T GRY-PAC 6TH 2022","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMPWW3ID/A","nama":"IPHONE 14 512GB MIDNIGHT","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMR962ID/A","nama":"MBP 15.4/2.2GHZ(I7)/16GB/256GB/TB/SL","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMRW63ID/A","nama":"MBP 16 SL/M3/12C/18C GP/36G/512G-ID 23","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP03ID/A","nama":"IPHONE 15 128GB BLACK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP13ID/A","nama":"IPHONE 15 128GB PINK","stok":24,"baris":24,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP43ID/A","nama":"IPHONE 15 128GB BLUE","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP63ID/A","nama":"IPHONE 15 256GB BLACK","stok":18,"baris":18,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP73ID/A","nama":"IPHONE 15 256GB PINK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP93ID/A","nama":"IPHONE 15 256GB BLUE","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMU1M3ID/A","nama":"IPHONE 15 PLUS 512GB YELLOW","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMWTY3FE/A","nama":"EARPODS WITH LIGHTNING CONNECTOR","stok":11,"baris":1,"qtyKolom":11},{"kategori":"iPad","kode":"APPMXN63PA/A","nama":"IPAD MINI 7 WIFI 128GB  SPACE GREY","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN73PA/A","nama":"IPAD MINI 7 WIFI 128GB  BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN93PA/A","nama":"IPAD MINI 7 WIFI 128GB  PURPLE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXNC3PA/A","nama":"IPAD MINI 7 WIFI 256GB  BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP63ID/A","nama":"AIRPODS 4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP93ID/A","nama":"AIRPODS 4 (ACTIVE NOISE CANCELLATION)","stok":14,"baris":1,"qtyKolom":14},{"kategori":"iPhone","kode":"APPMXVU3ID/A","nama":"IPHONE 16 PLUS 128GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVW3ID/A","nama":"IPHONE 16 PLUS 128GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVX3ID/A","nama":"IPHONE 16 PLUS 128GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXVY3ID/A","nama":"IPHONE 16 PLUS 128GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXWV3ID/A","nama":"IPHONE 16 PLUS 256GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY13ID/A","nama":"IPHONE 16 PLUS 256GB PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY23ID/A","nama":"IPHONE 16 PLUS 256GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMXY53ID/A","nama":"IPHONE 16 PLUS 256GB TEAL","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY1P3ID/A","nama":"IPHONE 16 PLUS 512GB BLACK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY1X3ID/A","nama":"IPHONE 16 PLUS 512GB WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY253ID/A","nama":"IPHONE 16 PLUS 512GB PINK","stok":2,"baris":2,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMY2D3ID/A","nama":"IPHONE 16 PLUS 512GB ULTRAMARINE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMY2J3ID/A","nama":"IPHONE 16 PLUS 512GB TEAL","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE73ID/A","nama":"IPHONE 16 128GB BLACK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYE93ID/A","nama":"IPHONE 16 128GB WHITE","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEA3ID/A","nama":"IPHONE 16 128GB PINK","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEC3ID/A","nama":"IPHONE 16 128GB ULTRAMARINE","stok":10,"baris":10,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYED3ID/A","nama":"IPHONE 16 128GB TEAL","stok":8,"baris":8,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYER3ID/A","nama":"IPHONE 16 512GB ULTRAMARINE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMYEU3ID/A","nama":"IPHONE 16 512GB SAGE","stok":1,"baris":1,"qtyKolom":0}];
+const SOH_SEED_DATA = [{"kategori":"iPad","kode":"APPMD3Y4PA/A","nama":"IPAD 11TH WI-FI 128GB SILVER","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4A4PA/A","nama":"IPAD 11TH WI-FI 128GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4D4PA/A","nama":"IPAD 11TH WI-FI 128GB YELLOW","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4E4PA/A","nama":"IPAD 11TH WI-FI 128GB PINK","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4G4PA/A","nama":"IPAD 11TH WI-FI 256GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD4H4PA/A","nama":"IPAD 11TH WI-FI 256GB BLUE","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPad","kode":"APPMD7F4PA/A","nama":"IPAD 11TH WI-FI + CELLULAR 128GB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDE14ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/16GB/1TB-IND","stok":4,"baris":4,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDE34ID/A","nama":"MBP 14 SB/M5/10C/10C GPU/24GB/1TB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDH84ID/A","nama":"MBA 13.6 SLV/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDHF4ID/A","nama":"MBA 13.6 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMDVK4ID/A","nama":"MBA 15.3 MDN/M5/10C GPU/16GB/1TB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Mac","kode":"APPMDVQ4ID/A","nama":"MBA 15.3 SKY/M5/10C GPU/16GB/512GB-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWK4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 256GB SPACE B","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMDWM4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 512GB SPACE B","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMDWP4PA/A","nama":"IPAD PRO  11-INCH M5 WI-FI 1TB SPACE BLA","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPME7W4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 256GB SP","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPME7Y4PA/A","nama":"IPAD PRO  13-INCH M5 WI-FI CELL 512GB SP","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH34ID/A","nama":"APPLE WATCH SE 3 40 S AL S SB SM GPS-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEH94ID/A","nama":"APPLE WATCH SE 3 40 M AL M SB SM GPS-IND","stok":12,"baris":12,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHJ4ID/A","nama":"APPLE WATCH SE 3 44 S AL S SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEHQ4ID/A","nama":"APPLE WATCH SE 3 44 M AL M SB ML GPS-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPLE WATCH 11 42 RG AL LB SB SM GPS-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEUX4ID/A","nama":"APPLE WATCH 11 46 JB AL BK SB ML GPS-IND","stok":4,"baris":4,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWM4ID/A","nama":"APPLE WATCH ULTRA3 49 NT TI LB ALP M-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMEWU4ID/A","nama":"APPLE WATCH ULTRA3 49 N T B/BB TL ML-IND","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0J4ID/A","nama":"APPLE WATCH ULTRA3 49 BLACK TI BK OB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF0V4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK ALP M-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1H4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BC TL ML-IND","stok":1,"baris":1,"qtyKolom":0},{"kategori":"Apple Watch","kode":"APPMF1Q4ID/A","nama":"APPLE WATCH ULTRA3 49 BK TI BK TML M-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMFHP4ID/A","nama":"AIRPODS PRO 3","stok":27,"baris":1,"qtyKolom":27},{"kategori":"iPhone","kode":"APPMFYM4ID/A","nama":"IPHONE 17 PRO MAX 256GB SILVER","stok":31,"baris":31,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMFYN4ID/A","nama":"IPHONE 17 PRO MAX 256GB COSMIC ORANGE","stok":31,"baris":31,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYP4ID/A","nama":"IPHONE 17 PRO MAX 256GB DEEP BLUE","stok":16,"baris":16,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYQ4ID/A","nama":"IPHONE 17 PRO MAX 512GB SILVER","stok":12,"baris":12,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYT4ID/A","nama":"IPHONE 17 PRO MAX 512GB COSMIC ORANGE","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYV4ID/A","nama":"IPHONE 17 PRO MAX 1TB SILVER","stok":5,"baris":5,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMFYX4ID/A","nama":"IPHONE 17 PRO MAX 1TB DEEP BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2L4ID/A","nama":"IPHONE AIR 256GB SPACE BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2M4ID/A","nama":"IPHONE AIR 256GB CLOUD WHITE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2N4ID/A","nama":"IPHONE AIR 256GB LIGHT GOLD","stok":4,"baris":4,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2P4ID/A","nama":"IPHONE AIR 256GB SKY BLUE","stok":5,"baris":5,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMG2T4ID/A","nama":"IPHONE AIR 512GB CLOUD WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG2U4ID/A","nama":"IPHONE AIR 512GB LIGHT GOLD","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6J4ID/A","nama":"IPHONE 17 256GB BLACK","stok":9,"baris":9,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6K4ID/A","nama":"IPHONE 17 256GB WHITE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6L4ID/A","nama":"IPHONE 17 256GB MIST BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6M4ID/A","nama":"IPHONE 17 256GB LAVENDER","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6N4ID/A","nama":"IPHONE 17 256GB SAGE","stok":19,"baris":19,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6Q4ID/A","nama":"IPHONE 17 512GB WHITE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG6V4ID/A","nama":"PHONE 17 512GB SAGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8G4ID/A","nama":"IPHONE 17 PRO 256GB SILVER","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8H4ID/A","nama":"IPHONE 17 PRO 256GB COSMIC ORANGE","stok":20,"baris":20,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8J4ID/A","nama":"IPHONE 17 PRO 256GB DEEP BLUE","stok":84,"baris":84,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8K4ID/A","nama":"IPHONE 17 PRO 512GB SILVER","stok":7,"baris":7,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8M4ID/A","nama":"IPHONE 17 PRO 512GB COSMIC ORANGE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8N4ID/A","nama":"IPHONE 17 PRO 512GB DEEP BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8P4ID/A","nama":"IPHONE 17 PRO 1TB SILVER","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMG8Q4ID/A","nama":"IPHONE 17 PRO 1TB COSMIC ORANGE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"Mac","kode":"APPMGDN4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/1T-IND","stok":2,"baris":2,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDP4ID/A","nama":"MBP 14 SL/M5/PRO/18C/20CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGDQ4ID/A","nama":"MBP 14 SL/M5/MAX/18C/32CGPU/36GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMGE44ID/A","nama":"MBP 16 SL/M5/PRO/18C/20CGPU/24GB/1T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH344PA/A","nama":"IPAD AIR 11 WIFI 128GB PUR M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH354PA/A","nama":"IPAD AIR 11 WIFI 256GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH364PA/A","nama":"IPAD AIR 11 WIFI 256GB BLU M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH3G4PA/A","nama":"IPAD AIR 11 WIFI 1TB SPG M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5N4PA/A","nama":"IPAD AIR 13 WIFI 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH5P4PA/A","nama":"IPAD AIR 13 WIFI 128GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH5W4PA/A","nama":"IPAD AIR 13 WIFI 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH784PA/A","nama":"IPAD AIR 11 WF CL 128GB SPG M4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPad","kode":"APPMH7E4PA/A","nama":"IPAD AIR 11 WF CL 256GB BLU M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMH7F4PA/A","nama":"IPAD AIR 11 WF CL 256GB STL M4","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFA4ID/A","nama":"MBN 13 SLV/8GB/256GB-IND","stok":14,"baris":14,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFC4ID/A","nama":"MBN 13 SLV/8GB/512GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFD4ID/A","nama":"MBN 13 CIT/8GB/256GB-IND","stok":10,"baris":10,"qtyKolom":1},{"kategori":"Mac","kode":"APPMHFE4ID/A","nama":"MBN 13 CIT/8GB/512GB-IND","stok":10,"baris":10,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFF4ID/A","nama":"MBN 13 IND/8GB/256GB-IND","stok":8,"baris":8,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFG4ID/A","nama":"MBN 13 IND/8GB/512GB-IND","stok":11,"baris":11,"qtyKolom":0},{"kategori":"Mac","kode":"APPMHFH4ID/A","nama":"MBN 13 BLS/8GB/256GB-IND","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRV4ID/A","nama":"IPHONE 17E 256GB BLACK","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHRX4ID/A","nama":"IPHONE 17E 256GB SOFT PINK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHRY4ID/A","nama":"IPHONE 17E 512GB BLACK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMHU04ID/A","nama":"IPHONE 17E 512GB WHITE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMHU34ID/A","nama":"IPHONE 17E 512GB SOFT PINK","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMHWK4ID/A","nama":"AIRPODS MAX 2 MIDNIGHT","stok":11,"baris":1,"qtyKolom":11},{"kategori":"AirPods","kode":"APPMHWL4ID/A","nama":"AIRPODS MAX 2 STARLIGHT","stok":3,"baris":1,"qtyKolom":3},{"kategori":"AirPods","kode":"APPMHWM4ID/A","nama":"AIRPODS MAX 2 BLUE","stok":4,"baris":1,"qtyKolom":4},{"kategori":"AirPods","kode":"APPMHWN4ID/A","nama":"AIRPODS MAX 2 ORANGE","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMHWP4ID/A","nama":"AIRPODS MAX 2 PURPLE","stok":2,"baris":1,"qtyKolom":2},{"kategori":"Mac","kode":"APPMJLV4ID/A","nama":"MBP 14 SL/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":5,"baris":5,"qtyKolom":1},{"kategori":"Mac","kode":"APPMJLW4ID/A","nama":"MBP 14 SB/M5/PRO/15C/16CGPU/24GB/2T-IND","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPad","kode":"APPMP263PA/A","nama":"IPAD PRO 12.9 WF CL 2T GRY-PAC 6TH 2022","stok":1,"baris":1,"qtyKolom":1},{"kategori":"iPhone","kode":"APPMPWW3ID/A","nama":"IPHONE 14 512GB MIDNIGHT","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMR962ID/A","nama":"MBP 15.4/2.2GHZ(I7)/16GB/256GB/TB/SL","stok":1,"baris":1,"qtyKolom":1},{"kategori":"Mac","kode":"APPMRW63ID/A","nama":"MBP 16 SL/M3/12C/18C GP/36G/512G-ID 23","stok":1,"baris":1,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP03ID/A","nama":"IPHONE 15 128GB BLACK","stok":3,"baris":3,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP13ID/A","nama":"IPHONE 15 128GB PINK","stok":24,"baris":24,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP43ID/A","nama":"IPHONE 15 128GB BLUE","stok":13,"baris":13,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP63ID/A","nama":"IPHONE 15 256GB BLACK","stok":18,"baris":18,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP73ID/A","nama":"IPHONE 15 256GB PINK","stok":6,"baris":6,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMTP93ID/A","nama":"IPHONE 15 256GB BLUE","stok":11,"baris":11,"qtyKolom":0},{"kategori":"iPhone","kode":"APPMU1M3ID/A","nama":"IPHONE 15 PLUS 512GB YELLOW","stok":1,"baris":1,"qtyKolom":1},{"kategori":"AirPods","kode":"APPMWTY3FE/A","nama":"EARPODS WITH LIGHTNING CONNECTOR","stok":11,"baris":1,"qtyKolom":11},{"kategori":"iPad","kode":"APPMXN63PA/A","nama":"IPAD MINI 7 WIFI 128GB  SPACE GREY","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN73PA/A","nama":"IPAD MINI 7 WIFI 128GB  BLUE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXN93PA/A","nama":"IPAD MINI 7 WIFI 128GB  PURPLE","stok":2,"baris":2,"qtyKolom":0},{"kategori":"iPad","kode":"APPMXNC3PA/A","nama":"IPAD MINI 7 WIFI 256GB  BLUE","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP63ID/A","nama":"AIRPODS 4","stok":1,"baris":1,"qtyKolom":0},{"kategori":"AirPods","kode":"APPMXP93ID/A","nama":"AIRPODS 4 (ACTIVE NOISE CANCELLATION)","stok":14,"baris":1,"qtyKolom":14}];
 
-function sohLoadJSON(key, fallback){
-  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+function sohLoadJSON(k, def){
+  try {
+    const v = localStorage.getItem(k);
+    return v ? JSON.parse(v) : def;
+  } catch(e) { return def; }
 }
-function sohSaveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
-function sohEsc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-function sohTimeAgoLabel(){
-  if(!sohState.lastSync) return 'Belum pernah sync';
-  const diff = Math.floor((Date.now() - sohState.lastSync)/1000);
-  if(diff < 10) return 'Baru saja';
-  if(diff < 60) return diff + ' detik lalu';
-  if(diff < 3600) return Math.floor(diff/60) + ' menit lalu';
-  return Math.floor(diff/3600) + ' jam lalu';
+function sohSaveJSON(k, v){
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){}
 }
 
-function sohFormatReportDate(d){
-  if(!d) return null;
-  try{ return new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }); }
-  catch(e){ return null; }
+function sohFormatDate(iso){
+  if (!iso) return '–';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  } catch(e) { return iso; }
 }
 
-function sohHashRecords(records){
-  const s = records.map(r => r.kode+':'+r.stok).sort().join('|');
-  let h = 0;
-  for(let i=0;i<s.length;i++){ h = ((h<<5)-h + s.charCodeAt(i))|0; }
-  return h + ':' + records.length;
-}
-
-async function sohDoSync(showLoadingState){
-  if(sohDoSync._inFlight) return;
-  sohDoSync._inFlight = true;
-  sohSetSyncUI('syncing');
-  if(showLoadingState) sohToggleSkeleton(true);
-  try{
-    const res = await fetch(SOH_DATA_URL + '?t=' + Date.now(), { cache:'no-store' });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const payload = await res.json();
-    const records = payload.items || [];
-    if(!records.length) throw new Error('data.json kosong');
-    sohState.lastCheck = Date.now();
-    const newHash = sohHashRecords(records);
-    const hasReportDate = !!payload.sourceDate;
-    const changed = hasReportDate
-      ? (!sohState.sourceDate || new Date(payload.sourceDate).getTime() !== new Date(sohState.sourceDate).getTime())
-      : (sohState.dataHash !== newHash);
-
-    if(changed || !sohState.lastSync){
-      sohState.data = records;
-      sohState.sourceDate = payload.sourceDate || null;
-      sohState.generatedAt = payload.generatedAt || null;
-      sohState.dataHash = newHash;
-      sohState.lastSync = Date.now();
-      sohSaveJSON(SOH_LS_CACHE, { data: records, ts: sohState.lastSync, sourceDate: sohState.sourceDate, generatedAt: sohState.generatedAt, hash: newHash });
-      sohSetSyncUI('ok');
-      if(sohState.lastSync) showToast('Stock berhasil disinkronkan');
-    } else {
-      sohSetSyncUI('ok');
-    }
-  }catch(e){
-    console.error(e);
-    const cached = sohLoadJSON(SOH_LS_CACHE, null);
-    if(cached){ sohState.data = cached.data; sohState.lastSync = cached.ts; sohState.sourceDate = cached.sourceDate || null; sohState.generatedAt = cached.generatedAt || null; sohState.dataHash = cached.hash || null; }
-    else { sohState.data = SOH_SEED_DATA; }
-    sohSetSyncUI('error');
-    showToast('Sync gagal — pakai data tersimpan terakhir');
-  }finally{
-    sohDoSync._inFlight = false;
-    sohToggleSkeleton(false);
-    sohRender();
-  }
-}
-
-function sohSetSyncUI(mode){
-  sohState.syncStatus = mode;
+function sohSetSyncStatus(st, msg){
+  sohState.syncStatus = st;
   const dot = document.getElementById('sohSyncDot');
-  const label = document.getElementById('sohSyncLabel');
-  if(!dot || !label) return;
-  dot.className = 'dot';
-  const dateLabel = sohFormatReportDate(sohState.sourceDate);
-  if(mode === 'syncing'){ dot.classList.add('syncing'); label.textContent = 'Memeriksa data...'; }
-  else if(mode === 'error'){ dot.classList.add('error'); label.textContent = 'Gagal sync · ' + sohTimeAgoLabel(); }
-  else { label.textContent = dateLabel ? ('Data per ' + dateLabel) : ('Tersinkron · ' + sohTimeAgoLabel()); }
+  const lbl = document.getElementById('sohSyncLabel');
+  if(!dot || !lbl) return;
+  
+  dot.className = 'dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : '');
+  lbl.textContent = msg;
 }
-
-function sohToggleSkeleton(show){
-  const sk = document.getElementById('sohSkeleton');
-  const lst = document.getElementById('sohList');
-  if(sk) sk.style.display = show ? 'flex' : 'none';
-  if(lst) lst.style.display = show ? 'none' : 'flex';
-}
-
-function sohStatusFor(stok){
-  const low = Number(sohSettings.lowThreshold) || 3;
-  if(stok <= 0) return 'bad';
-  if(stok <= low) return 'warn';
-  return 'ok';
-}
-function sohStatusLabel(s){ return s==='bad' ? 'Habis' : s==='warn' ? 'Terbatas' : 'Tersedia'; }
 
 function sohRenderPills(){
   const row = document.getElementById('sohPillRow');
   if(!row) return;
-  const counts = {};
-  SOH_CAT_ORDER.forEach(c => counts[c]=0);
-  sohState.data.forEach(d => { counts[d.kategori] = (counts[d.kategori]||0)+1; });
-  const total = sohState.data.length;
 
-  let html = `<div class="pill ${sohState.activeCat==='Semua'?'active':''}" data-cat="Semua"><span class="pillicon">${sohIconGrid()}</span>Semua<span class="ct">${total}</span></div>`;
-  SOH_CAT_ORDER.forEach(cat => {
-    const c = SOH_CATS[cat];
-    html += `<div class="pill ${sohState.activeCat===cat?'active':''}" data-cat="${cat}" style="--accent:${c.color}">
-      <span class="pillicon">${c.icon()}</span>${cat}<span class="ct">${counts[cat]||0}</span>
-    </div>`;
+  const cats = ['Semua', ...SOH_CAT_ORDER];
+  const counts = { 'Semua': sohState.data.length };
+  cats.forEach(c => { if(c !== 'Semua') counts[c] = 0; });
+  sohState.data.forEach(x => {
+    if (counts[x.kategori] !== undefined) counts[x.kategori]++;
   });
-  row.innerHTML = html;
-  row.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
-    sohState.activeCat = p.dataset.cat; sohRender();
-  }));
-}
 
-function sohGetFiltered(){
-  let list = sohState.data.slice();
-  if(sohState.activeCat !== 'Semua') list = list.filter(d => d.kategori === sohState.activeCat);
-  if(sohState.stockFilter !== 'all') list = list.filter(d => sohStatusFor(d.stok) === sohState.stockFilter);
-  if(sohState.search.trim()){
-    const q = sohState.search.trim().toLowerCase();
-    list = list.filter(d => d.nama.toLowerCase().includes(q) || (d.kode||'').toLowerCase().includes(q));
-  }
-  const [key, dir] = sohState.sort.split('-');
-  list.sort((a,b) => {
-    let va, vb;
-    if(key==='name'){ va=a.nama.toLowerCase(); vb=b.nama.toLowerCase(); return dir==='asc'? va.localeCompare(vb) : vb.localeCompare(va); }
-    if(key==='stock'){ va=a.stok; vb=b.stok; }
-    return dir==='asc' ? va-vb : vb-va;
+  row.innerHTML = cats.map(c => {
+    const active = sohState.activeCat === c ? 'active' : '';
+    const meta = SOH_CATS[c] || { color: 'var(--brand)', icon: sohIconGrid };
+    const icon = meta.icon();
+    return `
+      <button class="pill ${active}" data-cat="${c}" style="--accent:${meta.color}">
+        <span class="pillicon">${icon}</span>
+        <span>${c}</span>
+        <span class="ct">${counts[c] || 0}</span>
+      </button>
+    `;
+  }).join('');
+
+  row.querySelectorAll('.pill').forEach(b => {
+    b.onclick = () => {
+      sohState.activeCat = b.dataset.cat;
+      sohRenderPills();
+      sohRenderList();
+    };
   });
-  return list;
 }
 
 function sohRenderStats(){
-  const total = sohState.data.length;
-  const units = sohState.data.reduce((s,d)=>s+ (d.stok||0), 0);
-  const low = sohState.data.filter(d => sohStatusFor(d.stok)==='warn').length;
-  
-  const elSku = document.getElementById('sohStatSku');
-  const elUnit = document.getElementById('sohStatUnit');
-  const elLow = document.getElementById('sohStatLow');
-  
-  if(elSku) elSku.textContent = total;
-  if(elUnit) elUnit.textContent = units.toLocaleString('id-ID');
-  if(elLow) elLow.textContent = low;
+  const data = sohState.data;
+  const totalSku = data.length;
+  const totalUnit = data.reduce((a, b) => a + (b.stok || 0), 0);
+  const lowCount = data.filter(x => (x.stok || 0) > 0 && (x.stok || 0) <= sohSettings.lowThreshold).length;
 
-  document.getElementById('sohStatAllBtn')?.classList.toggle('active', sohState.stockFilter==='all');
-  document.getElementById('sohStatUnitBtn')?.classList.toggle('active', sohState.stockFilter==='all');
-  document.getElementById('sohStatLowBtn')?.classList.toggle('active', sohState.stockFilter==='warn');
+  const skuEl = document.getElementById('sohStatSku');
+  const unitEl = document.getElementById('sohStatUnit');
+  const lowEl = document.getElementById('sohStatLow');
+
+  if(skuEl) skuEl.textContent = totalSku.toLocaleString('id-ID');
+  if(unitEl) unitEl.textContent = totalUnit.toLocaleString('id-ID');
+  if(lowEl) lowEl.textContent = lowCount.toLocaleString('id-ID');
+
+  const allBtn = document.getElementById('sohStatAllBtn');
+  const lowBtn = document.getElementById('sohStatLowBtn');
+  if(allBtn) allBtn.classList.toggle('active', sohState.stockFilter === 'all');
+  if(lowBtn) lowBtn.classList.toggle('active', sohState.stockFilter === 'warn');
+}
+
+function sohFilterAndSort(){
+  let items = sohState.data.slice();
+
+  if (sohState.activeCat !== 'Semua') {
+    items = items.filter(x => x.kategori === sohState.activeCat);
+  }
+
+  if (sohState.stockFilter === 'warn') {
+    items = items.filter(x => (x.stok || 0) > 0 && (x.stok || 0) <= sohSettings.lowThreshold);
+  }
+
+  if (sohState.search) {
+    const q = sohState.search.toLowerCase();
+    items = items.filter(x =>
+      (x.nama && x.nama.toLowerCase().includes(q)) ||
+      (x.kode && x.kode.toLowerCase().includes(q)) ||
+      (x.kategori && x.kategori.toLowerCase().includes(q))
+    );
+  }
+
+  items.sort((a, b) => {
+    switch (sohState.sort) {
+      case 'name-asc': return (a.nama || '').localeCompare(b.nama || '');
+      case 'name-desc': return (b.nama || '').localeCompare(a.nama || '');
+      case 'stock-asc': return (a.stok || 0) - (b.stok || 0);
+      case 'stock-desc': return (b.stok || 0) - (a.stok || 0);
+      default: return 0;
+    }
+  });
+
+  return items;
 }
 
 function sohRenderList(){
-  const items = sohGetFiltered();
-  const list = document.getElementById('sohList');
-  const empty = document.getElementById('sohEmptyState');
-  if(!list || !empty) return;
-  if(!items.length){ list.innerHTML=''; empty.style.display='block'; list.style.display='none'; return; }
-  empty.style.display='none'; list.style.display='flex';
+  const listEl = document.getElementById('sohList');
+  const emptyEl = document.getElementById('sohEmptyState');
+  if(!listEl || !emptyEl) return;
 
-  list.innerHTML = items.map(d => {
-    const cat = SOH_CATS[d.kategori] || { color:'#888', icon:sohIconPhone };
-    const st = sohStatusFor(d.stok);
-    const qtyNote = (d.baris!=null && d.qtyKolom!=null && d.baris !== d.qtyKolom) ? `<span class="qtycol">Baris: ${d.baris} · Qty kolom: ${d.qtyKolom}</span>` : '';
-    return `<div class="row glass" style="--accent:${cat.color}">
-      <div class="icon">${cat.icon()}</div>
-      <div class="info">
-        <div class="name">${sohEsc(d.nama)}</div>
-        <div class="meta">
-          <span class="cat">${sohEsc(d.kategori)}</span>
-          <span class="code">${sohEsc(d.kode||'')}</span>
-          ${qtyNote}
+  const items = sohFilterAndSort();
+
+  if (items.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  listEl.innerHTML = items.map(x => {
+    const stok = x.stok || 0;
+    let badgeClass = 'ok';
+    let badgeText = 'Tersedia';
+
+    if (stok === 0) {
+      badgeClass = 'bad'; badgeText = 'Habis';
+    } else if (stok <= sohSettings.lowThreshold) {
+      badgeClass = 'warn'; badgeText = 'Terbatas';
+    }
+
+    const meta = SOH_CATS[x.kategori] || { color: 'var(--brand)', icon: sohIconGrid };
+    const icon = meta.icon();
+
+    return `
+      <div class="row glass" style="--accent:${meta.color}">
+        <div class="icon">${icon}</div>
+        <div class="info">
+          <div class="name">${escapeHtml(x.nama)}</div>
+          <div class="meta">
+            <span class="cat">${escapeHtml(x.kategori)}</span>
+            <span class="code">• ${escapeHtml(x.kode)}</span>
+          </div>
+        </div>
+        <div class="stockbadge ${badgeClass}">
+          <span class="n">${stok}</span>
+          <span class="s">${badgeText}</span>
         </div>
       </div>
-      <div class="stockbadge ${st}">
-        <span class="n">${d.stok}</span>
-        <span class="s">${sohStatusLabel(st)}</span>
-      </div>
-    </div>`;
+    `;
   }).join('');
 }
 
-function sohRender(){
-  sohRenderPills();
-  sohRenderStats();
-  sohRenderList();
-  sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok' : 'idle'));
-}
+async function sohFetchData(isManual = false){
+  const btnRefresh = document.getElementById('sohBtnRefresh');
+  if (btnRefresh) btnRefresh.classList.add('spin');
+  sohSetSyncStatus('syncing', isManual ? 'Menghubungkan...' : 'Memeriksa data...');
 
-document.getElementById('sohSearchInput')?.addEventListener('input', e => { sohState.search = e.target.value; sohRenderList(); });
-document.getElementById('sohSortSel')?.addEventListener('change', e => { sohState.sort = e.target.value; sohRenderList(); });
+  try {
+    const res = await fetch(SOH_DATA_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
 
-document.querySelectorAll('.statchip[data-filter]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const f = btn.dataset.filter;
-    sohState.stockFilter = (sohState.stockFilter === f) ? 'all' : f;
-    sohRender();
-  });
-});
+    sohState.data = json.data || [];
+    sohState.sourceDate = json.sourceDate || null;
+    sohState.generatedAt = json.generatedAt || null;
+    sohState.lastSync = new Date().toISOString();
+    sohState.lastCheck = new Date().toISOString();
 
-document.getElementById('sohBtnResetFilter')?.addEventListener('click', () => {
-  sohState.activeCat = 'Semua'; sohState.stockFilter = 'all'; sohState.search = '';
-  const input = document.getElementById('sohSearchInput');
-  if(input) input.value = '';
-  sohRender();
-});
+    sohSaveJSON(SOH_LS_CACHE, {
+      data: sohState.data,
+      sourceDate: sohState.sourceDate,
+      generatedAt: sohState.generatedAt,
+      lastSync: sohState.lastSync
+    });
 
-document.getElementById('sohBtnRefresh')?.addEventListener('click', () => {
-  const btn = document.getElementById('sohBtnRefresh');
-  if(btn) btn.classList.add('spin');
-  sohDoSync(false).finally(() => { if(btn) btn.classList.remove('spin'); });
-});
+    sohSetSyncStatus('ok', 'Tersambung · ' + sohFormatDate(sohState.sourceDate));
+    sohRenderPills();
+    sohRenderStats();
+    sohRenderList();
+    sohUpdateModalInfo();
 
-const sohOverlay = document.getElementById('sohOverlay');
-function sohOpenModal(){
-  document.getElementById('sohRefreshInterval').value = String(sohSettings.refreshInterval);
-  document.getElementById('sohLowThreshold').value = String(sohSettings.lowThreshold);
-  document.getElementById('sohInfoSourceDate').textContent = sohFormatReportDate(sohState.sourceDate) || '-';
-  document.getElementById('sohInfoGeneratedAt').textContent = sohState.generatedAt ? new Date(sohState.generatedAt).toLocaleString('id-ID') : '-';
-  document.getElementById('sohInfoLastCheck').textContent = sohState.lastCheck ? new Date(sohState.lastCheck).toLocaleTimeString('id-ID') : '-';
-  sohOverlay.classList.add('show');
-}
-function sohCloseModal(){ sohOverlay.classList.remove('show'); }
+    if (isManual) showToast('Data stock berhasil diperbarui ✓');
+  } catch (err) {
+    console.warn('Gagal memuat data.json, menggunakan cache lokal:', err);
+    
+    const cache = sohLoadJSON(SOH_LS_CACHE, null);
+    if (cache && cache.data) {
+      sohState.data = cache.data;
+      sohState.sourceDate = cache.sourceDate;
+      sohState.generatedAt = cache.generatedAt;
+      sohState.lastSync = cache.lastSync;
+      sohSetSyncStatus('warn', 'Offline (cache) · ' + sohFormatDate(sohState.sourceDate));
+    } else {
+      sohState.data = SOH_SEED_DATA;
+      sohSetSyncStatus('error', 'Gagal memuat data baru');
+    }
 
-document.getElementById('sohBtnSettings')?.addEventListener('click', sohOpenModal);
-document.getElementById('sohBtnCloseModal')?.addEventListener('click', sohCloseModal);
-document.getElementById('sohBtnCancel')?.addEventListener('click', sohCloseModal);
-sohOverlay?.addEventListener('click', e => { if(e.target === sohOverlay) sohCloseModal(); });
-
-document.querySelectorAll('#sohOverlay .tabbtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#sohOverlay .tabbtn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('#sohOverlay .tabpane').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelector(`#sohOverlay .tabpane[data-pane="${btn.dataset.tab}"]`).classList.add('active');
-  });
-});
-
-document.getElementById('sohBtnSaveSettings')?.addEventListener('click', async () => {
-  sohSettings.refreshInterval = Number(document.getElementById('sohRefreshInterval').value);
-  sohSettings.lowThreshold = Number(document.getElementById('sohLowThreshold').value);
-  sohSaveJSON(SOH_LS_KEY, sohSettings);
-  sohCloseModal();
-  sohScheduleAutoRefresh();
-  sohRender();
-});
-
-document.getElementById('sohBtnResetAll')?.addEventListener('click', () => {
-  if(!confirm('Yakin mau reset semua data & pengaturan tersimpan di perangkat ini?')) return;
-  localStorage.removeItem(SOH_LS_KEY);
-  localStorage.removeItem(SOH_LS_CACHE);
-  sohSettings = { refreshInterval:2, lowThreshold:3 };
-  sohState.data = SOH_SEED_DATA; sohState.lastSync = null; sohState.sourceDate = null; sohState.generatedAt = null; sohState.dataHash = null;
-  sohCloseModal();
-  sohRender();
-  showToast('Data & pengaturan sudah direset');
-  sohDoSync(true);
-});
-
-function sohScheduleAutoRefresh(){
-  if(sohRefreshTimer) clearInterval(sohRefreshTimer);
-  const mins = Number(sohSettings.refreshInterval) || 2;
-  sohRefreshTimer = setInterval(() => sohDoSync(false), mins * 60 * 1000);
-}
-
-document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible'){
-    const stale = !sohState.lastSync || (Date.now() - sohState.lastSync) > 60000;
-    if(stale) sohDoSync(false);
+    sohRenderPills();
+    sohRenderStats();
+    sohRenderList();
+    sohUpdateModalInfo();
+  } finally {
+    if (btnRefresh) btnRefresh.classList.remove('spin');
   }
-});
-setInterval(() => { sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok':'idle')); }, 15000);
+}
 
-(function initSoh(){
-  const cached = sohLoadJSON(SOH_LS_CACHE, null);
-  if(cached && cached.data && cached.data.length){
-    sohState.data = cached.data;
-    sohState.lastSync = cached.ts;
-    sohState.sourceDate = cached.sourceDate || null;
-    sohState.generatedAt = cached.generatedAt || null;
-    sohState.dataHash = cached.hash || null;
-    sohRender();
-  } else {
-    sohState.data = SOH_SEED_DATA;
-    sohRender();
+function sohUpdateModalInfo(){
+  const src = document.getElementById('sohInfoSourceDate');
+  const gen = document.getElementById('sohInfoGeneratedAt');
+  const chk = document.getElementById('sohInfoLastCheck');
+
+  if(src) src.textContent = sohFormatDate(sohState.sourceDate);
+  if(gen) gen.textContent = sohFormatDate(sohState.generatedAt);
+  if(chk) chk.textContent = sohFormatDate(sohState.lastCheck);
+}
+
+function sohSetupEvents(){
+  const searchInp = document.getElementById('sohSearchInput');
+  if(searchInp){
+    searchInp.oninput = (e) => {
+      sohState.search = e.target.value;
+      sohRenderList();
+    };
   }
-  sohScheduleAutoRefresh();
-  sohDoSync(true);
-})();
+
+  const sortSel = document.getElementById('sohSortSel');
+  if(sortSel){
+    sortSel.onchange = (e) => {
+      sohState.sort = e.target.value;
+      sohRenderList();
+    };
+  }
+
+  const btnAll = document.getElementById('sohStatAllBtn');
+  const btnUnit = document.getElementById('sohStatUnitBtn');
+  const btnLow = document.getElementById('sohStatLowBtn');
+
+  if(btnAll) btnAll.onclick = () => { sohState.stockFilter = 'all'; sohRenderStats(); sohRenderList(); };
+  if(btnUnit) btnUnit.onclick = () => { sohState.stockFilter = 'all'; sohRenderStats(); sohRenderList(); };
+  if(btnLow) btnLow.onclick = () => {
+    sohState.stockFilter = sohState.stockFilter === 'warn' ? 'all' : 'warn';
+    sohRenderStats();
+    sohRenderList();
+  };
+
+  const btnReset = document.getElementById('sohBtnResetFilter');
+  if(btnReset){
+    btnReset.onclick = () => {
+      sohState.search = '';
+      sohState.activeCat = 'Semua';
+      sohState.stockFilter = 'all';
+      if(searchInp) searchInp.value = '';
+      sohRenderPills();
+      sohRenderStats();
+      sohRenderList();
+    };
+  }
+
+  const btnRefresh = document.getElementById('sohBtnRefresh');
+  if(btnRefresh) btnRefresh.onclick = () => sohFetchData(true);
+
+  // Modal SOH
+  const overlay = document.getElementById('sohOverlay');
+  const btnSettings = document.getElementById('sohBtnSettings');
+  const btnClose = document.getElementById('sohBtnCloseModal');
+  const btnCancel = document.getElementById('sohBtnCancel');
+  const btnSave = document.getElementById('sohBtnSaveSettings');
+
+  if(btnSettings) btnSettings.onclick = () => {
+    document.getElementById('sohLowThreshold').value = sohSettings.lowThreshold;
+    document.getElementById('sohRefreshInterval').value = sohSettings.refreshInterval;
+    sohUpdateModalInfo();
+    overlay.classList.add('show');
+  };
+
+  const hideModal = () => overlay.classList.remove('show');
+  if(btnClose) btnClose.onclick = hideModal;
+  if(btnCancel) btnCancel.onclick = hideModal;
+
+  if(btnSave) btnSave.onclick = () => {
+    sohSettings.lowThreshold = parseInt(document.getElementById('sohLowThreshold').value, 10);
+    sohSettings.refreshInterval = parseFloat(document.getElementById('sohRefreshInterval').value);
+    sohSaveJSON(SOH_LS_KEY, sohSettings);
+    hideModal();
+    sohRenderStats();
+    sohRenderList();
+    sohResetTimer();
+    showToast('Preferensi SOH disimpan ✓');
+  };
+
+  // Tabs di modal SOH
+  const tabBtns = overlay ? overlay.querySelectorAll('.tabbtn') : [];
+  tabBtns.forEach(tb => {
+    tb.onclick = () => {
+      tabBtns.forEach(x => x.classList.remove('active'));
+      overlay.querySelectorAll('.tabpane').forEach(x => x.classList.remove('active'));
+      tb.classList.add('active');
+      const pane = overlay.querySelector(`[data-pane="${tb.dataset.tab}"]`);
+      if(pane) pane.classList.add('active');
+    };
+  });
+
+  const btnResetAll = document.getElementById('sohBtnResetAll');
+  if(btnResetAll){
+    btnResetAll.onclick = async () => {
+      const ok = await showConfirm('Reset semua cache dan pengaturan SOH Local?', 'Reset SOH');
+      if(ok){
+        localStorage.removeItem(SOH_LS_KEY);
+        localStorage.removeItem(SOH_LS_CACHE);
+        sohSettings = { refreshInterval: 2, lowThreshold: 3 };
+        hideModal();
+        sohFetchData(true);
+      }
+    };
+  }
+}
+
+function sohResetTimer(){
+  if (sohRefreshTimer) clearInterval(sohRefreshTimer);
+  const ms = sohSettings.refreshInterval * 60 * 1000;
+  sohRefreshTimer = setInterval(() => sohFetchData(false), ms);
+}
+
+// Inisialisasi SOH Engine saat halaman dimuat
+sohSetupEvents();
+sohFetchData(false);
+sohResetTimer();
+
 </script>
 </body>
 </html>
