@@ -3838,7 +3838,7 @@ document.getElementById('sohBtnRefresh')?.addEventListener('click', () => {
   sohDoSync(false).finally(() => { if(btn) btn.classList.remove('spin'); });
 });
 
-/* EVENT LISTENER TOMBOL PLAY AUTOMATION GITHUB ACTION (PERBAIKAN MISSING KEY) */
+/* EVENT LISTENER TOMBOL PLAY AUTOMATION GITHUB ACTION (PERBAIKAN LENGKAP PARAMETER DISPATCH) */
 document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
   const btn = document.getElementById('sohBtnPlay');
   if (!btn) return;
@@ -3852,7 +3852,9 @@ document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
       action: "triggerWorkflow",
       owner: "steeshigeo",
       repo: "M121-All-Activity",
-      workflow: "sync-onedrive.yml"
+      workflow: "sync-onedrive.yml",
+      ref: "main",
+      event_type: "sync-onedrive"
     };
 
     const res = await fetch(API_CHECKLIST_URL, {
@@ -3860,10 +3862,10 @@ document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
       body: JSON.stringify(payload)
     }).then(r => r.json());
 
-    if (res && (res.success || res.status === "ok" || res.status === 204)) {
+    if (res && (res.success || res.status === "ok" || res.status === 200 || res.status === 204)) {
       showToast("🚀 Automation GitHub berhasil dijalankan!");
-    } else if (res && res.error) {
-      showToast("❌ Gagal: " + res.error);
+    } else if (res && (res.error || res.message)) {
+      showToast("❌ Gagal: " + (res.error || res.message));
     } else {
       showToast("🚀 Automation GitHub berhasil dipicu!");
     }
