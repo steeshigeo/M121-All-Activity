@@ -3843,19 +3843,17 @@ document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
   const btn = document.getElementById('sohBtnPlay');
   if (!btn) return;
   btn.disabled = true;
-  btn.classList.add('spin');
+  btn.classList.add('spin');triggerGithub", // Disamakan dengan syarat di code.gs
   showToast("▶️ Menjalankan Automation GitHub...");
 
   try {
     const payload = {
-      key: "triggerWorkflow",
-      action: "triggerWorkflow",
-      owner: "steeshigeo",
-      repo: "M121-All-Activity",
-      workflow: "sync-onedrive.yml",
-      ref: "main",
-      event_type: "sync-onedrive"
-    };
+  action: "triggerGithub", // Disamakan dengan syarat di code.gs
+  owner: "steeshigeo",
+  repo: "M121-All-Activity",
+  workflow: "sync-onedrive.yml",
+  ref: "main"
+};
 
     const res = await fetch(API_CHECKLIST_URL, {
       method: "POST",
