@@ -1414,10 +1414,6 @@
           <span id="sohSyncLabel">Belum tersambung</span>
         </div>
         <div class="headerbtns" style="display:flex; align-items:center; gap:8px;">
-          <!-- Tombol Play Automation GitHub Action -->
-          <button class="iconbtn" id="sohBtnPlay" title="Jalankan Automation Sync GitHub">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M8 5v14l11-7z"/></svg>
-          </button>
           <button class="iconbtn" id="sohBtnRefresh" title="Sync sekarang">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
           </button>
@@ -3836,43 +3832,6 @@ document.getElementById('sohBtnRefresh')?.addEventListener('click', () => {
   const btn = document.getElementById('sohBtnRefresh');
   if(btn) btn.classList.add('spin');
   sohDoSync(false).finally(() => { if(btn) btn.classList.remove('spin'); });
-});
-
-/* EVENT LISTENER TOMBOL PLAY AUTOMATION GITHUB ACTION (PERBAIKAN LENGKAP PARAMETER DISPATCH) */
-document.getElementById('sohBtnPlay')?.addEventListener('click', async () => {
-  const btn = document.getElementById('sohBtnPlay');
-  if (!btn) return;
-  btn.disabled = true;
-  btn.classList.add('spin');triggerGithub", // Disamakan dengan syarat di code.gs
-  showToast("▶️ Menjalankan Automation GitHub...");
-
-  try {
-    const payload = {
-  action: "triggerGithub", // Disamakan dengan syarat di code.gs
-  owner: "steeshigeo",
-  repo: "M121-All-Activity",
-  workflow: "sync-onedrive.yml",
-  ref: "main"
-};
-
-    const res = await fetch(API_CHECKLIST_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-
-    if (res && (res.success || res.status === "ok" || res.status === 200 || res.status === 204)) {
-      showToast("🚀 Automation GitHub berhasil dijalankan!");
-    } else if (res && (res.error || res.message)) {
-      showToast("❌ Gagal: " + (res.error || res.message));
-    } else {
-      showToast("🚀 Automation GitHub berhasil dipicu!");
-    }
-  } catch (err) {
-    showToast("❌ Gagal menjalankan automation GitHub.");
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('spin');
-  }
 });
 
 const sohOverlay = document.getElementById('sohOverlay');
