@@ -1062,6 +1062,9 @@
           <button type="button" class="link-btn" onclick="resetLobUploaded()" style="margin-top:0; background:var(--danger-bg); border-color:var(--danger-border); color:var(--danger); flex:0 0 auto; width:auto; padding:0 16px;">
             ↺ Reset Staff Upload
           </button>
+          <button type="button" class="link-btn" id="openLobSettings" style="margin-top:0; flex:0 0 auto; width:auto; padding:0 16px;" title="Pengaturan LOB Champion">
+            ⚙️ Pengaturan
+          </button>
         </div>
 
         <form id="lob-upload-form" onsubmit="handleLobSubmit(event)">
@@ -1573,6 +1576,29 @@
   </div>
 </div>
 
+<div class="modal-bg" id="lobSettingsBg">
+  <div class="modal">
+    <h2>Pengaturan LOB Champion</h2>
+
+    <h3>Staff LOB Champion</h3>
+    <div id="lobStaffMgrList"></div>
+    <div class="inline-add" style="flex-direction:column; margin-top:8px;">
+      <input type="text" id="newLobStaffName" placeholder="Nama staff LOB">
+      <select id="newLobStaffProduct"></select>
+      <button id="addLobStaffBtn" style="padding:12px;">+ Tambah Staff</button>
+    </div>
+
+    <h3>Produk LOB</h3>
+    <div id="lobProductMgrList"></div>
+    <div class="inline-add" style="margin-top:8px;">
+      <input type="text" id="newLobProductName" placeholder="Nama produk baru">
+      <button id="addLobProductBtn">+</button>
+    </div>
+
+    <button class="modal-close" id="closeLobSettings">Selesai</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="confirmBg">
   <div class="modal">
     <h2 id="confirmTitle">Konfirmasi</h2>
@@ -1748,12 +1774,23 @@ function showToast(msg) {
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRPnMN_HYnvEttG9s160UEi0Qkco-M9NZe_SRJ1ph-qe8XydPCXdE_KO4H09ycY_P7/exec";
 const WA_GROUP_LINK = "https://chat.whatsapp.com/L2bw2jkTJ9v0VAErquBeLd?s=cl&p=i&mlu=4&ilr=4";
 
-const LOB_STAFF_LIST = [
-  "Moh Asfiyak Kamida (Apple Watch)",
-  "Achmad Rafi Kurnia T. (Mac)",
-  "Linda Indi Kusumanigrum (iPhone)",
-  "Hyskia Indra Aphista (iPad)"
-];
+// LOB Champion: staff + produk (bisa diatur dari tombol Pengaturan di LOB Champion Report)
+function defaultLobProducts(){ return ["Apple Watch","Mac","iPhone","iPad"]; }
+function defaultLobStaff(){
+  return [
+    {name:"Moh Asfiyak Kamida", product:"Apple Watch"},
+    {name:"Achmad Rafi Kurnia T.", product:"Mac"},
+    {name:"Linda Indi Kusumanigrum", product:"iPhone"},
+    {name:"Hyskia Indra Aphista", product:"iPad"}
+  ];
+}
+function lobStaffLabel(item){
+  return item.product ? `${item.name} (${item.product})` : item.name;
+}
+function getLobStaffList(){
+  const list = (typeof config !== "undefined" && config && Array.isArray(config.lobStaff)) ? config.lobStaff : defaultLobStaff();
+  return list.map(lobStaffLabel);
+}
 
 const photoNow = new Date();
 const photoDateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -2053,7 +2090,7 @@ async function handleLobSubmit(e) {
 
       const allUploaded = await fetchUploadedLobStaffs();
 
-      const pendingStaffs = LOB_STAFF_LIST.filter(staffItem => {
+      const pendingStaffs = getLobStaffList().filter(staffItem => {
         return !allUploaded.some(uploadedItem => isSameStaff(staffItem, uploadedItem));
       });
 
@@ -2269,6 +2306,8 @@ function defaultStaffEmails(){
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   if (!Array.isArray(cfg.staffEmails)) cfg.staffEmails = defaultStaffEmails();
+  if (!Array.isArray(cfg.lobProducts)) cfg.lobProducts = defaultLobProducts();
+  if (!Array.isArray(cfg.lobStaff)) cfg.lobStaff = defaultLobStaff();
   
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
@@ -2301,6 +2340,8 @@ function defaultConfig(){
   return {
     staff,
     staffEmails: defaultStaffEmails(),
+    lobProducts: defaultLobProducts(),
+    lobStaff: defaultLobStaff(),
     activities: [
       {id:"a1", name:"NPS", icon:"💫", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
@@ -3029,6 +3070,141 @@ document.getElementById("addEmailStaffBtn").addEventListener("click",()=>{
   pushConfig();
 });
 
+// --- PENGATURAN LOB CHAMPION (STAFF & PRODUK) ---
+function syncLobDropdown(){
+  const sel = document.getElementById("lobNamaStaff");
+  if(!sel) return;
+  const prev = sel.value;
+  const labels = getLobStaffList();
+  sel.innerHTML = '<option value="" disabled>Pilih Staff LOB Champion...</option>' +
+    labels.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
+  sel.value = labels.includes(prev) ? prev : "";
+}
+
+function lobProductOptions(selected){
+  return '<option value="">(tanpa produk)</option>' +
+    config.lobProducts.map(p=>`<option value="${escapeHtml(p)}"${p===selected?" selected":""}>${escapeHtml(p)}</option>`).join("");
+}
+
+function lobSettingsChanged(){
+  renderLobSettings();
+  syncLobDropdown();
+  pushConfig();
+}
+
+function renderLobSettings(){
+  // Staff
+  const sBox = document.getElementById("lobStaffMgrList");
+  sBox.innerHTML = "";
+  config.lobStaff.forEach((item, idx)=>{
+    const row = document.createElement("div");
+    row.className = "staff-email-item";
+    row.style.marginBottom = "8px";
+    row.innerHTML = `
+      <div class="staff-detail">
+        <div class="staff-name-text">${escapeHtml(item.name)}</div>
+        <select data-lobprod="${idx}" style="margin-top:6px; padding:6px 8px; font-size:12px;">${lobProductOptions(item.product)}</select>
+      </div>
+      <div class="staff-actions">
+        <button class="btn-copy-mini" data-lobedit="${idx}">✏️ Edit</button>
+        <button class="btn-copy-mini" data-lobdel="${idx}">🗑️ Hapus</button>
+      </div>`;
+    sBox.appendChild(row);
+  });
+  sBox.querySelectorAll("[data-lobprod]").forEach(sel=>sel.addEventListener("change",()=>{
+    config.lobStaff[Number(sel.dataset.lobprod)].product = sel.value;
+    lobSettingsChanged();
+  }));
+  sBox.querySelectorAll("[data-lobedit]").forEach(b=>b.addEventListener("click",()=>{
+    const i = Number(b.dataset.lobedit);
+    const name = prompt("Nama staff LOB:", config.lobStaff[i].name);
+    if(name === null || !name.trim()) return;
+    config.lobStaff[i].name = name.trim();
+    lobSettingsChanged();
+  }));
+  sBox.querySelectorAll("[data-lobdel]").forEach(b=>b.addEventListener("click", async ()=>{
+    const i = Number(b.dataset.lobdel);
+    const ok = await showConfirm(`Hapus "${config.lobStaff[i].name}" dari staff LOB Champion?`, "Hapus Staff LOB");
+    if(ok){
+      config.lobStaff.splice(i,1);
+      lobSettingsChanged();
+    }
+  }));
+
+  // Produk
+  const pBox = document.getElementById("lobProductMgrList");
+  pBox.innerHTML = "";
+  config.lobProducts.forEach((prod, idx)=>{
+    const row = document.createElement("div");
+    row.className = "staff-email-item";
+    row.style.marginBottom = "8px";
+    row.innerHTML = `
+      <div class="staff-detail"><div class="staff-name-text">${escapeHtml(prod)}</div></div>
+      <div class="staff-actions">
+        <button class="btn-copy-mini" data-prodedit="${idx}">✏️ Edit</button>
+        <button class="btn-copy-mini" data-proddel="${idx}">🗑️ Hapus</button>
+      </div>`;
+    pBox.appendChild(row);
+  });
+  pBox.querySelectorAll("[data-prodedit]").forEach(b=>b.addEventListener("click",()=>{
+    const i = Number(b.dataset.prodedit);
+    const oldName = config.lobProducts[i];
+    const val = prompt("Nama produk:", oldName);
+    if(val === null || !val.trim()) return;
+    const newName = val.trim();
+    if(newName !== oldName && config.lobProducts.includes(newName)) return;
+    config.lobProducts[i] = newName;
+    config.lobStaff.forEach(st=>{ if(st.product === oldName) st.product = newName; });
+    lobSettingsChanged();
+  }));
+  pBox.querySelectorAll("[data-proddel]").forEach(b=>b.addEventListener("click", async ()=>{
+    const i = Number(b.dataset.proddel);
+    const prod = config.lobProducts[i];
+    const used = config.lobStaff.filter(st=>st.product === prod).length;
+    const msg = used
+      ? `Hapus produk "${prod}"? ${used} staff yang memakai produk ini akan jadi tanpa produk.`
+      : `Hapus produk "${prod}"?`;
+    const ok = await showConfirm(msg, "Hapus Produk LOB");
+    if(ok){
+      config.lobProducts.splice(i,1);
+      config.lobStaff.forEach(st=>{ if(st.product === prod) st.product = ""; });
+      lobSettingsChanged();
+    }
+  }));
+
+  // Dropdown produk di form tambah staff
+  const addSel = document.getElementById("newLobStaffProduct");
+  const keep = addSel.value;
+  addSel.innerHTML = lobProductOptions(keep);
+}
+
+document.getElementById("openLobSettings").addEventListener("click",()=>{
+  renderLobSettings();
+  document.getElementById("lobSettingsBg").classList.add("open");
+});
+document.getElementById("closeLobSettings").addEventListener("click",()=>{
+  document.getElementById("lobSettingsBg").classList.remove("open");
+});
+document.getElementById("addLobStaffBtn").addEventListener("click",()=>{
+  const nameEl = document.getElementById("newLobStaffName");
+  const name = nameEl.value.trim();
+  if(!name) return;
+  config.lobStaff.push({name, product: document.getElementById("newLobStaffProduct").value});
+  nameEl.value = "";
+  lobSettingsChanged();
+});
+document.getElementById("addLobProductBtn").addEventListener("click",()=>{
+  const el = document.getElementById("newLobProductName");
+  const val = el.value.trim();
+  if(!val || config.lobProducts.includes(val)) return;
+  config.lobProducts.push(val);
+  el.value = "";
+  lobSettingsChanged();
+});
+document.getElementById("newLobProductName").addEventListener("keydown",(e)=>{
+  if(e.key === "Enter") document.getElementById("addLobProductBtn").click();
+});
+
 function renderSettingsChips(){
   const chips = document.getElementById("staffChips");
   chips.innerHTML = "";
@@ -3054,6 +3230,7 @@ function renderSettingsChips(){
 
 function renderAllChecklist(){
   syncStaffDropdowns();
+  syncLobDropdown();
   renderTrainerEmailList();
   renderDateBar();
   renderActivities();
