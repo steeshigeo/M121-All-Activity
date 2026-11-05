@@ -1182,32 +1182,27 @@ select#sohSortSel { border-radius: 10px; min-height: 44px; }
 .btn-action .ico, .link-btn .ico, .btn-copy-mini .ico { flex-shrink: 0; }
 
 /* ===== WOW layer: hero target harian, podium, confetti ===== */
-.hero{padding:18px 20px 14px;margin-bottom:12px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow)}
-.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hero{padding:12px 14px;margin-bottom:12px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow)}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hero-txt{min-width:0}
-.hero-greet{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
-.hero-sub{font-size:13px;color:var(--text-dim);margin-top:2px;font-weight:500}
-.ring{position:relative;width:76px;height:76px;flex-shrink:0}
+.hero-greet{font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.hero-sub{font-size:12.5px;color:var(--text-dim);margin-top:1px;font-weight:500}
+.ring{position:relative;width:48px;height:48px;flex-shrink:0}
 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.ring circle{fill:none;stroke-width:9;stroke-linecap:round}
 .ring-bg{stroke:var(--border)}
 .ring-fg{stroke:var(--brand);stroke-dasharray:213.63;stroke-dashoffset:213.63;transition:stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1),stroke .3s}
 .hero.done .ring-fg{stroke:var(--mint)}
-.ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
-.race-label{display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 6px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-faint)}
-.race{list-style:none;margin:0;padding:0}
-.race-row{display:grid;grid-template-columns:22px minmax(0,110px) 1fr 38px;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border)}
-.race-row:first-child{border-top:0}
-.race-rank{font-size:13px;font-weight:700;color:var(--text-faint);font-variant-numeric:tabular-nums}
-.race-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.race-bar{height:8px;border-radius:99px;background:var(--surface-soft);overflow:hidden}
-.race-bar i{display:block;height:100%;border-radius:99px;background:var(--brand);opacity:.45;width:0;transition:width .7s cubic-bezier(.2,.7,.2,1),opacity .3s}
-.race-row.lead .race-rank{color:var(--brand)}
-.race-row.lead .race-bar i{opacity:1}
-.race-n{font-size:14px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
-.race-empty{font-size:13px;color:var(--text-faint);padding:8px 0}
-.race-more{width:100%;margin-top:6px;border:0;border-top:1px solid var(--border);background:transparent;color:var(--sky);font:600 13px var(--font);min-height:44px;cursor:pointer;border-radius:0 0 10px 10px}
-.hero-pend{font-size:12px;color:var(--text-faint);margin-top:6px}
+.ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+.race{display:flex;align-items:center;gap:6px;margin-top:10px;padding-bottom:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.race::-webkit-scrollbar{display:none}
+.race-tag{flex-shrink:0;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-faint);margin-right:2px}
+.cap{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px 0 8px;border-radius:99px;border:1px solid var(--border);background:var(--surface-soft);font-size:13px;font-weight:600;white-space:nowrap}
+.cap b{font-size:11px;font-weight:700;color:var(--text-faint);font-variant-numeric:tabular-nums}
+.cap em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text-dim)}
+.cap.lead{background:var(--brand);border-color:var(--brand);color:#fff}
+.cap.lead b,.cap.lead em{color:rgba(255,255,255,.85)}
+.race-empty{font-size:12.5px;color:var(--text-faint)}
 #settingsNav{margin-top:auto;border-top:1px solid var(--border);border-radius:0;padding-top:8px}
 #openSettings{display:none}
 #podium{display:none;align-items:flex-end;justify-content:center;gap:10px;margin:6px 0 22px;padding:18px 10px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-soft)}
@@ -4559,19 +4554,16 @@ setInterval(() => { sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok
   const COND = ['OPEN STUDIO', 'EMS', 'TRAINING', 'ROLEPLAY'];
   const C = 2 * Math.PI * 34;
 
-  /* --- hero: target harian + balapan staff --- */
+  /* --- hero: target harian + balapan staff (ringkas) --- */
   const hero = document.createElement('div');
   hero.className = 'hero'; hero.id = 'heroCard';
   hero.innerHTML = '<div class="hero-top"><div class="hero-txt"><div class="hero-greet" id="heroGreet"></div><div class="hero-sub" id="heroSub"></div></div>' +
     '<div class="ring" role="img" aria-label="Progres target harian"><svg viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fg" id="ringFg" cx="40" cy="40" r="34"/></svg><div class="ring-num" id="ringNum">0%</div></div></div>' +
-    '<div class="race-label"><span>Balapan staff hari ini</span><span id="raceMeta"></span></div>' +
-    '<ol class="race" id="raceList"></ol><button type="button" class="race-more" id="raceMore" hidden></button>' +
-    '<div class="hero-pend" id="heroPend"></div>';
+    '<div class="race" id="raceList" aria-label="Balapan staff hari ini"></div>';
   const bar = document.querySelector('#viewChecklist .datebar');
   if (bar) bar.before(hero);
 
-  let prev = null, shown = 0, expanded = false;
-  const rows = new Map();
+  let prev = null, shown = 0;
   const short = n => { const p = n.split(' '); return p[0] + (p[1] ? ' ' + p[1][0] + '.' : ''); };
   function tween(el, to, fmt) {
     const from = shown, t0 = performance.now(), d = reduce ? 1 : 800;
@@ -4582,34 +4574,11 @@ setInterval(() => { sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok
     const totals = {};
     Object.values(dayData.counts || {}).forEach(o => Object.keys(o).forEach(n => { if (o[n] > 0) totals[n] = (totals[n] || 0) + o[n]; }));
     const list = Object.keys(totals).sort((a, b) => totals[b] - totals[a] || a.localeCompare(b));
-    const lead = list.length ? totals[list[0]] : 0;
-    const shownList = expanded ? list : list.slice(0, 5);
-    const ol = document.getElementById('raceList');
-    rows.forEach((li, n) => { if (!shownList.includes(n)) { li.remove(); rows.delete(n); } });
-    shownList.forEach((n, i) => {
-      let li = rows.get(n);
-      if (!li) {
-        li = document.createElement('li'); li.className = 'race-row';
-        li.innerHTML = '<span class="race-rank"></span><span class="race-name"></span><span class="race-bar"><i></i></span><span class="race-n"></span>';
-        rows.set(n, li);
-      }
-      li.classList.toggle('lead', i === 0);
-      li.children[0].textContent = i + 1;
-      li.children[1].textContent = short(n); li.children[1].title = n;
-      li.children[3].textContent = totals[n] + 'x';
-      ol.appendChild(li);
-      requestAnimationFrame(() => { li.querySelector('i').style.width = (lead ? totals[n] / lead * 100 : 0) + '%'; });
-    });
-    let empty = ol.querySelector('.race-empty');
-    if (!list.length) { if (!empty) { empty = document.createElement('li'); empty.className = 'race-empty'; ol.appendChild(empty); } empty.textContent = 'Belum ada yang mulai. Siapa yang jalan duluan?'; }
-    else if (empty) empty.remove();
-    const more = document.getElementById('raceMore');
-    more.hidden = list.length <= 5;
-    more.textContent = expanded ? 'Ringkas' : 'Lihat semua (' + list.length + ')';
-    const idle = (config.staff || []).filter(s => !totals[s]).length;
-    document.getElementById('raceMeta').textContent = list.length ? list.length + ' aktif' + (idle ? ' · ' + idle + ' belum' : '') : '';
+    const el = document.getElementById('raceList');
+    if (!list.length) { el.innerHTML = '<span class="race-tag">Balapan</span><span class="race-empty">Belum ada yang mulai</span>'; return; }
+    el.innerHTML = '<span class="race-tag">Balapan</span>' + list.map((n, i) =>
+      '<span class="cap' + (i === 0 ? ' lead' : '') + '" title="' + escapeHtml(n) + '"><b>' + (i + 1) + '</b>' + escapeHtml(short(n)) + '<em>' + totals[n] + 'x</em></span>').join('');
   }
-  document.getElementById('raceMore').addEventListener('click', () => { expanded = !expanded; renderRace(); });
 
   function updateHero() {
     if (typeof config === 'undefined' || !config.activities) return;
@@ -4620,20 +4589,38 @@ setInterval(() => { sohSetSyncUI(sohState.syncStatus || (sohState.lastSync ? 'ok
     const h = new Date().getHours();
     document.getElementById('heroGreet').textContent =
       (h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam') + ', Tim TP3';
-    document.getElementById('heroSub').textContent = pct === 100
-      ? 'Target hari ini tercapai. Mantap, tim!'
-      : done.length + ' dari ' + acts.length + ' aktivitas sudah jalan';
-    document.getElementById('heroPend').textContent = pend.length ? 'Belum: ' + pend.map(a => a.name).join(', ') : '';
+    const sub = document.getElementById('heroSub');
+    sub.textContent = pct === 100 ? 'Semua aktivitas udah jalan. Mantap tim!' : done.length + ' dari ' + acts.length + ' aktivitas sudah jalan';
+    sub.title = pend.length ? 'Belum: ' + pend.map(a => a.name).join(', ') : '';
     hero.classList.toggle('done', pct === 100);
     document.getElementById('ringFg').style.strokeDashoffset = C * (1 - pct / 100);
     tween(document.getElementById('ringNum'), pct, v => v + '%');
     renderRace();
-    if (prev !== null && prev < 100 && pct === 100) { confetti(); showToast('Target hari ini tercapai!'); }
+    if (prev !== null && prev < 100 && pct === 100) { confetti(); showToast('Semua aktivitas udah jalan!'); }
     prev = pct;
   }
   const origRender = window.renderAllChecklist;
   window.renderAllChecklist = function () { origRender.apply(this, arguments); updateHero(); };
   updateHero();
+
+  /* --- tema: default ikuti sistem, ikon menunjukkan mode aktif --- */
+  const TI = {
+    auto: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    dark: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+  };
+  const TL = { auto: 'Tema: ikuti sistem', light: 'Tema: terang', dark: 'Tema: gelap' };
+  const themeNow = () => { const p = localStorage.getItem(THEME_KEY); return TL[p] ? p : 'auto'; };
+  function syncThemeBtns() {
+    const p = themeNow();
+    document.querySelectorAll('[onclick="toggleGlobalTheme()"]').forEach(b => {
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + TI[p] + '</svg>';
+      b.title = TL[p]; b.setAttribute('aria-label', TL[p]);
+    });
+  }
+  const origTheme = window.toggleGlobalTheme;
+  window.toggleGlobalTheme = function () { origTheme(); syncThemeBtns(); showToast(TL[themeNow()]); };
+  syncThemeBtns();
 
   /* --- Pengaturan pindah ke sidebar --- */
   const nav = document.querySelector('.sidebar-nav');
