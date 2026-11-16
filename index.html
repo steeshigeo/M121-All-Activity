@@ -660,6 +660,10 @@
   .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
   .chip { display: flex; align-items: center; gap: 6px; background: var(--mint-soft); border-radius: 20px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--chip-text); }
   .chip button { background: none; border: none; color: var(--chip-text); font-size: 15px; cursor: pointer; }
+  .act-order-item { display: flex; align-items: center; gap: 10px; background: var(--surface-soft); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text); user-select: none; -webkit-user-select: none; }
+  .act-order-item.dragging { background: var(--mint-soft); box-shadow: 0 4px 14px rgba(0,0,0,0.18); opacity: 0.9; }
+  .act-order-handle { cursor: grab; touch-action: none; font-size: 20px; line-height: 1; padding: 6px 8px; color: var(--text-dim); }
+  .act-order-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .inline-add { display: flex; gap: 8px; margin-top: 4px; }
   .inline-add input { flex: 1; border-radius: 12px; }
   .inline-add button { background: var(--mint); border: none; color: #04150c; font-weight: 700; border-radius: 12px; padding: 0 18px; cursor: pointer; }
@@ -1622,6 +1626,9 @@
       <button id="addStaffBtn">+</button>
     </div>
     <button type="button" class="danger-btn" id="openEmailManager" style="margin-top:12px; background:var(--mint-soft); border-color:var(--mint); color:var(--chip-text);">✉️ Kelola Email Staff (Trainer Report)</button>
+    <h3>Urutan Aktivitas</h3>
+    <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">Tahan dan geser ikon ☰ untuk mengubah urutan aktivitas di Checklist Harian.</div>
+    <div id="actOrderList"></div>
     <h3>Teks pembuka</h3>
     <textarea id="openingText" rows="2"></textarea>
     <h3>Teks penutup</h3>
@@ -3222,6 +3229,63 @@ document.getElementById("newLobProductName").addEventListener("keydown",(e)=>{
   if(e.key === "Enter") document.getElementById("addLobProductBtn").click();
 });
 
+// --- URUTAN AKTIVITAS (DRAG & DROP) ---
+function renderActOrderList(){
+  const list = document.getElementById("actOrderList");
+  if(!list) return;
+  list.innerHTML = "";
+  config.activities.forEach(act=>{
+    const row = document.createElement("div");
+    row.className = "act-order-item";
+    row.dataset.id = act.id;
+    row.innerHTML = `<span class="act-order-handle" title="Geser untuk mengurutkan">☰</span><span class="act-order-name">${escapeHtml((act.icon || "📌") + " " + act.name)}</span>`;
+    list.appendChild(row);
+
+    const handle = row.querySelector(".act-order-handle");
+    handle.addEventListener("pointerdown", e=>{
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      row.classList.add("dragging");
+      const scroller = list.closest(".modal");
+      const beforeOrder = [...list.children].map(c=>c.dataset.id).join("|");
+
+      const move = ev=>{
+        const y = ev.clientY;
+        let before = null;
+        for(const sib of [...list.children]){
+          if(sib === row) continue;
+          const r = sib.getBoundingClientRect();
+          if(y < r.top + r.height/2){ before = sib; break; }
+        }
+        if(before !== row.nextSibling) list.insertBefore(row, before);
+        if(scroller){
+          const sr = scroller.getBoundingClientRect();
+          if(y < sr.top + 40) scroller.scrollTop -= 12;
+          else if(y > sr.bottom - 40) scroller.scrollTop += 12;
+        }
+      };
+      const end = ()=>{
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", end);
+        handle.removeEventListener("pointercancel", end);
+        row.classList.remove("dragging");
+        const ids = [...list.children].map(c=>c.dataset.id);
+        if(ids.join("|") !== beforeOrder){
+          const byId = new Map(config.activities.map(a=>[a.id, a]));
+          const reordered = ids.map(id=>byId.get(id)).filter(Boolean);
+          config.activities.forEach(a=>{ if(!reordered.includes(a)) reordered.push(a); });
+          config.activities = reordered;
+          renderAllChecklist();
+          pushConfig();
+        }
+      };
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", end);
+      handle.addEventListener("pointercancel", end);
+    });
+  });
+}
+
 function renderSettingsChips(){
   const chips = document.getElementById("staffChips");
   chips.innerHTML = "";
@@ -3314,6 +3378,7 @@ document.getElementById("autoBtn").addEventListener("click", async ()=>{
 
 document.getElementById("openSettings").addEventListener("click",()=>{
   renderSettingsChips();
+  renderActOrderList();
   document.getElementById("modalBg").classList.add("open");
 });
 document.getElementById("closeSettings").addEventListener("click",()=>{
