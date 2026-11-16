@@ -1185,27 +1185,7 @@
         <div class="section-label">Link Report Dan Lain-Lain</div>
 
         <!-- Daftar Link Pendukung Trainer -->
-        <div style="margin-bottom: 24px; display:flex; flex-direction:column; gap:10px;">
-          <a href="https://forms.gle/CkiXCACKnaPsQF6Q8" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Submit Plan & Result
-          </a>
-          <a href="https://docs.google.com/spreadsheets/d/18iSGzacN6ioLUM5JN-CEWRGkt__FEx_oCchE9U9dCnc/edit?usp=sharing" target="_blank" class="link-btn" style="margin-top:0;">
-            📊 Dashboard PNR Tracking ST Q1-Q4 2026
-          </a>
-          <a href="https://docs.google.com/spreadsheets/d/1FeRMw7L9gVfnfOHW792mlNtXe9GKuFnTKjIQZmM3NYE/edit?gid=1558849716#gid=1558849716" target="_blank" class="link-btn" style="margin-top:0;">
-            📊 Dashboard Training East Region
-          </a>
-          <a href="https://ztevejob.github.io/dailymapclub/#" target="_blank" class="link-btn" style="margin-top:0; flex-direction:column; gap:2px;">
-            <span>🌐 Dashboard Mapclub Timur</span>
-            <span style="font-size:11px; font-weight:500; opacity:0.85;">User: Kode Toko | Pass: maptech</span>
-          </a>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9sQXnpz9Js8LD3xl6dWqhfydo1BJr6Vk91-vgnYBqm_EtmA/viewform?pli=1" target="_blank" class="link-btn" style="margin-top:0;">
-            🔗 Submit Weekly Activity Apple Watch
-          </a>
-          <a href="https://docs.google.com/spreadsheets/d/1WhYyHN8gu6QFtoeGVzDpgGQfuv3B74Bc894oFCwrJ_8/edit?usp=sharing" target="_blank" class="link-btn" style="margin-top:0;">
-            🗑️ Deleted Seed Request
-          </a>
-        </div>
+        <div id="trainerLinkList" style="margin-bottom: 24px; display:flex; flex-direction:column; gap:10px;"></div>
 
         <!-- Garis Pemisah -->
         <hr style="border:none; border-top:1px solid var(--border); margin: 24px 0;">
@@ -1605,6 +1585,22 @@
   </div>
 </div>
 
+<div class="modal-bg" id="linkMgrBg">
+  <div class="modal">
+    <h2>Link Report Dan Lain-Lain</h2>
+    <div id="linkMgrList"></div>
+    <h3>Tambah Link</h3>
+    <div class="inline-add" style="flex-direction:column;">
+      <input type="text" id="newLinkIcon" placeholder="Icon/emoji (contoh: 🔗)">
+      <input type="text" id="newLinkTitle" placeholder="Judul link">
+      <input type="url" id="newLinkUrl" placeholder="URL (https://...)">
+      <input type="text" id="newLinkNote" placeholder="Keterangan kecil (opsional)">
+      <button id="addLinkBtn" style="padding:12px;">+ Tambah</button>
+    </div>
+    <button class="modal-close" id="closeLinkMgr">Selesai</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="confirmBg">
   <div class="modal">
     <h2 id="confirmTitle">Konfirmasi</h2>
@@ -1626,6 +1622,7 @@
       <button id="addStaffBtn">+</button>
     </div>
     <button type="button" class="danger-btn" id="openEmailManager" style="margin-top:12px; background:var(--mint-soft); border-color:var(--mint); color:var(--chip-text);">✉️ Kelola Email Staff (Trainer Report)</button>
+    <button type="button" class="danger-btn" id="openLinkManager" style="margin-top:10px; background:var(--mint-soft); border-color:var(--mint); color:var(--chip-text);">🔗 Kelola Link Report (Trainer Report)</button>
     <h3>Urutan Aktivitas</h3>
     <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">Tahan dan geser ikon ☰ untuk mengubah urutan aktivitas di Checklist Harian.</div>
     <div id="actOrderList"></div>
@@ -2313,11 +2310,23 @@ function defaultStaffEmails(){
   ];
 }
 
+function defaultTrainerLinks(){
+  return [
+    {icon:"🔗", title:"Submit Plan & Result", url:"https://forms.gle/CkiXCACKnaPsQF6Q8", note:""},
+    {icon:"📊", title:"Dashboard PNR Tracking ST Q1-Q4 2026", url:"https://docs.google.com/spreadsheets/d/18iSGzacN6ioLUM5JN-CEWRGkt__FEx_oCchE9U9dCnc/edit?usp=sharing", note:""},
+    {icon:"📊", title:"Dashboard Training East Region", url:"https://docs.google.com/spreadsheets/d/1FeRMw7L9gVfnfOHW792mlNtXe9GKuFnTKjIQZmM3NYE/edit?gid=1558849716#gid=1558849716", note:""},
+    {icon:"🌐", title:"Dashboard Mapclub Timur", url:"https://ztevejob.github.io/dailymapclub/#", note:"User: Kode Toko | Pass: maptech"},
+    {icon:"🔗", title:"Submit Weekly Activity Apple Watch", url:"https://docs.google.com/forms/d/e/1FAIpQLSd9sQXnpz9Js8LD3xl6dWqhfydo1BJr6Vk91-vgnYBqm_EtmA/viewform?pli=1", note:""},
+    {icon:"🗑️", title:"Deleted Seed Request", url:"https://docs.google.com/spreadsheets/d/1WhYyHN8gu6QFtoeGVzDpgGQfuv3B74Bc894oFCwrJ_8/edit?usp=sharing", note:""}
+  ];
+}
+
 function sanitizeConfig(cfg) {
   if (!cfg || !cfg.activities) return cfg;
   if (!Array.isArray(cfg.staffEmails)) cfg.staffEmails = defaultStaffEmails();
   if (!Array.isArray(cfg.lobProducts)) cfg.lobProducts = defaultLobProducts();
   if (!Array.isArray(cfg.lobStaff)) cfg.lobStaff = defaultLobStaff();
+  if (!Array.isArray(cfg.trainerLinks)) cfg.trainerLinks = defaultTrainerLinks();
   
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
@@ -2351,6 +2360,7 @@ function defaultConfig(){
     staffEmails: defaultStaffEmails(),
     lobProducts: defaultLobProducts(),
     lobStaff: defaultLobStaff(),
+    trainerLinks: defaultTrainerLinks(),
     activities: [
       {id:"a1", name:"NPS", icon:"💫", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
       {id:"a2", name:"NEW MAPCLUB", icon:"🗺️", link:"https://docs.google.com/forms/d/e/1FAIpQLSfDm-GxddcdLdITucVsHNJiOH8BqsA0XceNrYv8qr4LxaXudw/viewform?usp=dialog"},
@@ -3229,6 +3239,103 @@ document.getElementById("newLobProductName").addEventListener("keydown",(e)=>{
   if(e.key === "Enter") document.getElementById("addLobProductBtn").click();
 });
 
+// --- LINK REPORT DAN LAIN-LAIN (TRAINER REPORT) ---
+function normalizeLinkUrl(u){
+  u = (u || "").trim();
+  return /^https?:\/\//i.test(u) ? u : "https://" + u;
+}
+
+function renderTrainerLinks(){
+  const box = document.getElementById("trainerLinkList");
+  if(!box) return;
+  box.innerHTML = "";
+  (config.trainerLinks || []).forEach(item=>{
+    const a = document.createElement("a");
+    a.href = item.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.className = "link-btn";
+    a.style.marginTop = "0";
+    if(item.note){ a.style.flexDirection = "column"; a.style.gap = "2px"; }
+    const label = `${item.icon ? item.icon + " " : ""}${item.title}`;
+    a.innerHTML = item.note
+      ? `<span>${escapeHtml(label)}</span><span style="font-size:11px; font-weight:500; opacity:0.85;">${escapeHtml(item.note)}</span>`
+      : escapeHtml(label);
+    box.appendChild(a);
+  });
+}
+
+function renderLinkManager(){
+  const box = document.getElementById("linkMgrList");
+  box.innerHTML = "";
+  (config.trainerLinks || []).forEach((item, idx)=>{
+    const row = document.createElement("div");
+    row.className = "staff-email-item";
+    row.style.marginBottom = "8px";
+    row.innerHTML = `
+      <div class="staff-detail">
+        <div class="staff-name-text">${escapeHtml((item.icon ? item.icon + " " : "") + item.title)}</div>
+        <div class="staff-email-text" style="word-break:break-all;">${escapeHtml(item.url)}</div>
+        ${item.note ? `<div class="staff-email-text">${escapeHtml(item.note)}</div>` : ""}
+      </div>
+      <div class="staff-actions">
+        <button class="btn-copy-mini" data-linkedit="${idx}">✏️ Edit</button>
+        <button class="btn-copy-mini" data-linkdel="${idx}">🗑️ Hapus</button>
+      </div>`;
+    box.appendChild(row);
+  });
+  box.querySelectorAll("[data-linkedit]").forEach(b=>b.addEventListener("click",()=>{
+    const i = Number(b.dataset.linkedit);
+    const cur = config.trainerLinks[i];
+    const title = prompt("Judul link:", cur.title);
+    if(title === null || !title.trim()) return;
+    const url = prompt("URL:", cur.url);
+    if(url === null || !url.trim()) return;
+    const icon = prompt("Icon/emoji (kosongkan jika tidak ada):", cur.icon || "");
+    if(icon === null) return;
+    const note = prompt("Keterangan kecil (kosongkan jika tidak ada):", cur.note || "");
+    if(note === null) return;
+    config.trainerLinks[i] = {icon:icon.trim(), title:title.trim(), url:normalizeLinkUrl(url), note:note.trim()};
+    renderLinkManager();
+    renderTrainerLinks();
+    pushConfig();
+  }));
+  box.querySelectorAll("[data-linkdel]").forEach(b=>b.addEventListener("click", async ()=>{
+    const i = Number(b.dataset.linkdel);
+    const ok = await showConfirm(`Hapus link "${config.trainerLinks[i].title}"?`, "Hapus Link");
+    if(ok){
+      config.trainerLinks.splice(i,1);
+      renderLinkManager();
+      renderTrainerLinks();
+      pushConfig();
+    }
+  }));
+}
+
+document.getElementById("openLinkManager").addEventListener("click",()=>{
+  document.getElementById("closeSettings").click();
+  renderLinkManager();
+  document.getElementById("linkMgrBg").classList.add("open");
+});
+document.getElementById("closeLinkMgr").addEventListener("click",()=>{
+  document.getElementById("linkMgrBg").classList.remove("open");
+});
+document.getElementById("addLinkBtn").addEventListener("click",()=>{
+  const iconEl = document.getElementById("newLinkIcon");
+  const titleEl = document.getElementById("newLinkTitle");
+  const urlEl = document.getElementById("newLinkUrl");
+  const noteEl = document.getElementById("newLinkNote");
+  const title = titleEl.value.trim();
+  const url = urlEl.value.trim();
+  if(!title || !url) return;
+  if(!config.trainerLinks) config.trainerLinks = [];
+  config.trainerLinks.push({icon:iconEl.value.trim(), title, url:normalizeLinkUrl(url), note:noteEl.value.trim()});
+  iconEl.value = titleEl.value = urlEl.value = noteEl.value = "";
+  renderLinkManager();
+  renderTrainerLinks();
+  pushConfig();
+});
+
 // --- URUTAN AKTIVITAS (DRAG & DROP) ---
 function renderActOrderList(){
   const list = document.getElementById("actOrderList");
@@ -3313,6 +3420,7 @@ function renderAllChecklist(){
   syncStaffDropdowns();
   syncLobDropdown();
   renderTrainerEmailList();
+  renderTrainerLinks();
   renderDateBar();
   renderActivities();
   renderPreview();
