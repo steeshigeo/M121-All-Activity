@@ -1023,6 +1023,8 @@
               <option value="" disabled selected>Pilih Tujuan...</option>
               <option value="Try On Aksara">📁 Try On Aksara</option>
               <option value="Try On Samudra">📁 Try On Samudra</option>
+              <option value="Try On Nirwana">📁 Try On Nirwana</option>
+              <option value="Try On Cakrawala">📁 Try On Cakrawala</option>
             </select>
           </div>
 
@@ -1839,11 +1841,12 @@ function recordExternalActivityToAnalytics(actName, rawStaffName) {
     cleanActName = cleanActName.replace("TRY ON ", "");
   }
 
-  if (cleanActName.includes("LOB CHAMPION") || cleanActName.includes("CAKRAWALA")) {
+  if (cleanActName.includes("LOB CHAMPION")) {
     return;
   }
 
-  let actObj = config.activities.find(a => a.name.toUpperCase() === cleanActName);
+  const normActName = s => s.toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim();
+  let actObj = config.activities.find(a => a.name.toUpperCase() === cleanActName || normActName(a.name) === cleanActName);
   if (!actObj) {
     actObj = { id: "a_ext_" + Date.now(), name: cleanActName, icon: "📁", link: "" };
     config.activities.push(actObj);
@@ -2311,8 +2314,7 @@ function sanitizeConfig(cfg) {
   
   cfg.activities = cfg.activities.filter(a => {
     const nameUpper = a.name.toUpperCase();
-    return !nameUpper.includes("LOB CHAMPION") &&
-           !nameUpper.includes("CAKRAWALA");
+    return !nameUpper.includes("LOB CHAMPION");
   });
 
   cfg.activities.forEach(a => {
@@ -3512,7 +3514,6 @@ function processAndRenderSummaryData(targetDates) {
           }
         }
 
-        if (actName.includes("CAKRAWALA")) return;
         if (actName.includes("AKSARA")) actName = "AKSARA";
         if (actName.includes("SAMUDERA") || actName.includes("SAMUDRA")) actName = "SAMUDERA";
 
