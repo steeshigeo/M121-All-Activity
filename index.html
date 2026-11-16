@@ -2565,6 +2565,7 @@ async function flushCounts(){
 
 const CONFIG_DIRTY_KEY = "digimap_checklist_config_dirty";
 async function pushConfig(){
+  config.updatedAt = Date.now();
   saveConfigLocal(config);
   configDirty = true;
   try{ localStorage.setItem(CONFIG_DIRTY_KEY, "1"); }catch(e){}
@@ -2620,11 +2621,16 @@ async function initChecklist(){
 
     if(rawConfig){
       // Jika ada perubahan lokal yang belum tersimpan ke server, jangan ditimpa data server lama
+      let remoteCfg = null;
+      try{ remoteCfg = JSON.parse(rawConfig); }catch(e){}
       const localUnsynced = configDirty || localStorage.getItem(CONFIG_DIRTY_KEY) === "1";
-      if(localUnsynced){
+      const localTs = (config && config.updatedAt) || 0;
+      const remoteTs = (remoteCfg && remoteCfg.updatedAt) || 0;
+      if(!remoteCfg || localUnsynced || localTs > remoteTs){
+        // Data lokal lebih baru dari server (server lama / gagal simpan / cache) -> pertahankan lokal & kirim ulang
         pushConfig();
       } else {
-        config = sanitizeConfig(JSON.parse(rawConfig));
+        config = sanitizeConfig(remoteCfg);
         saveConfigLocal(config);
       }
     }
@@ -3347,6 +3353,8 @@ document.getElementById("resetConfigBtn").addEventListener("click", async ()=>{
   );
   if(ok){
     config = defaultConfig();
+    config.updatedAt = Date.now();
+    saveConfigLocal(config);
     document.getElementById("modalBg").classList.remove("open");
     renderAllChecklist();
     renderSettingsChips();
