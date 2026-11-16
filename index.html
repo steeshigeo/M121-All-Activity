@@ -922,6 +922,10 @@
       </button>
     </nav>
 
+    <button class="nav-item" id="openSettings" title="Pengaturan" style="margin-bottom:14px;">
+      ⚙️ Pengaturan
+    </button>
+
     <div class="sidebar-footer">
       made with <span>❤️</span> by frans
     </div>
@@ -950,7 +954,6 @@
         <div class="topbar-right">
           <div class="sync-pill saved" id="syncPill"><span class="sync-dot"></span> Tersimpan</div>
           <button class="theme-toggle-btn" id="refreshChecklist" title="Refresh Data Checklist">🔄</button>
-          <button class="theme-toggle-btn" id="openSettings" title="Pengaturan">⚙️</button>
         </div>
       </div>
 
@@ -3483,6 +3486,7 @@ document.getElementById("autoBtn").addEventListener("click", async ()=>{
 });
 
 document.getElementById("openSettings").addEventListener("click",()=>{
+  closeSidebar();
   renderSettingsChips();
   renderActOrderList();
   document.getElementById("modalBg").classList.add("open");
