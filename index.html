@@ -2563,13 +2563,16 @@ async function flushCounts(){
   }
 }
 
+const CONFIG_DIRTY_KEY = "digimap_checklist_config_dirty";
 async function pushConfig(){
   saveConfigLocal(config);
   configDirty = true;
+  try{ localStorage.setItem(CONFIG_DIRTY_KEY, "1"); }catch(e){}
   setStatus("saving");
   try{
     await remoteSet(REMOTE_CONFIG_KEY, config);
     configDirty = false;
+    try{ localStorage.removeItem(CONFIG_DIRTY_KEY); }catch(e){}
     setStatus("saved");
   }catch(e){ setStatus("offline"); }
 }
@@ -2616,8 +2619,14 @@ async function initChecklist(){
     ]);
 
     if(rawConfig){
-      config = sanitizeConfig(JSON.parse(rawConfig));
-      saveConfigLocal(config);
+      // Jika ada perubahan lokal yang belum tersimpan ke server, jangan ditimpa data server lama
+      const localUnsynced = configDirty || localStorage.getItem(CONFIG_DIRTY_KEY) === "1";
+      if(localUnsynced){
+        pushConfig();
+      } else {
+        config = sanitizeConfig(JSON.parse(rawConfig));
+        saveConfigLocal(config);
+      }
     }
     if(rawData){
       const remoteData = JSON.parse(rawData);
